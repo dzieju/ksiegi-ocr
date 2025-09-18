@@ -5,7 +5,7 @@ import threading
 import queue
 import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from exchangelib import errors
+from exchangelib import errors, Q
 
 
 class SearchManager:
@@ -165,6 +165,12 @@ class EmailSearcher:
     def _collect_pdf_attachments(self, folders_to_search, date_from, date_to, 
                                 seen_filenames, attachment_counter):
         """Collect all PDF attachments from specified folders."""
+        from datetime import timezone
+        # Upewnij się, że daty są timezone-aware
+        if date_from and date_from.tzinfo is None:
+            date_from = date_from.replace(tzinfo=timezone.utc)
+        if date_to and date_to.tzinfo is None:
+            date_to = date_to.replace(tzinfo=timezone.utc)
         all_attachments = []
         
         for folder in folders_to_search:
@@ -176,7 +182,14 @@ class EmailSearcher:
             self.search_manager.progress_queue.put(f"Skanowanie folderu: {folder_path}")
             
             try:
-                for item in folder.all().order_by("-datetime_received"):
+                # SERVER-SIDE FILTERING BY DATE (efficient)
+                query = Q()
+                if date_from:
+                    query &= Q(datetime_received__gte=date_from)
+                if date_to:
+                    query &= Q(datetime_received__lt=date_to)
+
+                for item in folder.all().filter(query).order_by("-datetime_received"):
                     if self.search_manager.search_cancelled:
                         break
                         
@@ -185,12 +198,7 @@ class EmailSearcher:
                     # LOGUJ wartości daty maila oraz zakres
                     print(f"Mail: '{item.subject}' ({dt}) | Zakres: {date_from} - {date_to}")
 
-                    if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
-                        print(f"POMIJAM (przed zakresem): {dt}")
-                        continue
-                    if date_to and dt >= date_to.replace(tzinfo=dt.tzinfo):
-                        print(f"POMIJAM (poza zakresem): {dt}")
-                        continue
+                    # Tu już nie trzeba sprawdzać zakresu, bo filtruje serwer!
 
                     for att in item.attachments:
                         if self.search_manager.search_cancelled:
