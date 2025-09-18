@@ -2,3 +2,5 @@ exchangelib
 pdfplumber
 pdfminer.six
 tkcalendar
+pdf2image
+pillow
