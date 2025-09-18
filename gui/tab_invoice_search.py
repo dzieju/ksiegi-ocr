@@ -1,30 +1,29 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-import json
 import os
 import shutil
-import subprocess
 from datetime import datetime, timedelta, date
-from exchangelib import Credentials, Account, Configuration, DELEGATE, errors
-import pdfplumber
 from tkcalendar import DateEntry
-import traceback
-import pdfminer
-import threading
-import queue
-from concurrent.futures import ThreadPoolExecutor, as_completed
-import time
 
-CONFIG_FILE = "exchange_config.json"
-STATE_FILE = "invoice_search_state.json"
+# Import our new modules
+from mail.exchange_utils import ExchangeConnection
+from mail.search_utils import EmailSearcher
+from pdf.pdf_utils import PDFProcessor
+from utils.state_utils import ApplicationStateManager
+
 TEMP_FOLDER = "temp_invoices"
-
-FOLDER_NAMES = ["inbox", "sent", "drafts", "junk", "deleted_items", "archive"]
 
 class InvoiceSearchTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        # Initialize utility classes
+        self.exchange_connection = ExchangeConnection()
+        self.pdf_processor = PDFProcessor()
+        self.email_searcher = EmailSearcher(self.exchange_connection, self.pdf_processor)
+        self.state_manager = ApplicationStateManager()
+
+        # GUI variables
         self.nip_var = tk.StringVar()
         self.folder_var = tk.StringVar()
         self.target_folder_var = tk.StringVar()
@@ -38,13 +37,6 @@ class InvoiceSearchTab(ttk.Frame):
 
         self.results = []
         self.matched_items = []
-
-        # Threading support variables
-        self.search_cancelled = False
-        self.search_executor = None
-        self.result_queue = queue.Queue()
-        self.progress_queue = queue.Queue()
-        self.search_thread = None
 
         ttk.Label(self, text="Podaj NIP do wyszukania:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self, textvariable=self.nip_var, width=30).grid(row=0, column=1, padx=5, pady=5)
@@ -166,38 +158,33 @@ class InvoiceSearchTab(ttk.Frame):
 
     def toggle_search(self):
         """Toggle between starting and cancelling search"""
-        if self.search_thread and self.search_thread.is_alive():
+        if self.email_searcher.search_manager.is_search_active():
             self.cancel_search()
         else:
             self.search_invoices()
 
     def cancel_search(self):
         """Cancel ongoing search"""
-        self.search_cancelled = True
-        if self.search_executor:
-            self.search_executor.shutdown(wait=False)
+        self.email_searcher.search_manager.cancel_search()
         self.progress_label.config(text="Anulowanie...")
         self.search_button.config(text="Szukaj faktur")
 
     def _process_result_queue(self):
         """Process results from worker threads"""
         try:
-            while True:
-                try:
-                    result = self.result_queue.get_nowait()
-                    if result['type'] == 'match_found':
-                        self.tree.insert(
-                            "",
-                            "end",
-                            values=(result['subject'], result['date'], result['local_path'], result['folder_path'])
-                        )
-                        self.results.append(result['local_path'])
-                        self.matched_items.append(result['item'])
-                    elif result['type'] == 'search_complete':
-                        self.search_button.config(text="Szukaj faktur")
-                        self.progress_label.config(text=f"Zakończono. Znaleziono {len(self.results)} wyników.")
-                except queue.Empty:
-                    break
+            results = self.email_searcher.search_manager.get_results()
+            for result in results:
+                if result['type'] == 'match_found':
+                    self.tree.insert(
+                        "",
+                        "end",
+                        values=(result['subject'], result['date'], result['local_path'], result['folder_path'])
+                    )
+                    self.results.append(result['local_path'])
+                    self.matched_items.append(result['item'])
+                elif result['type'] == 'search_complete':
+                    self.search_button.config(text="Szukaj faktur")
+                    self.progress_label.config(text=f"Zakończono. Znaleziono {len(self.results)} wyników.")
         except Exception as e:
             print(f"Błąd przetwarzania kolejki wyników: {e}")
         
@@ -207,132 +194,19 @@ class InvoiceSearchTab(ttk.Frame):
     def _process_progress_queue(self):
         """Process progress updates from worker threads"""
         try:
-            while True:
-                try:
-                    progress = self.progress_queue.get_nowait()
-                    self.progress_label.config(text=progress)
-                except queue.Empty:
-                    break
+            updates = self.email_searcher.search_manager.get_progress_updates()
+            for progress in updates:
+                self.progress_label.config(text=progress)
         except Exception as e:
             print(f"Błąd przetwarzania kolejki postępu: {e}")
         
         # Schedule next check
         self.after(100, self._process_progress_queue)
 
-    def _process_pdf_attachment(self, att, item, folder_path, nip, seen_filenames, attachment_counter):
-        """Process a single PDF attachment in a worker thread"""
-        if self.search_cancelled:
-            return None
-
-        try:
-            print(f"Załącznik: {att.name}")
-            if not att.name.lower().endswith(".pdf"):
-                return None
-
-            if att.name in seen_filenames:
-                return None
-            seen_filenames.add(att.name)
-
-            # Update progress
-            self.progress_queue.put(f"Przetwarzanie załącznika {attachment_counter}: {att.name}")
-
-            local_path = os.path.join(TEMP_FOLDER, att.name)
-            try:
-                with open(local_path, "wb") as f:
-                    f.write(att.content)
-
-                if os.path.getsize(local_path) < 100:
-                    print(f"Pominięto załącznik (za mały): {att.name}")
-                    os.remove(local_path)
-                    return None
-
-                print(f"Otwieram PDF: {att.name}")
-
-                try:
-                    pdf = pdfplumber.open(local_path)
-                    full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-                    pdf.close()
-                except (pdfminer.pdfdocument.PDFPasswordIncorrect,
-                        pdfminer.pdfparser.PDFSyntaxError,
-                        pdfplumber.utils.PdfminerException,
-                        Exception) as ex:
-                    print(f"Błąd przy czytaniu PDF: {att.name}, wyjątek: {ex}")
-                    try:
-                        os.remove(local_path)
-                    except Exception as e2:
-                        print(f"Błąd usuwania pliku PDF: {e2}")
-                    return None
-
-                if nip in full_text:
-                    print(f"ZNALEZIONO NIP w załączniku: {att.name}")
-                    return {
-                        'type': 'match_found',
-                        'subject': item.subject,
-                        'date': item.datetime_received.date(),
-                        'local_path': local_path,
-                        'folder_path': folder_path,
-                        'item': item
-                    }
-                else:
-                    print(f"NIP NIE ZNALEZIONY w załączniku: {att.name}")
-                    os.remove(local_path)
-                    return None
-
-            except Exception as e:
-                print(f"Błąd obsługi załącznika {att.name}: {e}")
-                try:
-                    os.remove(local_path)
-                except Exception as e2:
-                    print(f"Błąd usuwania pliku PDF: {e2}")
-                return None
-
-        except Exception as e:
-            print(f"Błąd przetwarzania załącznika {att.name}: {e}")
-            return None
-
-    def get_folder_path(self, folder):
-        names = []
-        while folder and hasattr(folder, "name") and folder.name:
-            names.append(folder.name)
-            folder = folder.parent
-        return "/".join(reversed(names))
-
-    def get_user_folders(self, root_folder, prefix=""):
-        """
-        Rekurencyjnie buduje listę nazw folderów użytkownika (ścieżki np. 'Odebrane/Faktury')
-        """
-        folders = []
-        display_name = f"{prefix}{root_folder.name}"
-        folders.append(display_name)
-        # children może być pusty, więc trzeba sprawdzić
-        try:
-            for child in root_folder.children:
-                folders.extend(self.get_user_folders(child, prefix=display_name + "/"))
-        except Exception:
-            pass
-        return folders
-
     def load_folders(self):
         print("Ładowanie folderów Exchange...")
-        if not os.path.exists(CONFIG_FILE):
-            messagebox.showerror("Brak konfiguracji", "Nie znaleziono pliku exchange_config.json.")
-            return
         try:
-            with open(CONFIG_FILE, "r") as f:
-                cfg = json.load(f)
-
-            creds = Credentials(username=cfg["username"], password=cfg["password"])
-            config = Configuration(server=cfg["server"], credentials=creds)
-            self.account = Account(primary_smtp_address=cfg["email"], config=config, autodiscover=False, access_type=DELEGATE)
-
-            user_folders = []
-            for folder_name in FOLDER_NAMES:
-                folder = getattr(self.account, folder_name, None)
-                if folder is not None:
-                    print(f"Znaleziono root folder: {folder.name}")
-                    user_folders.extend(self.get_user_folders(folder))
-
-            self.folder_list = user_folders
+            self.folder_list = self.exchange_connection.load_all_folders()
             self.folder_combo["values"] = self.folder_list
             self.target_combo["values"] = self.folder_list
 
@@ -420,36 +294,30 @@ class InvoiceSearchTab(ttk.Frame):
         dialog.destroy()
 
     def load_last_state(self):
-        print("Ładowanie poprzedniego stanu aplikacji...")
-        if os.path.exists(STATE_FILE):
-            try:
-                with open(STATE_FILE, "r") as f:
-                    state = json.load(f)
-                    self.folder_var.set(state.get("last_folder", "Inbox"))
-                    self.nip_var.set(state.get("last_nip", ""))
-                    self.date_from_var.set(state.get("date_from", ""))
-                    self.date_to_var.set(state.get("date_to", ""))
-                    self.target_folder_var.set(state.get("target_folder", "Archiwum"))
-                    self.search_all_folders_var.set(state.get("search_all_folders", False))
-                    self.excluded_folders = set(state.get("excluded_folders", []))
-                    self.exclude_mode_var.set(state.get("exclude_mode", False))
-            except Exception as e:
-                print(f"Błąd ładowania stanu: {e}")
+        """Load last application state."""
+        widgets = {
+            'folder_var': self.folder_var,
+            'target_folder_var': self.target_folder_var,
+            'search_all_folders_var': self.search_all_folders_var,
+            'exclude_mode_var': self.exclude_mode_var,
+            'nip_var': self.nip_var,
+            'date_from_var': self.date_from_var,
+            'date_to_var': self.date_to_var
+        }
+        self.state_manager.apply_state_to_widgets(widgets)
+        # Load excluded folders separately
+        self.excluded_folders = set(self.state_manager.current_state.get('excluded_folders', []))
 
     def save_last_state(self):
-        print("Zapisuję stan aplikacji...")
-        state = {
-            "last_folder": self.folder_var.get(),
-            "last_nip": self.nip_var.get().strip(),
-            "date_from": self.date_from_var.get(),
-            "date_to": self.date_to_var.get(),
-            "target_folder": self.target_folder_var.get(),
-            "search_all_folders": self.search_all_folders_var.get(),
-            "excluded_folders": list(self.excluded_folders),
-            "exclude_mode": self.exclude_mode_var.get()
-        }
-        with open(STATE_FILE, "w") as f:
-            json.dump(state, f)
+        """Save current application state."""
+        self.state_manager.update_folder_settings(
+            self.folder_var, self.target_folder_var, self.search_all_folders_var,
+            self.excluded_folders, self.exclude_mode_var
+        )
+        self.state_manager.update_search_settings(
+            self.nip_var, self.date_from_var, self.date_to_var
+        )
+        self.state_manager.save_current_state()
 
     def search_invoices(self):
         """Start the threaded search process"""
@@ -482,9 +350,6 @@ class InvoiceSearchTab(ttk.Frame):
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-        # Reset cancellation flag
-        self.search_cancelled = False
-        
         # Update UI
         self.search_button.config(text="Anuluj wyszukiwanie")
         self.progress_label.config(text="Rozpoczynam wyszukiwanie...")
@@ -493,182 +358,17 @@ class InvoiceSearchTab(ttk.Frame):
         self.save_last_state()
 
         # Start search in background thread
-        self.search_thread = threading.Thread(
-            target=self._threaded_search,
-            args=(nip, folder_name, date_from, date_to),
-            daemon=True
+        self.email_searcher.search_manager.start_search(
+            self.email_searcher.search_emails_for_nip,
+            nip=nip, 
+            folder_name=folder_name, 
+            date_from=date_from, 
+            date_to=date_to,
+            search_all_folders=self.search_all_folders_var.get(),
+            excluded_folders=self.excluded_folders,
+            exclude_mode=self.exclude_mode_var.get(),
+            folder_list=self.folder_list
         )
-        self.search_thread.start()
-
-    def _threaded_search(self, nip, folder_name, date_from, date_to):
-        """Main search logic running in background thread"""
-        try:
-            seen_filenames = set()
-            attachment_counter = 0
-
-            # Determine folders to search
-            if self.search_all_folders_var.get():
-                if self.exclude_mode_var.get():
-                    print("Tryb: szukaj TYLKO w wybranych folderach.")
-                    folders_to_search = [
-                        self._find_folder_by_display_name(f) for f in self.excluded_folders
-                    ]
-                else:
-                    print("Tryb: pomiń wykluczone foldery.")
-                    folders_to_search = [
-                        self._find_folder_by_display_name(f) for f in self.folder_list if f not in self.excluded_folders
-                    ]
-            else:
-                folder = self._find_folder_by_display_name(folder_name)
-                if folder is None:
-                    print(f"Błąd: nie znaleziono folderu: {folder_name}")
-                    self.progress_queue.put(f"Błąd: nie znaleziono folderu: {folder_name}")
-                    self.result_queue.put({'type': 'search_complete'})
-                    return
-                if not self.exclude_mode_var.get():
-                    if folder_name in self.excluded_folders:
-                        print(f"Błąd: wybrany folder {folder_name} jest na liście wykluczonych.")
-                        self.progress_queue.put(f"Błąd: folder {folder_name} jest wykluczony")
-                        self.result_queue.put({'type': 'search_complete'})
-                        return
-                else:
-                    if folder_name not in self.excluded_folders:
-                        print(f"Błąd: wybrany folder {folder_name} nie znajduje się na liście wybranych.")
-                        self.progress_queue.put(f"Błąd: folder {folder_name} nie jest wybrany")
-                        self.result_queue.put({'type': 'search_complete'})
-                        return
-                folders_to_search = [folder]
-
-            # Collect all PDF attachments first
-            all_attachments = []
-            for folder in folders_to_search:
-                if folder is None or self.search_cancelled:
-                    continue
-                    
-                folder_path = self.get_folder_path(folder)
-                print(f"Przeszukuję folder: {folder_path}")
-                self.progress_queue.put(f"Skanowanie folderu: {folder_path}")
-                
-                try:
-                    for item in folder.all().order_by("-datetime_received"):
-                        if self.search_cancelled:
-                            break
-                            
-                        dt = item.datetime_received
-                        print(f"Mail: '{item.subject}' ({dt})")
-                        if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
-                            continue
-                        if date_to and dt >= date_to.replace(tzinfo=dt.tzinfo):
-                            continue
-
-                        for att in item.attachments:
-                            if self.search_cancelled:
-                                break
-                            if att.name.lower().endswith(".pdf") and att.name not in seen_filenames:
-                                attachment_counter += 1
-                                all_attachments.append((att, item, folder_path, attachment_counter))
-                                seen_filenames.add(att.name)
-                                
-                except Exception as e:
-                    print(f"Błąd przeszukiwania folderu {folder_path}: {e}")
-                    if ("Access is denied" in str(e) or
-                        "cannot access System folder" in str(e) or
-                        isinstance(e, errors.ErrorAccessDenied)):
-                        with open("pdf_error.log", "a", encoding="utf-8") as logf:
-                            logf.write(f"Folder pominięty przez błąd dostępu: {folder_path}\n{str(e)}\n{'-'*40}\n")
-                        continue
-                    else:
-                        print(f"Błąd w folderze {folder_path}: {e}")
-
-            if self.search_cancelled:
-                self.result_queue.put({'type': 'search_complete'})
-                return
-
-            # Process PDF attachments with threading
-            total_attachments = len(all_attachments)
-            if total_attachments == 0:
-                self.progress_queue.put("Nie znaleziono załączników PDF")
-                self.result_queue.put({'type': 'search_complete'})
-                return
-
-            self.progress_queue.put(f"Znaleziono {total_attachments} załączników PDF do przetworzenia")
-
-            # Use ThreadPoolExecutor for PDF processing
-            max_workers = min(4, total_attachments)  # Limit to 4 concurrent threads
-            self.search_executor = ThreadPoolExecutor(max_workers=max_workers)
-            
-            try:
-                # Submit all PDF processing tasks
-                future_to_attachment = {
-                    self.search_executor.submit(
-                        self._process_pdf_attachment, 
-                        att, item, folder_path, nip, seen_filenames, counter
-                    ): (att, item, folder_path, counter)
-                    for att, item, folder_path, counter in all_attachments
-                }
-
-                # Process completed tasks
-                processed_count = 0
-                for future in as_completed(future_to_attachment):
-                    if self.search_cancelled:
-                        break
-                        
-                    processed_count += 1
-                    try:
-                        result = future.result()
-                        if result:
-                            self.result_queue.put(result)
-                        
-                        # Update progress
-                        self.progress_queue.put(
-                            f"Przetworzono {processed_count}/{total_attachments} załączników"
-                        )
-                    except Exception as e:
-                        att, item, folder_path, counter = future_to_attachment[future]
-                        print(f"Błąd przetwarzania załącznika {att.name}: {e}")
-
-            finally:
-                self.search_executor.shutdown(wait=True)
-                self.search_executor = None
-
-            # Complete the search
-            self.result_queue.put({'type': 'search_complete'})
-
-        except Exception as e:
-            tb = traceback.format_exc()
-            print(f"Błąd połączenia: {e}\n{tb}")
-            self.progress_queue.put(f"Błąd: {str(e)}")
-            self.result_queue.put({'type': 'search_complete'})
-
-    def _find_folder_by_display_name(self, display_name):
-        """
-        Szuka folderu exchangelib na podstawie ścieżki tekstowej, np. 'Odebrane/Faktury'
-        """
-        try:
-            path_parts = display_name.split("/")
-            folder = None
-            root_map = {
-                "Odebrane": getattr(self.account, "inbox", None),
-                "Sent Items": getattr(self.account, "sent", None),
-                "Wersje robocze": getattr(self.account, "drafts", None),
-                "Archiwum": getattr(self.account, "archive", None),
-                "Wiadomości-śmieci": getattr(self.account, "junk", None),
-                "Kosz": getattr(self.account, "deleted_items", None),
-            }
-            first = path_parts[0]
-            folder = root_map.get(first)
-            if not folder:
-                print(f"Nie znaleziono root folderu dla: {first}")
-                return None
-            for part in path_parts[1:]:
-                folder = next((child for child in folder.children if child.name == part), None)
-                if folder is None:
-                    print(f"Nie znaleziono podfolderu: {part}")
-                    return None
-            return folder
-        except Exception as e:
-            print(f"Błąd znajdowania folderu: {display_name}, wyjątek: {e}")
-            return None
 
     def preview_pdf(self, event):
         selected = self.tree.focus()
@@ -679,8 +379,7 @@ class InvoiceSearchTab(ttk.Frame):
         filename = values[2]
 
         try:
-            print(f"Otwieram PDF w podglądzie: {filename}")
-            subprocess.Popen([filename], shell=True)
+            self.pdf_processor.preview_pdf(filename)
         except Exception as e:
             print(f"Błąd podglądu PDF: {e}")
             messagebox.showerror("Błąd podglądu", str(e))
@@ -719,7 +418,7 @@ class InvoiceSearchTab(ttk.Frame):
             return
 
         try:
-            target_folder = self._find_folder_by_display_name(target_name)
+            target_folder = self.exchange_connection.find_folder_by_display_name(target_name)
             if target_folder is None:
                 print(f"Nie znaleziono folderu docelowego: {target_name}")
                 messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu docelowego: {target_name}")
