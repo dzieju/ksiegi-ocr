@@ -9,6 +9,7 @@ from exchangelib import Credentials, Account, Configuration, DELEGATE, errors
 import pdfplumber
 from tkcalendar import DateEntry
 import traceback
+import pdfminer
 
 CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
@@ -51,7 +52,6 @@ class InvoiceSearchTab(ttk.Frame):
             variable=self.search_all_folders_var
         ).grid(row=2, column=2, sticky="w", padx=5, pady=5)
 
-        # Kalendarze
         ttk.Label(self, text="Data od:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         try:
             self.date_from_entry = DateEntry(self, textvariable=self.date_from_var, width=12, date_pattern="yyyy-mm-dd", locale="pl_PL")
@@ -66,7 +66,6 @@ class InvoiceSearchTab(ttk.Frame):
             self.date_to_entry = DateEntry(self, textvariable=self.date_to_var, width=12, date_pattern="yyyy-mm-dd")
         self.date_to_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
 
-        # Szybki wybór dat
         ttk.Label(self, text="Szybki wybór dat:").grid(row=5, column=0, padx=5, pady=5, sticky="e")
         frame = ttk.Frame(self)
         frame.grid(row=5, column=1, padx=5, pady=5, sticky="w")
@@ -156,11 +155,9 @@ class InvoiceSearchTab(ttk.Frame):
         dialog.resizable(True, True)
         dialog.configure(borderwidth=4, relief="solid")
 
-        # Frame for scrollbars and canvas
         main_frame = tk.Frame(dialog)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
-        # Add horizontal and vertical scrollbars
         x_scroll = tk.Scrollbar(main_frame, orient="horizontal")
         y_scroll = tk.Scrollbar(main_frame, orient="vertical")
         canvas = tk.Canvas(main_frame, bd=0, highlightthickness=0,
@@ -171,12 +168,10 @@ class InvoiceSearchTab(ttk.Frame):
         y_scroll.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
 
-        # Frame inside canvas with LabelFrame for border and title
         inner_labelframe = tk.LabelFrame(canvas, text="Zaznacz foldery do pominięcia", padx=6, pady=6, borderwidth=2, relief="groove")
         canvas.create_window((0, 0), window=inner_labelframe, anchor="nw")
 
-        # Responsive grid of checkboxes
-        columns = max(4, min(len(self.folder_list), 8))  # will fit as many as possible, minimum 4, max 8 per row
+        columns = max(4, min(len(self.folder_list), 8))
         self.exclude_vars = {}
         for idx, folder in enumerate(self.folder_list):
             var = tk.BooleanVar(value=folder in self.excluded_folders)
@@ -187,22 +182,13 @@ class InvoiceSearchTab(ttk.Frame):
             self.exclude_vars[folder] = var
             inner_labelframe.grid_columnconfigure(col, weight=1)
 
-        # Make dialog resize update the canvas and widgets
         def on_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
         inner_labelframe.bind("<Configure>", on_configure)
         canvas.bind("<Configure>", lambda e: canvas.itemconfig("all", width=e.width))
 
-        # Keyboard navigation
         inner_labelframe.focus_set()
 
-        # Enable tab navigation for all checkboxes
-        for child in inner_labelframe.winfo_children():
-            child.lift()  # ensure tab order
-            child.focus_set()
-            child.bind("<Tab>", lambda e: None)
-
-        # Save button at the bottom
         btn_frame = tk.Frame(dialog)
         btn_frame.pack(fill="x", side="bottom")
         ttk.Button(btn_frame, text="Zapisz wybór i zamknij", command=lambda: self._save_excluded_folders_and_close(dialog)).pack(pady=10)
@@ -295,6 +281,8 @@ class InvoiceSearchTab(ttk.Frame):
 
         self.save_last_state()
 
+        seen_filenames = set()
+
         try:
             if self.search_all_folders_var.get():
                 folders_to_search = [
@@ -325,17 +313,32 @@ class InvoiceSearchTab(ttk.Frame):
                             if not att.name.lower().endswith(".pdf"):
                                 continue
 
+                            if att.name in seen_filenames:
+                                continue
+                            seen_filenames.add(att.name)
+
                             local_path = os.path.join(TEMP_FOLDER, att.name)
                             try:
                                 with open(local_path, "wb") as f:
                                     f.write(att.content)
 
                                 if os.path.getsize(local_path) < 100:
-                                    raise Exception("Plik jest pusty lub za mały, by był prawidłowym PDF-em.")
+                                    os.remove(local_path)
+                                    continue
 
-                                pdf = pdfplumber.open(local_path)
-                                full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-                                pdf.close()
+                                try:
+                                    pdf = pdfplumber.open(local_path)
+                                    full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+                                    pdf.close()
+                                except (pdfminer.pdfdocument.PDFPasswordIncorrect,
+                                        pdfminer.pdfparser.PDFSyntaxError,
+                                        pdfplumber.utils.PdfminerException,
+                                        Exception):
+                                    try:
+                                        os.remove(local_path)
+                                    except Exception:
+                                        pass
+                                    continue
 
                                 if nip in full_text:
                                     self.tree.insert(
@@ -347,19 +350,19 @@ class InvoiceSearchTab(ttk.Frame):
                                     self.matched_items.append(item)
                                 else:
                                     os.remove(local_path)
-                            except Exception as e:
-                                tb = traceback.format_exc()
-                                messagebox.showerror("Błąd PDF", f"{att.name}:\n{str(e)}\n\n{tb}")
-                                with open("pdf_error.log", "a", encoding="utf-8") as logf:
-                                    logf.write(f"{att.name}:\n{str(e)}\n{tb}\n{'-'*40}\n")
+                            except Exception:
+                                try:
+                                    os.remove(local_path)
+                                except Exception:
+                                    pass
+                                # nie pokazuj komunikatu użytkownikowi
                 except Exception as e:
-                    # Obsługa błędu dostępu do folderu systemowego (Access is denied)
                     if ("Access is denied" in str(e) or
                         "cannot access System folder" in str(e) or
                         isinstance(e, errors.ErrorAccessDenied)):
                         with open("pdf_error.log", "a", encoding="utf-8") as logf:
                             logf.write(f"Folder pominięty przez błąd dostępu: {folder_path}\n{str(e)}\n{'-'*40}\n")
-                        continue  # pomiń ten folder i szukaj dalej
+                        continue
                     else:
                         tb = traceback.format_exc()
                         messagebox.showerror("Błąd folderu", f"{folder_path}\n{str(e)}\n\n{tb}")

@@ -1,0 +1,203 @@
+UMOWA_FINAL_PO-i-314997-2025.pdf:
+
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 744, in __init__
+    self._initialize_password(password)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 770, in _initialize_password
+    handler = factory(docid, param, password)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 357, in __init__
+    self.init()
+    ~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 364, in init
+    self.init_key()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 377, in init_key
+    raise PDFPasswordIncorrect
+pdfminer.pdfdocument.PDFPasswordIncorrect
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException
+
+----------------------------------------
+Deleted Warunki reklamacji.pdf:
+No /Root object! - Is this really a PDF?
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 752, in __init__
+    raise PDFSyntaxError("No /Root object! - Is this really a PDF?")
+pdfminer.pdfparser.PDFSyntaxError: No /Root object! - Is this really a PDF?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException: No /Root object! - Is this really a PDF?
+
+----------------------------------------
+Informacja o nadwyżce.PDF:
+
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 744, in __init__
+    self._initialize_password(password)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 770, in _initialize_password
+    handler = factory(docid, param, password)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 357, in __init__
+    self.init()
+    ~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 364, in init
+    self.init_key()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 377, in init_key
+    raise PDFPasswordIncorrect
+pdfminer.pdfdocument.PDFPasswordIncorrect
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException
+
+----------------------------------------
+Zbliżający się termin płatności.PDF:
+
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 744, in __init__
+    self._initialize_password(password)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 770, in _initialize_password
+    handler = factory(docid, param, password)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 357, in __init__
+    self.init()
+    ~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 364, in init
+    self.init_key()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 377, in init_key
+    raise PDFPasswordIncorrect
+pdfminer.pdfdocument.PDFPasswordIncorrect
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException
+
+----------------------------------------
+Deleted [krzysieek881]-Warunki reklamacji.pdf:
+No /Root object! - Is this really a PDF?
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 752, in __init__
+    raise PDFSyntaxError("No /Root object! - Is this really a PDF?")
+pdfminer.pdfparser.PDFSyntaxError: No /Root object! - Is this really a PDF?
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException: No /Root object! - Is this really a PDF?
+
+----------------------------------------
+Polisa Volvo WY2921N-encrypted.pdf:
+
+Traceback (most recent call last):
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 50, in __init__
+    self.doc = PDFDocument(PDFParser(stream), password=password or "")
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 744, in __init__
+    self._initialize_password(password)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 770, in _initialize_password
+    handler = factory(docid, param, password)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 357, in __init__
+    self.init()
+    ~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 364, in init
+    self.init_key()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfminer\pdfdocument.py", line 377, in init_key
+    raise PDFPasswordIncorrect
+pdfminer.pdfdocument.PDFPasswordIncorrect
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\!Smart-Programowanie\!Ksiegi\gui\tab_invoice_search.py", line 336, in search_invoices
+    pdf = pdfplumber.open(local_path)
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 107, in open
+    return cls(
+        stream,
+    ...<7 lines>...
+        raise_unicode_errors=raise_unicode_errors,
+    )
+  File "C:\Users\Biuro\AppData\Local\Programs\Python\Python313\Lib\site-packages\pdfplumber\pdf.py", line 52, in __init__
+    raise PdfminerException(e)
+pdfplumber.utils.exceptions.PdfminerException
+
+----------------------------------------
+Folder pominięty przez błąd dostępu: root/System
+Access is denied. Check credentials and try again., Non-system logon cannot access System folder.
+----------------------------------------
