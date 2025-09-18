@@ -4,3 +4,4 @@ pdfminer.six
 tkcalendar
 pdf2image
 pillow
+pytesseract
