@@ -17,8 +17,8 @@ X_MIN = 100
 X_MAX = 400
 
 # Ustalony crop do kolumny numerów faktur (pełna kolumna na stronie PDF)
-CROP_LEFT, CROP_RIGHT = 241, 518
-CROP_TOP, CROP_BOTTOM = 560, 2300
+CROP_LEFT, CROP_RIGHT = 503, 771
+CROP_TOP, CROP_BOTTOM = 332, 2377
 
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 

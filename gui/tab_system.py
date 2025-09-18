@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from gui.utils import backup, logger, update_checker, email_report, i18n, darkmode
+from tools import backup, logger, update_checker, email_report, i18n, darkmode
 
 class SystemTab(ttk.Frame):
     def __init__(self, parent):

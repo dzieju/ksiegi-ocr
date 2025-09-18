@@ -4,14 +4,14 @@ import tkinter as tk
 from tkinter import ttk
 import pytesseract
 
-PDF_PATH = "ksiega 8.pdf"
+PDF_PATH = "zakupy7.pdf"
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # zmień ścieżkę jeśli trzeba
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 # Współrzędne cropa:
-left, right = 241, 518
-top, bottom = 560, 2300
+left, right = 503, 771
+top, bottom = 332, 2377
 
 # Wczytaj pierwszą stronę PDF jako obrazek w 300dpi
 images = convert_from_path(PDF_PATH, dpi=300, poppler_path=POPPLER_PATH)
