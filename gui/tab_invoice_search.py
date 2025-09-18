@@ -4,13 +4,16 @@ import json
 import os
 import shutil
 import subprocess
-from datetime import datetime, timedelta, timezone
-from exchangelib import Credentials, Account, Configuration, DELEGATE
+from datetime import datetime, timedelta, date
+from exchangelib import Credentials, Account, Configuration, DELEGATE, errors
 import pdfplumber
+from tkcalendar import DateEntry
+import traceback
 
 CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
 TEMP_FOLDER = "temp_invoices"
+
 
 class InvoiceSearchTab(ttk.Frame):
     def __init__(self, parent):
@@ -20,17 +23,14 @@ class InvoiceSearchTab(ttk.Frame):
         self.folder_var = tk.StringVar()
         self.target_folder_var = tk.StringVar()
         self.folder_list = []
-        self.date_range_var = tk.StringVar()
+
+        self.date_from_var = tk.StringVar()
+        self.date_to_var = tk.StringVar()
+        self.search_all_folders_var = tk.BooleanVar()
+        self.excluded_folders = set()
+
         self.results = []
         self.matched_items = []
-
-        self.date_options = {
-            "Ostatni miesiąc": 30,
-            "Ostatnie 3 miesiące": 90,
-            "Ostatnie 6 miesięcy": 180,
-            "Ostatni rok": 365,
-            "Ostatnie 2 lata": 730
-        }
 
         ttk.Label(self, text="Podaj NIP do wyszukania:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self, textvariable=self.nip_var, width=30).grid(row=0, column=1, padx=5, pady=5)
@@ -44,31 +44,136 @@ class InvoiceSearchTab(ttk.Frame):
         self.target_combo.grid(row=2, column=1, padx=5, pady=5)
 
         ttk.Button(self, text="Odśwież foldery", command=self.load_folders).grid(row=1, column=2, rowspan=2, padx=5, pady=5)
+        ttk.Button(self, text="Pomiń foldery...", command=self.open_exclude_folders_dialog).grid(row=1, column=3, rowspan=2, padx=5, pady=5)
 
-        ttk.Label(self, text="Zakres czasu:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
-        self.date_combo = ttk.Combobox(self, textvariable=self.date_range_var, width=30, state="readonly")
-        self.date_combo["values"] = list(self.date_options.keys())
-        self.date_combo.grid(row=3, column=1, padx=5, pady=5)
-        self.date_combo.set("Ostatni miesiąc")
+        ttk.Checkbutton(
+            self,
+            text="Przeszukaj całą skrzynkę pocztową (wszystkie foldery)",
+            variable=self.search_all_folders_var
+        ).grid(row=2, column=2, sticky="w", padx=5, pady=5)
 
-        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=4, column=1, pady=10)
+        # Kalendarze
+        ttk.Label(self, text="Data od:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        try:
+            self.date_from_entry = DateEntry(self, textvariable=self.date_from_var, width=12, date_pattern="yyyy-mm-dd", locale="pl_PL")
+        except Exception:
+            self.date_from_entry = DateEntry(self, textvariable=self.date_from_var, width=12, date_pattern="yyyy-mm-dd")
+        self.date_from_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
-        self.tree = ttk.Treeview(self, columns=("subject", "date", "filename"), show="headings", height=15)
+        ttk.Label(self, text="Data do:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        try:
+            self.date_to_entry = DateEntry(self, textvariable=self.date_to_var, width=12, date_pattern="yyyy-mm-dd", locale="pl_PL")
+        except Exception:
+            self.date_to_entry = DateEntry(self, textvariable=self.date_to_var, width=12, date_pattern="yyyy-mm-dd")
+        self.date_to_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
+
+        # Szybki wybór dat
+        ttk.Label(self, text="Szybki wybór dat:").grid(row=5, column=0, padx=5, pady=5, sticky="e")
+        frame = ttk.Frame(self)
+        frame.grid(row=5, column=1, padx=5, pady=5, sticky="w")
+        ttk.Button(frame, text="Ostatnie 7 dni", command=lambda: self.set_date_range("7dni")).pack(side="left", padx=2)
+        ttk.Button(frame, text="Bieżący miesiąc", command=lambda: self.set_date_range("aktualny_miesiac")).pack(side="left", padx=2)
+        ttk.Button(frame, text="Poprzedni miesiąc", command=lambda: self.set_date_range("poprzedni_miesiac")).pack(side="left", padx=2)
+        ttk.Button(frame, text="Ostatnie 3 miesiące", command=lambda: self.set_date_range("3miesiace")).pack(side="left", padx=2)
+        ttk.Button(frame, text="Wyczyść", command=lambda: self.set_date_range("wyczysc")).pack(side="left", padx=2)
+
+        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=6, column=1, pady=10)
+
+        self.tree = ttk.Treeview(
+            self,
+            columns=("subject", "date", "filename", "folder"),
+            show="headings",
+            height=15
+        )
         self.tree.heading("subject", text="Temat")
         self.tree.heading("date", text="Data")
         self.tree.heading("filename", text="Plik PDF")
+        self.tree.heading("folder", text="Folder/Ścieżka")
         self.tree.column("subject", width=300)
         self.tree.column("date", width=100)
         self.tree.column("filename", width=250)
-        self.tree.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+        self.tree.column("folder", width=600, minwidth=300, stretch=True)
+        self.tree.grid(row=7, column=0, columnspan=4, padx=10, pady=10, sticky="nsew")
         self.tree.bind("<Double-1>", self.preview_pdf)
 
-        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=6, column=1, pady=5)
-        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=7, column=1, pady=10)
+        self.grid_rowconfigure(7, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(3, weight=1)
 
-        self.load_folders()
+        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=8, column=1, pady=5)
+        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=9, column=1, pady=10)
+
         self.load_last_state()
+        self.load_folders()
         os.makedirs(TEMP_FOLDER, exist_ok=True)
+
+    def set_date_range(self, mode):
+        today = date.today()
+        if mode == "7dni":
+            self.date_from_var.set((today - timedelta(days=7)).strftime("%Y-%m-%d"))
+            self.date_to_var.set(today.strftime("%Y-%m-%d"))
+        elif mode == "aktualny_miesiac":
+            self.date_from_var.set(today.replace(day=1).strftime("%Y-%m-%d"))
+            self.date_to_var.set(today.strftime("%Y-%m-%d"))
+        elif mode == "poprzedni_miesiac":
+            first_today = today.replace(day=1)
+            last_prev = first_today - timedelta(days=1)
+            first_prev = last_prev.replace(day=1)
+            self.date_from_var.set(first_prev.strftime("%Y-%m-%d"))
+            self.date_to_var.set(last_prev.strftime("%Y-%m-%d"))
+        elif mode == "3miesiace":
+            month = today.month - 2
+            year = today.year
+            if month <= 0:
+                month += 12
+                year -= 1
+            first_3ago = date(year, month, 1)
+            self.date_from_var.set(first_3ago.strftime("%Y-%m-%d"))
+            self.date_to_var.set(today.strftime("%Y-%m-%d"))
+        elif mode == "wyczysc":
+            self.date_from_var.set("")
+            self.date_to_var.set("")
+
+    def get_folder_path(self, folder):
+        names = []
+        while folder and hasattr(folder, "name") and folder.name:
+            names.append(folder.name)
+            folder = folder.parent
+        return "/".join(reversed(names))
+
+    def open_exclude_folders_dialog(self):
+        if not self.folder_list:
+            messagebox.showwarning("Brak folderów", "Najpierw odśwież listę folderów.")
+            return
+        dialog = tk.Toplevel(self)
+        dialog.title("Wybierz foldery do pominięcia")
+        dialog.geometry("620x400")
+        dialog.transient(self)
+        dialog.grab_set()
+
+        # Kompaktowa siatka checkboxów
+        columns = 3  # liczba kolumn
+        frm = tk.Frame(dialog)
+        frm.pack(fill="both", expand=True, padx=10, pady=10)
+        self.exclude_vars = {}
+        for idx, folder in enumerate(self.folder_list):
+            var = tk.BooleanVar(value=folder in self.excluded_folders)
+            chk = tk.Checkbutton(frm, text=folder, variable=var, anchor="w")
+            row = idx // columns
+            col = idx % columns
+            chk.grid(row=row, column=col, sticky="w", padx=5, pady=2)
+            self.exclude_vars[folder] = var
+
+        btn_frame = tk.Frame(dialog)
+        btn_frame.pack(fill="x", side="bottom")
+        ttk.Button(btn_frame, text="Zapisz wybór i zamknij", command=lambda: self._save_excluded_folders_and_close(dialog)).pack(pady=10)
+
+    def _save_excluded_folders_and_close(self, dialog):
+        self.excluded_folders = {f for f, v in self.exclude_vars.items() if v.get()}
+        self.save_last_state()
+        dialog.destroy()
 
     def load_folders(self):
         if not os.path.exists(CONFIG_FILE):
@@ -90,8 +195,10 @@ class InvoiceSearchTab(ttk.Frame):
             self.target_combo["values"] = self.folder_list
 
             if self.folder_list:
-                self.folder_var.set(self.folder_list[0])
-                self.target_folder_var.set(self.folder_list[-1])
+                if self.folder_var.get() not in self.folder_list:
+                    self.folder_var.set(self.folder_list[0])
+                if self.target_folder_var.get() not in self.folder_list:
+                    self.target_folder_var.set(self.folder_list[-1])
 
         except Exception as e:
             messagebox.showerror("Błąd połączenia", str(e))
@@ -103,17 +210,23 @@ class InvoiceSearchTab(ttk.Frame):
                     state = json.load(f)
                     self.folder_var.set(state.get("last_folder", "Inbox"))
                     self.nip_var.set(state.get("last_nip", ""))
-                    self.date_range_var.set(state.get("last_range", "Ostatni miesiąc"))
+                    self.date_from_var.set(state.get("date_from", ""))
+                    self.date_to_var.set(state.get("date_to", ""))
                     self.target_folder_var.set(state.get("target_folder", "Archiwum"))
-            except:
+                    self.search_all_folders_var.set(state.get("search_all_folders", False))
+                    self.excluded_folders = set(state.get("excluded_folders", []))
+            except Exception:
                 pass
 
     def save_last_state(self):
         state = {
             "last_folder": self.folder_var.get(),
             "last_nip": self.nip_var.get().strip(),
-            "last_range": self.date_range_var.get(),
-            "target_folder": self.target_folder_var.get()
+            "date_from": self.date_from_var.get(),
+            "date_to": self.date_to_var.get(),
+            "target_folder": self.target_folder_var.get(),
+            "search_all_folders": self.search_all_folders_var.get(),
+            "excluded_folders": list(self.excluded_folders)
         }
         with open(STATE_FILE, "w") as f:
             json.dump(state, f)
@@ -121,57 +234,102 @@ class InvoiceSearchTab(ttk.Frame):
     def search_invoices(self):
         nip = self.nip_var.get().strip()
         folder_name = self.folder_var.get().strip()
-        range_label = self.date_range_var.get()
-        days = self.date_options.get(range_label, 30)
+        date_from_str = self.date_from_var.get()
+        date_to_str = self.date_to_var.get()
+        date_from = None
+        date_to = None
+        try:
+            if date_from_str:
+                date_from = datetime.strptime(date_from_str, "%Y-%m-%d")
+            if date_to_str:
+                date_to = datetime.strptime(date_to_str, "%Y-%m-%d") + timedelta(days=1)
+        except Exception as e:
+            messagebox.showerror("Błąd daty", f"Nieprawidłowy format daty: {str(e)}")
+            return
 
         self.results.clear()
         self.matched_items.clear()
         for row in self.tree.get_children():
             self.tree.delete(row)
 
-        if not nip or not folder_name:
-            messagebox.showwarning("Brak danych", "Wprowadź NIP i wybierz folder.")
+        if not nip:
+            messagebox.showwarning("Brak danych", "Wprowadź NIP.")
             return
 
         self.save_last_state()
 
         try:
-            folder = next((f for f in self.account.root.walk() if hasattr(f, "name") and f.name == folder_name), None)
-            if folder is None:
-                messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
-                return
+            if self.search_all_folders_var.get():
+                folders_to_search = [
+                    f for f in self.account.root.walk()
+                    if hasattr(f, "all") and (not hasattr(f, "name") or f.name not in self.excluded_folders)
+                ]
+            else:
+                folder = next((f for f in self.account.root.walk() if hasattr(f, "name") and f.name == folder_name), None)
+                if folder is None:
+                    messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
+                    return
+                if folder.name in self.excluded_folders:
+                    messagebox.showwarning("Folder pominięty", f"Wybrany folder {folder_name} jest na liście wykluczonych.")
+                    return
+                folders_to_search = [folder]
 
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            for folder in folders_to_search:
+                folder_path = self.get_folder_path(folder)
+                try:
+                    for item in folder.all().order_by("-datetime_received")[:200]:
+                        dt = item.datetime_received
+                        if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
+                            continue
+                        if date_to and dt >= date_to.replace(tzinfo=dt.tzinfo):
+                            continue
 
-            for item in folder.all().order_by("-datetime_received")[:200]:
-                if item.datetime_received < cutoff_date:
-                    continue
+                        for att in item.attachments:
+                            if not att.name.lower().endswith(".pdf"):
+                                continue
 
-                for att in item.attachments:
-                    if not att.name.lower().endswith(".pdf"):
-                        continue
+                            local_path = os.path.join(TEMP_FOLDER, att.name)
+                            try:
+                                with open(local_path, "wb") as f:
+                                    f.write(att.content)
 
-                    local_path = os.path.join(TEMP_FOLDER, att.name)
-                    try:
-                        with open(local_path, "wb") as f:
-                            f.write(att.content)
+                                if os.path.getsize(local_path) < 100:
+                                    raise Exception("Plik jest pusty lub za mały, by był prawidłowym PDF-em.")
 
-                        pdf = pdfplumber.open(local_path)
-                        full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-                        pdf.close()
+                                pdf = pdfplumber.open(local_path)
+                                full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+                                pdf.close()
 
-                        if nip in full_text:
-                            self.tree.insert("", "end", values=(item.subject, item.datetime_received.date(), local_path))
-                            self.results.append(local_path)
-                            self.matched_items.append(item)
-                        else:
-                            os.remove(local_path)
-
-                    except Exception as e:
-                        messagebox.showerror("Błąd PDF", f"{att.name}: {str(e)}")
+                                if nip in full_text:
+                                    self.tree.insert(
+                                        "",
+                                        "end",
+                                        values=(item.subject, item.datetime_received.date(), local_path, folder_path)
+                                    )
+                                    self.results.append(local_path)
+                                    self.matched_items.append(item)
+                                else:
+                                    os.remove(local_path)
+                            except Exception as e:
+                                tb = traceback.format_exc()
+                                messagebox.showerror("Błąd PDF", f"{att.name}:\n{str(e)}\n\n{tb}")
+                                with open("pdf_error.log", "a", encoding="utf-8") as logf:
+                                    logf.write(f"{att.name}:\n{str(e)}\n{tb}\n{'-'*40}\n")
+                except Exception as e:
+                    # Obsługa błędu dostępu do folderu systemowego (Access is denied)
+                    if ("Access is denied" in str(e) or
+                        "cannot access System folder" in str(e) or
+                        isinstance(e, errors.ErrorAccessDenied)):
+                        with open("pdf_error.log", "a", encoding="utf-8") as logf:
+                            logf.write(f"Folder pominięty przez błąd dostępu: {folder_path}\n{str(e)}\n{'-'*40}\n")
+                        continue  # pomiń ten folder i szukaj dalej
+                    else:
+                        tb = traceback.format_exc()
+                        messagebox.showerror("Błąd folderu", f"{folder_path}\n{str(e)}\n\n{tb}")
 
         except Exception as e:
-            messagebox.showerror("Błąd połączenia", str(e))
+            tb = traceback.format_exc()
+            messagebox.showerror("Błąd połączenia", f"{str(e)}\n\n{tb}")
 
     def preview_pdf(self, event):
         selected = self.tree.focus()
