@@ -14,7 +14,6 @@ CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
 TEMP_FOLDER = "temp_invoices"
 
-
 class InvoiceSearchTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -151,28 +150,59 @@ class InvoiceSearchTab(ttk.Frame):
         dialog = tk.Toplevel(self)
         dialog.title("Wybierz foldery do pominięcia")
         dialog.minsize(400, 200)
-        dialog.geometry("620x400")
+        dialog.geometry("700x400")
         dialog.transient(self)
         dialog.grab_set()
         dialog.resizable(True, True)
         dialog.configure(borderwidth=4, relief="solid")
 
-        # Kompaktowa siatka checkboxów w ramce i z responsywnością
-        columns = 3
-        frm = tk.LabelFrame(dialog, text="Zaznacz foldery do pominięcia", padx=6, pady=6, borderwidth=2, relief="groove")
-        frm.pack(fill="both", expand=True, padx=10, pady=10)
-        self.exclude_vars = {}
+        # Frame for scrollbars and canvas
+        main_frame = tk.Frame(dialog)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+        # Add horizontal and vertical scrollbars
+        x_scroll = tk.Scrollbar(main_frame, orient="horizontal")
+        y_scroll = tk.Scrollbar(main_frame, orient="vertical")
+        canvas = tk.Canvas(main_frame, bd=0, highlightthickness=0,
+                           xscrollcommand=x_scroll.set, yscrollcommand=y_scroll.set)
+        x_scroll.config(command=canvas.xview)
+        y_scroll.config(command=canvas.yview)
+        x_scroll.pack(side="bottom", fill="x")
+        y_scroll.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        # Frame inside canvas with LabelFrame for border and title
+        inner_labelframe = tk.LabelFrame(canvas, text="Zaznacz foldery do pominięcia", padx=6, pady=6, borderwidth=2, relief="groove")
+        canvas.create_window((0, 0), window=inner_labelframe, anchor="nw")
+
+        # Responsive grid of checkboxes
+        columns = max(4, min(len(self.folder_list), 8))  # will fit as many as possible, minimum 4, max 8 per row
+        self.exclude_vars = {}
         for idx, folder in enumerate(self.folder_list):
             var = tk.BooleanVar(value=folder in self.excluded_folders)
-            chk = tk.Checkbutton(frm, text=folder, variable=var, anchor="w")
+            chk = tk.Checkbutton(inner_labelframe, text=folder, variable=var, anchor="w", takefocus=True)
             row = idx // columns
             col = idx % columns
-            chk.grid(row=row, column=col, sticky="w", padx=5, pady=2)
+            chk.grid(row=row, column=col, sticky="w", padx=2, pady=2)
             self.exclude_vars[folder] = var
-            frm.grid_columnconfigure(col, weight=1)
+            inner_labelframe.grid_columnconfigure(col, weight=1)
 
-        # Przycisk na dole, zawsze widoczny nawet po zmianie rozmiaru
+        # Make dialog resize update the canvas and widgets
+        def on_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        inner_labelframe.bind("<Configure>", on_configure)
+        canvas.bind("<Configure>", lambda e: canvas.itemconfig("all", width=e.width))
+
+        # Keyboard navigation
+        inner_labelframe.focus_set()
+
+        # Enable tab navigation for all checkboxes
+        for child in inner_labelframe.winfo_children():
+            child.lift()  # ensure tab order
+            child.focus_set()
+            child.bind("<Tab>", lambda e: None)
+
+        # Save button at the bottom
         btn_frame = tk.Frame(dialog)
         btn_frame.pack(fill="x", side="bottom")
         ttk.Button(btn_frame, text="Zapisz wybór i zamknij", command=lambda: self._save_excluded_folders_and_close(dialog)).pack(pady=10)
