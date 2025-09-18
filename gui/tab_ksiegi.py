@@ -54,7 +54,8 @@ class KsiegiTab(ttk.Frame):
 
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
         self.status_label.grid(row=4, column=1, pady=5)
-            def select_file(self):
+
+    def select_file(self):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if path:
             self.file_path_var.set(path)
@@ -141,7 +142,8 @@ class KsiegiTab(ttk.Frame):
             if re.search(pattern, text):
                 return True
         return False
-            def display_image_with_boxes(self):
+
+    def display_image_with_boxes(self):
         img_copy = self.image.copy()
         for (x, y, w, h) in self.cells:
             roi = self.image[y:y+h, x:x+w]
@@ -154,4 +156,19 @@ class KsiegiTab(ttk.Frame):
                 color = (180, 180, 180)  # szary = poza zakresem
             cv2.rectangle(img_copy, (x, y), (x+w, y+h), color, 2)
 
-        img_rgb = cv2.cvtColor(img_copy, cv2
+        img_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
+        img_pil = Image.fromarray(img_rgb)
+        img_pil = img_pil.resize((1000, 1400)) if img_pil.width > 1000 or img_pil.height > 1400 else img_pil
+        self.tk_image = ImageTk.PhotoImage(img_pil)
+        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
+
+    def show_all_ocr(self):
+        self.text_area.delete("1.0", tk.END)
+        if not self.cells or self.image is None:
+            self.text_area.insert(tk.END, "Brak wysegmentowanych komórek do wyświetlenia.\n")
+            return
+
+        for (x, y, w, h) in self.cells:
+            roi = self.image[y:y+h, x:x+w]
+            text = pytesseract.image_to_string(roi, lang='pol').strip()
+            self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
