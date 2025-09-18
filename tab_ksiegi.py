@@ -54,7 +54,8 @@ class KsiegiTab(ttk.Frame):
 
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
         self.status_label.grid(row=4, column=1, pady=5)
-            def select_file(self):
+
+    def select_file(self):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if path:
             self.file_path_var.set(path)
@@ -141,7 +142,8 @@ class KsiegiTab(ttk.Frame):
             if re.search(pattern, text):
                 return True
         return False
-            def display_image_with_boxes(self):
+
+    def display_image_with_boxes(self):
         img_copy = self.image.copy()
         for (x, y, w, h) in self.cells:
             roi = self.image[y:y+h, x:x+w]
@@ -154,4 +156,69 @@ class KsiegiTab(ttk.Frame):
                 color = (180, 180, 180)  # szary = poza zakresem
             cv2.rectangle(img_copy, (x, y), (x+w, y+h), color, 2)
 
-        img_rgb = cv2.cvtColor(img_copy, cv2
+        img_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
+        pil_img = Image.fromarray(img_rgb)
+        
+        # Scale for canvas display  
+        canvas_width = 1000
+        canvas_height = 1400
+        pil_img_resized = pil_img.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
+        
+        self.tk_image = ImageTk.PhotoImage(pil_img_resized)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.tk_image)
+
+    def show_all_ocr(self):
+        """Show OCR results from all detected cells, not just invoice numbers"""
+        path = self.file_path_var.get().strip()
+        if not path or not os.path.exists(path):
+            messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
+            return
+
+        self.text_area.delete("1.0", tk.END)
+        
+        try:
+            images = convert_from_path(path, dpi=400, poppler_path=POPPLER_PATH)
+            pil_img = images[0]
+            self.image = np.array(pil_img)
+            self.cells = self.detect_table_cells(self.image)
+            
+            # Perform OCR on all cells, not just invoice numbers
+            all_results = []
+            for i, (x, y, w, h) in enumerate(self.cells):
+                roi = self.image[y:y+h, x:x+w]
+                text = pytesseract.image_to_string(roi, lang='pol').strip()
+                
+                # Show OCR confidence and other details
+                data = pytesseract.image_to_data(roi, lang='pol', output_type=pytesseract.Output.DICT)
+                confidences = [int(conf) for conf in data['conf'] if int(conf) > 0]
+                avg_confidence = sum(confidences) / len(confidences) if confidences else 0
+                
+                if len(text) >= 2:  # Lower threshold for showing all results
+                    is_invoice = self.contains_invoice_number(text)
+                    marker = "✓" if is_invoice else "✗"
+                    all_results.append((marker, x, y, w, h, avg_confidence, text))
+            
+            # Sort by y-coordinate (top to bottom), then x-coordinate (left to right)
+            all_results.sort(key=lambda item: (item[2], item[1]))
+            
+            # Display results
+            if all_results:
+                self.text_area.insert(tk.END, "Wyniki OCR ze wszystkich komórek:\n")
+                self.text_area.insert(tk.END, "=" * 80 + "\n")
+                
+                for marker, x, y, w, h, conf, text in all_results:
+                    self.text_area.insert(tk.END, f"{marker}\t{x}\t{y}\t{w}\t{h}\t{conf:.0f}\t{text}\n")
+                
+                # Save to temp file for debugging
+                with open("temp_ocr_table.txt", "w", encoding="utf-8") as f:
+                    for marker, x, y, w, h, conf, text in all_results:
+                        f.write(f"{marker}\t{x}\t{y}\t{w}\t{h}\t{conf:.0f}\t|{text}\n")
+                
+                self.status_label.config(text=f"Znaleziono {len(all_results)} komórek z tekstem")
+            else:
+                self.text_area.insert(tk.END, "Nie znaleziono żadnych komórek z tekstem.")
+                self.status_label.config(text="Brak wyników")
+                
+        except Exception as e:
+            messagebox.showerror("Błąd OCR", str(e))
+            self.status_label.config(text="Błąd")
