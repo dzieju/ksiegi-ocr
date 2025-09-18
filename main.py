@@ -9,3 +9,4 @@ if __name__ == "__main__":
     # Ustaw minimalny rozmiar (np. 1200x700)
     app.minsize(1200, 700)
     app.mainloop()
+    #  test aktualizacji repo
