@@ -7,6 +7,7 @@ import subprocess
 from datetime import datetime, timedelta, timezone
 from exchangelib import Credentials, Account, Configuration, DELEGATE
 import pdfplumber
+from tkcalendar import DateEntry
 
 CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
@@ -20,17 +21,15 @@ class InvoiceSearchTab(ttk.Frame):
         self.folder_var = tk.StringVar()
         self.target_folder_var = tk.StringVar()
         self.folder_list = []
-        self.date_range_var = tk.StringVar()
         self.results = []
         self.matched_items = []
 
-        self.date_options = {
-            "Ostatni miesiąc": 30,
-            "Ostatnie 3 miesiące": 90,
-            "Ostatnie 6 miesięcy": 180,
-            "Ostatni rok": 365,
-            "Ostatnie 2 lata": 730
-        }
+        # Get default dates: from = first day of current month, to = today
+        today = datetime.now().date()
+        first_day_of_month = datetime(today.year, today.month, 1).date()
+        
+        self.date_from = first_day_of_month
+        self.date_to = today
 
         ttk.Label(self, text="Podaj NIP do wyszukania:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self, textvariable=self.nip_var, width=30).grid(row=0, column=1, padx=5, pady=5)
@@ -45,13 +44,15 @@ class InvoiceSearchTab(ttk.Frame):
 
         ttk.Button(self, text="Odśwież foldery", command=self.load_folders).grid(row=1, column=2, rowspan=2, padx=5, pady=5)
 
-        ttk.Label(self, text="Zakres czasu:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
-        self.date_combo = ttk.Combobox(self, textvariable=self.date_range_var, width=30, state="readonly")
-        self.date_combo["values"] = list(self.date_options.keys())
-        self.date_combo.grid(row=3, column=1, padx=5, pady=5)
-        self.date_combo.set("Ostatni miesiąc")
+        ttk.Label(self, text="Data od:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        self.date_from_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, year=self.date_from.year, month=self.date_from.month, day=self.date_from.day)
+        self.date_from_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        
+        ttk.Label(self, text="Data do:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        self.date_to_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, year=self.date_to.year, month=self.date_to.month, day=self.date_to.day)
+        self.date_to_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
 
-        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=4, column=1, pady=10)
+        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=5, column=1, pady=10)
 
         self.tree = ttk.Treeview(self, columns=("subject", "date", "filename"), show="headings", height=15)
         self.tree.heading("subject", text="Temat")
@@ -60,11 +61,11 @@ class InvoiceSearchTab(ttk.Frame):
         self.tree.column("subject", width=300)
         self.tree.column("date", width=100)
         self.tree.column("filename", width=250)
-        self.tree.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+        self.tree.grid(row=6, column=0, columnspan=3, padx=10, pady=10)
         self.tree.bind("<Double-1>", self.preview_pdf)
 
-        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=6, column=1, pady=5)
-        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=7, column=1, pady=10)
+        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=7, column=1, pady=5)
+        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=8, column=1, pady=10)
 
         self.load_folders()
         self.load_last_state()
@@ -103,8 +104,22 @@ class InvoiceSearchTab(ttk.Frame):
                     state = json.load(f)
                     self.folder_var.set(state.get("last_folder", "Inbox"))
                     self.nip_var.set(state.get("last_nip", ""))
-                    self.date_range_var.set(state.get("last_range", "Ostatni miesiąc"))
                     self.target_folder_var.set(state.get("target_folder", "Archiwum"))
+                    
+                    # Load saved dates if available, otherwise use defaults
+                    if "date_from" in state:
+                        try:
+                            date_from = datetime.strptime(state["date_from"], "%Y-%m-%d").date()
+                            self.date_from_entry.set_date(date_from)
+                        except:
+                            pass
+                    
+                    if "date_to" in state:
+                        try:
+                            date_to = datetime.strptime(state["date_to"], "%Y-%m-%d").date()
+                            self.date_to_entry.set_date(date_to)
+                        except:
+                            pass
             except:
                 pass
 
@@ -112,7 +127,8 @@ class InvoiceSearchTab(ttk.Frame):
         state = {
             "last_folder": self.folder_var.get(),
             "last_nip": self.nip_var.get().strip(),
-            "last_range": self.date_range_var.get(),
+            "date_from": self.date_from_entry.get_date().strftime("%Y-%m-%d"),
+            "date_to": self.date_to_entry.get_date().strftime("%Y-%m-%d"),
             "target_folder": self.target_folder_var.get()
         }
         with open(STATE_FILE, "w") as f:
@@ -121,8 +137,10 @@ class InvoiceSearchTab(ttk.Frame):
     def search_invoices(self):
         nip = self.nip_var.get().strip()
         folder_name = self.folder_var.get().strip()
-        range_label = self.date_range_var.get()
-        days = self.date_options.get(range_label, 30)
+        
+        # Get dates from DateEntry widgets
+        date_from = self.date_from_entry.get_date()
+        date_to = self.date_to_entry.get_date()
 
         self.results.clear()
         self.matched_items.clear()
@@ -131,6 +149,14 @@ class InvoiceSearchTab(ttk.Frame):
 
         if not nip or not folder_name:
             messagebox.showwarning("Brak danych", "Wprowadź NIP i wybierz folder.")
+            return
+            
+        if not date_from or not date_to:
+            messagebox.showerror("Błąd dat", "Proszę wybrać obie daty - od i do.")
+            return
+            
+        if date_from > date_to:
+            messagebox.showerror("Błąd dat", "Data 'od' nie może być późniejsza niż data 'do'.")
             return
 
         self.save_last_state()
@@ -141,10 +167,13 @@ class InvoiceSearchTab(ttk.Frame):
                 messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
                 return
 
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            # Convert dates to datetime for comparison (include full day)
+            date_from_dt = datetime.combine(date_from, datetime.min.time()).replace(tzinfo=timezone.utc)
+            date_to_dt = datetime.combine(date_to, datetime.max.time()).replace(tzinfo=timezone.utc)
 
             for item in folder.all().order_by("-datetime_received")[:200]:
-                if item.datetime_received < cutoff_date:
+                # Check if email date is within the selected range (inclusive)
+                if not (date_from_dt <= item.datetime_received <= date_to_dt):
                     continue
 
                 for att in item.attachments:
