@@ -142,6 +142,53 @@ class InvoiceSearchTab(ttk.Frame):
             folder = folder.parent
         return "/".join(reversed(names))
 
+    def get_user_folders(self, root_folder, prefix=""):
+        """
+        Rekurencyjnie buduje listę nazw folderów użytkownika (ścieżki np. 'Odebrane/Faktury')
+        """
+        folders = []
+        display_name = f"{prefix}{root_folder.name}"
+        folders.append(display_name)
+        # children może być pusty, więc trzeba sprawdzić
+        try:
+            for child in root_folder.children:
+                # Odfiltruj foldery ukryte/systemowe jeśli mają atrybut is_hidden/is_subscribed itp. (opcjonalnie)
+                folders.extend(self.get_user_folders(child, prefix=display_name + "/"))
+        except Exception:
+            pass
+        return folders
+
+    def load_folders(self):
+        if not os.path.exists(CONFIG_FILE):
+            messagebox.showerror("Brak konfiguracji", "Nie znaleziono pliku exchange_config.json.")
+            return
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                cfg = json.load(f)
+
+            creds = Credentials(username=cfg["username"], password=cfg["password"])
+            config = Configuration(server=cfg["server"], credentials=creds)
+            self.account = Account(primary_smtp_address=cfg["email"], config=config, autodiscover=False, access_type=DELEGATE)
+
+            # Tylko najważniejsze foldery użytkownika
+            user_folders = []
+            for folder in [self.account.inbox, self.account.sent, self.account.drafts, self.account.archive, self.account.junk, self.account.deleted_items]:
+                if folder is not None:
+                    user_folders.extend(self.get_user_folders(folder))
+
+            self.folder_list = user_folders
+            self.folder_combo["values"] = self.folder_list
+            self.target_combo["values"] = self.folder_list
+
+            if self.folder_list:
+                if self.folder_var.get() not in self.folder_list:
+                    self.folder_var.set(self.folder_list[0])
+                if self.target_folder_var.get() not in self.folder_list:
+                    self.target_folder_var.set(self.folder_list[-1])
+
+        except Exception as e:
+            messagebox.showerror("Błąd połączenia", str(e))
+
     def open_exclude_folders_dialog(self):
         if not self.folder_list:
             messagebox.showwarning("Brak folderów", "Najpierw odśwież listę folderów.")
@@ -156,7 +203,6 @@ class InvoiceSearchTab(ttk.Frame):
         dialog.resizable(True, True)
         dialog.configure(borderwidth=4, relief="solid")
 
-        # Tryb wykluczania
         mode_frame = tk.Frame(dialog)
         mode_frame.pack(fill="x", side="top", padx=10, pady=(8, 10))
         tk.Checkbutton(
@@ -214,34 +260,6 @@ class InvoiceSearchTab(ttk.Frame):
         self.excluded_folders = {f for f, v in self.exclude_vars.items() if v.get()}
         self.save_last_state()
         dialog.destroy()
-
-    def load_folders(self):
-        if not os.path.exists(CONFIG_FILE):
-            messagebox.showerror("Brak konfiguracji", "Nie znaleziono pliku exchange_config.json.")
-            return
-
-        try:
-            with open(CONFIG_FILE, "r") as f:
-                cfg = json.load(f)
-
-            creds = Credentials(username=cfg["username"], password=cfg["password"])
-            config = Configuration(server=cfg["server"], credentials=creds)
-            self.account = Account(primary_smtp_address=cfg["email"], config=config, autodiscover=False, access_type=DELEGATE)
-
-            self.folder_list = [f.name for f in self.account.root.walk() if hasattr(f, "name") and f.name]
-            self.folder_list.sort()
-
-            self.folder_combo["values"] = self.folder_list
-            self.target_combo["values"] = self.folder_list
-
-            if self.folder_list:
-                if self.folder_var.get() not in self.folder_list:
-                    self.folder_var.set(self.folder_list[0])
-                if self.target_folder_var.get() not in self.folder_list:
-                    self.target_folder_var.set(self.folder_list[-1])
-
-        except Exception as e:
-            messagebox.showerror("Błąd połączenia", str(e))
 
     def load_last_state(self):
         if os.path.exists(STATE_FILE):
@@ -307,34 +325,34 @@ class InvoiceSearchTab(ttk.Frame):
                 if self.exclude_mode_var.get():
                     # Tryb: szukaj TYLKO w zaznaczonych folderach
                     folders_to_search = [
-                        f for f in self.account.root.walk()
-                        if hasattr(f, "name") and f.name in self.excluded_folders
+                        self._find_folder_by_display_name(f) for f in self.excluded_folders
                     ]
                 else:
                     # Tryb: pomiń zaznaczone foldery (domyślny)
                     folders_to_search = [
-                        f for f in self.account.root.walk()
-                        if hasattr(f, "all") and (not hasattr(f, "name") or f.name not in self.excluded_folders)
+                        self._find_folder_by_display_name(f) for f in self.folder_list if f not in self.excluded_folders
                     ]
             else:
-                folder = next((f for f in self.account.root.walk() if hasattr(f, "name") and f.name == folder_name), None)
+                folder = self._find_folder_by_display_name(folder_name)
                 if folder is None:
                     messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
                     return
                 if not self.exclude_mode_var.get():
-                    if folder.name in self.excluded_folders:
+                    if folder_name in self.excluded_folders:
                         messagebox.showwarning("Folder pominięty", f"Wybrany folder {folder_name} jest na liście wykluczonych.")
                         return
                 else:
-                    if folder.name not in self.excluded_folders:
+                    if folder_name not in self.excluded_folders:
                         messagebox.showwarning("Folder nie jest wybrany do przeszukania", f"Wybrany folder {folder_name} nie znajduje się na liście wybranych.")
                         return
                 folders_to_search = [folder]
 
             for folder in folders_to_search:
+                if folder is None:
+                    continue
                 folder_path = self.get_folder_path(folder)
                 try:
-                    for item in folder.all().order_by("-datetime_received")[:200]:
+                    for item in folder.all().order_by("-datetime_received"):
                         dt = item.datetime_received
                         if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
                             continue
@@ -357,6 +375,8 @@ class InvoiceSearchTab(ttk.Frame):
                                 if os.path.getsize(local_path) < 100:
                                     os.remove(local_path)
                                     continue
+
+                                print(f"Sprawdzam załącznik: {att.name}")
 
                                 try:
                                     pdf = pdfplumber.open(local_path)
@@ -402,6 +422,34 @@ class InvoiceSearchTab(ttk.Frame):
             tb = traceback.format_exc()
             messagebox.showerror("Błąd połączenia", f"{str(e)}\n\n{tb}")
 
+    def _find_folder_by_display_name(self, display_name):
+        """
+        Szuka folderu exchangelib na podstawie ścieżki tekstowej, np. 'Odebrane/Faktury'
+        """
+        try:
+            path_parts = display_name.split("/")
+            folder = None
+            # Map display_name root to exchangelib folder
+            root_map = {
+                "Odebrane": self.account.inbox,
+                "Sent Items": self.account.sent,
+                "Wersje robocze": self.account.drafts,
+                "Archiwum": self.account.archive,
+                "Wiadomości-śmieci": self.account.junk,
+                "Kosz": self.account.deleted_items,
+            }
+            first = path_parts[0]
+            folder = root_map.get(first)
+            if not folder:
+                return None
+            for part in path_parts[1:]:
+                folder = next((child for child in folder.children if child.name == part), None)
+                if folder is None:
+                    return None
+            return folder
+        except Exception:
+            return None
+
     def preview_pdf(self, event):
         selected = self.tree.focus()
         if not selected:
@@ -445,7 +493,7 @@ class InvoiceSearchTab(ttk.Frame):
             return
 
         try:
-            target_folder = next((f for f in self.account.root.walk() if hasattr(f, "name") and f.name == target_name), None)
+            target_folder = self._find_folder_by_display_name(target_name)
             if target_folder is None:
                 messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu docelowego: {target_name}")
                 return
