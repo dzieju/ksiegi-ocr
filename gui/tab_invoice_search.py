@@ -28,6 +28,7 @@ class InvoiceSearchTab(ttk.Frame):
         self.date_to_var = tk.StringVar()
         self.search_all_folders_var = tk.BooleanVar()
         self.excluded_folders = set()
+        self.exclude_mode_var = tk.BooleanVar(value=False)  # False: pomijane, True: tylko te
 
         self.results = []
         self.matched_items = []
@@ -147,13 +148,22 @@ class InvoiceSearchTab(ttk.Frame):
             return
 
         dialog = tk.Toplevel(self)
-        dialog.title("Wybierz foldery do pominięcia")
+        dialog.title("Wybierz foldery do pominięcia lub wyłączności")
         dialog.minsize(400, 200)
-        dialog.geometry("700x400")
+        dialog.geometry("700x450")
         dialog.transient(self)
         dialog.grab_set()
         dialog.resizable(True, True)
         dialog.configure(borderwidth=4, relief="solid")
+
+        # Tryb wykluczania
+        mode_frame = tk.Frame(dialog)
+        mode_frame.pack(fill="x", side="top", padx=10, pady=(8, 10))
+        tk.Checkbutton(
+            mode_frame,
+            text="Szukaj tylko w tych folderach (pozostałe pomiń)",
+            variable=self.exclude_mode_var
+        ).pack(anchor="w")
 
         main_frame = tk.Frame(dialog)
         main_frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -168,7 +178,7 @@ class InvoiceSearchTab(ttk.Frame):
         y_scroll.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
 
-        inner_labelframe = tk.LabelFrame(canvas, text="Zaznacz foldery do pominięcia", padx=6, pady=6, borderwidth=2, relief="groove")
+        inner_labelframe = tk.LabelFrame(canvas, text="Zaznacz foldery", padx=6, pady=6, borderwidth=2, relief="groove")
         canvas.create_window((0, 0), window=inner_labelframe, anchor="nw")
 
         columns = max(4, min(len(self.folder_list), 8))
@@ -191,7 +201,14 @@ class InvoiceSearchTab(ttk.Frame):
 
         btn_frame = tk.Frame(dialog)
         btn_frame.pack(fill="x", side="bottom")
-        ttk.Button(btn_frame, text="Zapisz wybór i zamknij", command=lambda: self._save_excluded_folders_and_close(dialog)).pack(pady=10)
+        ttk.Button(
+            btn_frame, text="Wyczyść wybór",
+            command=lambda: [v.set(False) for v in self.exclude_vars.values()]
+        ).pack(side="left", padx=5, pady=10)
+        ttk.Button(
+            btn_frame, text="Zapisz wybór i zamknij",
+            command=lambda: self._save_excluded_folders_and_close(dialog)
+        ).pack(side="right", padx=5, pady=10)
 
     def _save_excluded_folders_and_close(self, dialog):
         self.excluded_folders = {f for f, v in self.exclude_vars.items() if v.get()}
@@ -238,6 +255,7 @@ class InvoiceSearchTab(ttk.Frame):
                     self.target_folder_var.set(state.get("target_folder", "Archiwum"))
                     self.search_all_folders_var.set(state.get("search_all_folders", False))
                     self.excluded_folders = set(state.get("excluded_folders", []))
+                    self.exclude_mode_var.set(state.get("exclude_mode", False))
             except Exception:
                 pass
 
@@ -249,7 +267,8 @@ class InvoiceSearchTab(ttk.Frame):
             "date_to": self.date_to_var.get(),
             "target_folder": self.target_folder_var.get(),
             "search_all_folders": self.search_all_folders_var.get(),
-            "excluded_folders": list(self.excluded_folders)
+            "excluded_folders": list(self.excluded_folders),
+            "exclude_mode": self.exclude_mode_var.get()
         }
         with open(STATE_FILE, "w") as f:
             json.dump(state, f)
@@ -285,18 +304,31 @@ class InvoiceSearchTab(ttk.Frame):
 
         try:
             if self.search_all_folders_var.get():
-                folders_to_search = [
-                    f for f in self.account.root.walk()
-                    if hasattr(f, "all") and (not hasattr(f, "name") or f.name not in self.excluded_folders)
-                ]
+                if self.exclude_mode_var.get():
+                    # Tryb: szukaj TYLKO w zaznaczonych folderach
+                    folders_to_search = [
+                        f for f in self.account.root.walk()
+                        if hasattr(f, "name") and f.name in self.excluded_folders
+                    ]
+                else:
+                    # Tryb: pomiń zaznaczone foldery (domyślny)
+                    folders_to_search = [
+                        f for f in self.account.root.walk()
+                        if hasattr(f, "all") and (not hasattr(f, "name") or f.name not in self.excluded_folders)
+                    ]
             else:
                 folder = next((f for f in self.account.root.walk() if hasattr(f, "name") and f.name == folder_name), None)
                 if folder is None:
                     messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
                     return
-                if folder.name in self.excluded_folders:
-                    messagebox.showwarning("Folder pominięty", f"Wybrany folder {folder_name} jest na liście wykluczonych.")
-                    return
+                if not self.exclude_mode_var.get():
+                    if folder.name in self.excluded_folders:
+                        messagebox.showwarning("Folder pominięty", f"Wybrany folder {folder_name} jest na liście wykluczonych.")
+                        return
+                else:
+                    if folder.name not in self.excluded_folders:
+                        messagebox.showwarning("Folder nie jest wybrany do przeszukania", f"Wybrany folder {folder_name} nie znajduje się na liście wybranych.")
+                        return
                 folders_to_search = [folder]
 
             for folder in folders_to_search:
@@ -355,7 +387,6 @@ class InvoiceSearchTab(ttk.Frame):
                                     os.remove(local_path)
                                 except Exception:
                                     pass
-                                # nie pokazuj komunikatu użytkownikowi
                 except Exception as e:
                     if ("Access is denied" in str(e) or
                         "cannot access System folder" in str(e) or
