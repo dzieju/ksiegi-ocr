@@ -15,6 +15,8 @@ CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
 TEMP_FOLDER = "temp_invoices"
 
+FOLDER_NAMES = ["inbox", "sent", "drafts", "junk", "deleted_items", "archive"]
+
 class InvoiceSearchTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
@@ -152,13 +154,13 @@ class InvoiceSearchTab(ttk.Frame):
         # children może być pusty, więc trzeba sprawdzić
         try:
             for child in root_folder.children:
-                # Odfiltruj foldery ukryte/systemowe jeśli mają atrybut is_hidden/is_subscribed itp. (opcjonalnie)
                 folders.extend(self.get_user_folders(child, prefix=display_name + "/"))
         except Exception:
             pass
         return folders
 
     def load_folders(self):
+        print("Ładowanie folderów Exchange...")
         if not os.path.exists(CONFIG_FILE):
             messagebox.showerror("Brak konfiguracji", "Nie znaleziono pliku exchange_config.json.")
             return
@@ -170,10 +172,11 @@ class InvoiceSearchTab(ttk.Frame):
             config = Configuration(server=cfg["server"], credentials=creds)
             self.account = Account(primary_smtp_address=cfg["email"], config=config, autodiscover=False, access_type=DELEGATE)
 
-            # Tylko najważniejsze foldery użytkownika
             user_folders = []
-            for folder in [self.account.inbox, self.account.sent, self.account.drafts, self.account.archive, self.account.junk, self.account.deleted_items]:
+            for folder_name in FOLDER_NAMES:
+                folder = getattr(self.account, folder_name, None)
                 if folder is not None:
+                    print(f"Znaleziono root folder: {folder.name}")
                     user_folders.extend(self.get_user_folders(folder))
 
             self.folder_list = user_folders
@@ -185,8 +188,9 @@ class InvoiceSearchTab(ttk.Frame):
                     self.folder_var.set(self.folder_list[0])
                 if self.target_folder_var.get() not in self.folder_list:
                     self.target_folder_var.set(self.folder_list[-1])
-
+            print("Załadowano foldery.")
         except Exception as e:
+            print(f"Błąd ładowania folderów: {e}")
             messagebox.showerror("Błąd połączenia", str(e))
 
     def open_exclude_folders_dialog(self):
@@ -257,11 +261,13 @@ class InvoiceSearchTab(ttk.Frame):
         ).pack(side="right", padx=5, pady=10)
 
     def _save_excluded_folders_and_close(self, dialog):
+        print("Zapisuję wykluczone foldery:", self.exclude_vars)
         self.excluded_folders = {f for f, v in self.exclude_vars.items() if v.get()}
         self.save_last_state()
         dialog.destroy()
 
     def load_last_state(self):
+        print("Ładowanie poprzedniego stanu aplikacji...")
         if os.path.exists(STATE_FILE):
             try:
                 with open(STATE_FILE, "r") as f:
@@ -274,10 +280,11 @@ class InvoiceSearchTab(ttk.Frame):
                     self.search_all_folders_var.set(state.get("search_all_folders", False))
                     self.excluded_folders = set(state.get("excluded_folders", []))
                     self.exclude_mode_var.set(state.get("exclude_mode", False))
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Błąd ładowania stanu: {e}")
 
     def save_last_state(self):
+        print("Zapisuję stan aplikacji...")
         state = {
             "last_folder": self.folder_var.get(),
             "last_nip": self.nip_var.get().strip(),
@@ -304,6 +311,7 @@ class InvoiceSearchTab(ttk.Frame):
             if date_to_str:
                 date_to = datetime.strptime(date_to_str, "%Y-%m-%d") + timedelta(days=1)
         except Exception as e:
+            print(f"Błąd daty: {e}")
             messagebox.showerror("Błąd daty", f"Nieprawidłowy format daty: {str(e)}")
             return
 
@@ -313,6 +321,7 @@ class InvoiceSearchTab(ttk.Frame):
             self.tree.delete(row)
 
         if not nip:
+            print("Nie podano NIP do wyszukania.")
             messagebox.showwarning("Brak danych", "Wprowadź NIP.")
             return
 
@@ -323,26 +332,29 @@ class InvoiceSearchTab(ttk.Frame):
         try:
             if self.search_all_folders_var.get():
                 if self.exclude_mode_var.get():
-                    # Tryb: szukaj TYLKO w zaznaczonych folderach
+                    print("Tryb: szukaj TYLKO w wybranych folderach.")
                     folders_to_search = [
                         self._find_folder_by_display_name(f) for f in self.excluded_folders
                     ]
                 else:
-                    # Tryb: pomiń zaznaczone foldery (domyślny)
+                    print("Tryb: pomiń wykluczone foldery.")
                     folders_to_search = [
                         self._find_folder_by_display_name(f) for f in self.folder_list if f not in self.excluded_folders
                     ]
             else:
                 folder = self._find_folder_by_display_name(folder_name)
                 if folder is None:
+                    print(f"Błąd: nie znaleziono folderu: {folder_name}")
                     messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
                     return
                 if not self.exclude_mode_var.get():
                     if folder_name in self.excluded_folders:
+                        print(f"Błąd: wybrany folder {folder_name} jest na liście wykluczonych.")
                         messagebox.showwarning("Folder pominięty", f"Wybrany folder {folder_name} jest na liście wykluczonych.")
                         return
                 else:
                     if folder_name not in self.excluded_folders:
+                        print(f"Błąd: wybrany folder {folder_name} nie znajduje się na liście wybranych.")
                         messagebox.showwarning("Folder nie jest wybrany do przeszukania", f"Wybrany folder {folder_name} nie znajduje się na liście wybranych.")
                         return
                 folders_to_search = [folder]
@@ -351,15 +363,18 @@ class InvoiceSearchTab(ttk.Frame):
                 if folder is None:
                     continue
                 folder_path = self.get_folder_path(folder)
+                print(f"Przeszukuję folder: {folder_path}")
                 try:
                     for item in folder.all().order_by("-datetime_received"):
                         dt = item.datetime_received
+                        print(f"Mail: '{item.subject}' ({dt})")
                         if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
                             continue
                         if date_to and dt >= date_to.replace(tzinfo=dt.tzinfo):
                             continue
 
                         for att in item.attachments:
+                            print(f"Załącznik: {att.name}")
                             if not att.name.lower().endswith(".pdf"):
                                 continue
 
@@ -373,10 +388,11 @@ class InvoiceSearchTab(ttk.Frame):
                                     f.write(att.content)
 
                                 if os.path.getsize(local_path) < 100:
+                                    print(f"Pominięto załącznik (za mały): {att.name}")
                                     os.remove(local_path)
                                     continue
 
-                                print(f"Sprawdzam załącznik: {att.name}")
+                                print(f"Otwieram PDF: {att.name}")
 
                                 try:
                                     pdf = pdfplumber.open(local_path)
@@ -385,14 +401,16 @@ class InvoiceSearchTab(ttk.Frame):
                                 except (pdfminer.pdfdocument.PDFPasswordIncorrect,
                                         pdfminer.pdfparser.PDFSyntaxError,
                                         pdfplumber.utils.PdfminerException,
-                                        Exception):
+                                        Exception) as ex:
+                                    print(f"Błąd przy czytaniu PDF: {att.name}, wyjątek: {ex}")
                                     try:
                                         os.remove(local_path)
-                                    except Exception:
-                                        pass
+                                    except Exception as e2:
+                                        print(f"Błąd usuwania pliku PDF: {e2}")
                                     continue
 
                                 if nip in full_text:
+                                    print(f"ZNALEZIONO NIP w załączniku: {att.name}")
                                     self.tree.insert(
                                         "",
                                         "end",
@@ -401,13 +419,16 @@ class InvoiceSearchTab(ttk.Frame):
                                     self.results.append(local_path)
                                     self.matched_items.append(item)
                                 else:
+                                    print(f"NIP NIE ZNALEZIONY w załączniku: {att.name}")
                                     os.remove(local_path)
-                            except Exception:
+                            except Exception as e:
+                                print(f"Błąd obsługi załącznika {att.name}: {e}")
                                 try:
                                     os.remove(local_path)
-                                except Exception:
-                                    pass
+                                except Exception as e2:
+                                    print(f"Błąd usuwania pliku PDF: {e2}")
                 except Exception as e:
+                    print(f"Błąd przeszukiwania folderu {folder_path}: {e}")
                     if ("Access is denied" in str(e) or
                         "cannot access System folder" in str(e) or
                         isinstance(e, errors.ErrorAccessDenied)):
@@ -420,6 +441,7 @@ class InvoiceSearchTab(ttk.Frame):
 
         except Exception as e:
             tb = traceback.format_exc()
+            print(f"Błąd połączenia: {e}\n{tb}")
             messagebox.showerror("Błąd połączenia", f"{str(e)}\n\n{tb}")
 
     def _find_folder_by_display_name(self, display_name):
@@ -429,25 +451,27 @@ class InvoiceSearchTab(ttk.Frame):
         try:
             path_parts = display_name.split("/")
             folder = None
-            # Map display_name root to exchangelib folder
             root_map = {
-                "Odebrane": self.account.inbox,
-                "Sent Items": self.account.sent,
-                "Wersje robocze": self.account.drafts,
-                "Archiwum": self.account.archive,
-                "Wiadomości-śmieci": self.account.junk,
-                "Kosz": self.account.deleted_items,
+                "Odebrane": getattr(self.account, "inbox", None),
+                "Sent Items": getattr(self.account, "sent", None),
+                "Wersje robocze": getattr(self.account, "drafts", None),
+                "Archiwum": getattr(self.account, "archive", None),
+                "Wiadomości-śmieci": getattr(self.account, "junk", None),
+                "Kosz": getattr(self.account, "deleted_items", None),
             }
             first = path_parts[0]
             folder = root_map.get(first)
             if not folder:
+                print(f"Nie znaleziono root folderu dla: {first}")
                 return None
             for part in path_parts[1:]:
                 folder = next((child for child in folder.children if child.name == part), None)
                 if folder is None:
+                    print(f"Nie znaleziono podfolderu: {part}")
                     return None
             return folder
-        except Exception:
+        except Exception as e:
+            print(f"Błąd znajdowania folderu: {display_name}, wyjątek: {e}")
             return None
 
     def preview_pdf(self, event):
@@ -459,13 +483,16 @@ class InvoiceSearchTab(ttk.Frame):
         filename = values[2]
 
         try:
+            print(f"Otwieram PDF w podglądzie: {filename}")
             subprocess.Popen([filename], shell=True)
         except Exception as e:
+            print(f"Błąd podglądu PDF: {e}")
             messagebox.showerror("Błąd podglądu", str(e))
 
     def save_pdf(self):
         selected = self.tree.focus()
         if not selected:
+            print("Nie wybrano pliku PDF do zapisania.")
             messagebox.showwarning("Brak wyboru", "Wybierz plik PDF z listy.")
             return
 
@@ -481,29 +508,36 @@ class InvoiceSearchTab(ttk.Frame):
 
         if dest_path:
             try:
+                print(f"Kopiuję PDF: {source_path} -> {dest_path}")
                 shutil.copy(source_path, dest_path)
                 messagebox.showinfo("Zapisano", f"Plik zapisano jako:\n{dest_path}")
             except Exception as e:
+                print(f"Błąd zapisu PDF: {e}")
                 messagebox.showerror("Błąd zapisu", str(e))
 
     def move_messages(self):
         target_name = self.target_folder_var.get().strip()
         if not target_name:
+            print("Nie wybrano folderu docelowego do przeniesienia wiadomości.")
             messagebox.showwarning("Brak folderu docelowego", "Wybierz folder docelowy.")
             return
 
         try:
             target_folder = self._find_folder_by_display_name(target_name)
             if target_folder is None:
+                print(f"Nie znaleziono folderu docelowego: {target_name}")
                 messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu docelowego: {target_name}")
                 return
 
             moved = 0
             for item in self.matched_items:
+                print(f"Przenoszę wiadomość: {item.subject}")
                 item.move(to_folder=target_folder)
                 moved += 1
 
+            print(f"Przeniesiono {moved} wiadomości do folderu: {target_name}")
             messagebox.showinfo("Przeniesiono", f"Przeniesiono {moved} wiadomości do folderu: {target_name}")
 
         except Exception as e:
+            print(f"Błąd przenoszenia wiadomości: {e}")
             messagebox.showerror("Błąd przenoszenia", str(e))
