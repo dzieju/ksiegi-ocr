@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import subprocess
+import io
 from datetime import datetime, timedelta, date
 from exchangelib import Credentials, Account, Configuration, DELEGATE, errors
 import pdfplumber
@@ -375,42 +376,46 @@ class InvoiceSearchTab(ttk.Frame):
 
                         for att in item.attachments:
                             print(f"Załącznik: {att.name}")
+                            
+                            # Wstępne sprawdzenie rozszerzenia
                             if not att.name.lower().endswith(".pdf"):
+                                print(f"Pominięto załącznik (nie PDF): {att.name}")
                                 continue
 
                             if att.name in seen_filenames:
                                 continue
                             seen_filenames.add(att.name)
 
-                            local_path = os.path.join(TEMP_FOLDER, att.name)
+                            # Wstępne sprawdzenie rozmiaru bez zapisywania na dysk
+                            if len(att.content) < 100:
+                                print(f"Pominięto załącznik (za mały): {att.name}")
+                                continue
+
+                            print(f"Przetwarzam PDF z pamięci: {att.name}")
+
                             try:
-                                with open(local_path, "wb") as f:
-                                    f.write(att.content)
-
-                                if os.path.getsize(local_path) < 100:
-                                    print(f"Pominięto załącznik (za mały): {att.name}")
-                                    os.remove(local_path)
-                                    continue
-
-                                print(f"Otwieram PDF: {att.name}")
-
+                                # Analizuj PDF bezpośrednio z pamięci używając BytesIO
+                                pdf_buffer = io.BytesIO(att.content)
+                                
                                 try:
-                                    pdf = pdfplumber.open(local_path)
+                                    pdf = pdfplumber.open(pdf_buffer)
                                     full_text = "\n".join(page.extract_text() or "" for page in pdf.pages)
                                     pdf.close()
                                 except (pdfminer.pdfdocument.PDFPasswordIncorrect,
                                         pdfminer.pdfparser.PDFSyntaxError,
                                         pdfplumber.utils.PdfminerException,
                                         Exception) as ex:
-                                    print(f"Błąd przy czytaniu PDF: {att.name}, wyjątek: {ex}")
-                                    try:
-                                        os.remove(local_path)
-                                    except Exception as e2:
-                                        print(f"Błąd usuwania pliku PDF: {e2}")
+                                    print(f"Błąd przy czytaniu PDF z pamięci: {att.name}, wyjątek: {ex}")
                                     continue
 
                                 if nip in full_text:
                                     print(f"ZNALEZIONO NIP w załączniku: {att.name}")
+                                    
+                                    # Zapisz do pliku tymczasowego tylko gdy NIP został znaleziony
+                                    local_path = os.path.join(TEMP_FOLDER, att.name)
+                                    with open(local_path, "wb") as f:
+                                        f.write(att.content)
+                                    
                                     self.tree.insert(
                                         "",
                                         "end",
@@ -420,13 +425,9 @@ class InvoiceSearchTab(ttk.Frame):
                                     self.matched_items.append(item)
                                 else:
                                     print(f"NIP NIE ZNALEZIONY w załączniku: {att.name}")
-                                    os.remove(local_path)
+                                    
                             except Exception as e:
                                 print(f"Błąd obsługi załącznika {att.name}: {e}")
-                                try:
-                                    os.remove(local_path)
-                                except Exception as e2:
-                                    print(f"Błąd usuwania pliku PDF: {e2}")
                 except Exception as e:
                     print(f"Błąd przeszukiwania folderu {folder_path}: {e}")
                     if ("Access is denied" in str(e) or
