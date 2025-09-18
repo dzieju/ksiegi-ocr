@@ -147,17 +147,22 @@ class InvoiceSearchTab(ttk.Frame):
         if not self.folder_list:
             messagebox.showwarning("Brak folderów", "Najpierw odśwież listę folderów.")
             return
+
         dialog = tk.Toplevel(self)
         dialog.title("Wybierz foldery do pominięcia")
+        dialog.minsize(400, 200)
         dialog.geometry("620x400")
         dialog.transient(self)
         dialog.grab_set()
+        dialog.resizable(True, True)
+        dialog.configure(borderwidth=4, relief="solid")
 
-        # Kompaktowa siatka checkboxów
-        columns = 3  # liczba kolumn
-        frm = tk.Frame(dialog)
+        # Kompaktowa siatka checkboxów w ramce i z responsywnością
+        columns = 3
+        frm = tk.LabelFrame(dialog, text="Zaznacz foldery do pominięcia", padx=6, pady=6, borderwidth=2, relief="groove")
         frm.pack(fill="both", expand=True, padx=10, pady=10)
         self.exclude_vars = {}
+
         for idx, folder in enumerate(self.folder_list):
             var = tk.BooleanVar(value=folder in self.excluded_folders)
             chk = tk.Checkbutton(frm, text=folder, variable=var, anchor="w")
@@ -165,7 +170,9 @@ class InvoiceSearchTab(ttk.Frame):
             col = idx % columns
             chk.grid(row=row, column=col, sticky="w", padx=5, pady=2)
             self.exclude_vars[folder] = var
+            frm.grid_columnconfigure(col, weight=1)
 
+        # Przycisk na dole, zawsze widoczny nawet po zmianie rozmiaru
         btn_frame = tk.Frame(dialog)
         btn_frame.pack(fill="x", side="bottom")
         ttk.Button(btn_frame, text="Zapisz wybór i zamknij", command=lambda: self._save_excluded_folders_and_close(dialog)).pack(pady=10)
