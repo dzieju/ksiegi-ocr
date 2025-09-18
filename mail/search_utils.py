@@ -90,6 +90,9 @@ class EmailSearcher:
             excluded_folders = excluded_folders or set()
             folder_list = folder_list or []
 
+            # LOGUJ przekazane daty na wejściu
+            print(f"Zakres dat do szukania: date_from={date_from}, date_to={date_to}")
+
             # Determine folders to search
             folders_to_search = self._determine_search_folders(
                 search_all_folders, exclude_mode, excluded_folders, 
@@ -178,10 +181,15 @@ class EmailSearcher:
                         break
                         
                     dt = item.datetime_received
-                    print(f"Mail: '{item.subject}' ({dt})")
+
+                    # LOGUJ wartości daty maila oraz zakres
+                    print(f"Mail: '{item.subject}' ({dt}) | Zakres: {date_from} - {date_to}")
+
                     if date_from and dt < date_from.replace(tzinfo=dt.tzinfo):
+                        print(f"POMIJAM (przed zakresem): {dt}")
                         continue
                     if date_to and dt >= date_to.replace(tzinfo=dt.tzinfo):
+                        print(f"POMIJAM (poza zakresem): {dt}")
                         continue
 
                     for att in item.attachments:
