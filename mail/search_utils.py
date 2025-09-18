@@ -8,6 +8,31 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from exchangelib import errors, Q
 
 
+def list_all_folders(account):
+    """
+    Wylistuj wszystkie dostępne foldery na koncie Exchange (ścieżka + nazwa).
+    """
+    for folder in account.root.walk():
+        print(f"{folder.absolute} | {repr(folder.name)}")
+
+
+def find_folder_by_display_name(account, display_name):
+    """
+    Znajdź folder na podstawie nazwy wyświetlanej.
+    Szukanie nieczułe na wielkość liter i spacje.
+    Zwraca obiekt folderu lub None.
+    """
+    display_name_clean = display_name.strip().lower()
+    for folder in account.root.walk():
+        if folder.name and folder.name.strip().lower() == display_name_clean:
+            return folder
+    # Druga próba: po fragmencie nazwy (np. "inbox" zamiast "Skrzynka odbiorcza")
+    for folder in account.root.walk():
+        if folder.name and display_name_clean in folder.name.strip().lower():
+            return folder
+    return None
+
+
 class SearchManager:
     """Manages threaded search operations with progress tracking."""
     
@@ -93,6 +118,9 @@ class EmailSearcher:
             # LOGUJ przekazane daty na wejściu
             print(f"Zakres dat do szukania: date_from={date_from}, date_to={date_to}")
 
+            # DEBUG: Wylistuj wszystkie foldery (do analizy nazewnictwa)
+            # list_all_folders(self.exchange_connection)
+
             # Determine folders to search
             folders_to_search = self._determine_search_folders(
                 search_all_folders, exclude_mode, excluded_folders, 
@@ -128,21 +156,22 @@ class EmailSearcher:
     def _determine_search_folders(self, search_all_folders, exclude_mode, 
                                 excluded_folders, folder_list, folder_name):
         """Determine which folders should be searched based on settings."""
+        # Używamy nowej funkcji wyszukiwania folderów
+        finder = lambda name: find_folder_by_display_name(self.exchange_connection, name)
+
         if search_all_folders:
             if exclude_mode:
                 print("Tryb: szukaj TYLKO w wybranych folderach.")
                 folders_to_search = [
-                    self.exchange_connection.find_folder_by_display_name(f) 
-                    for f in excluded_folders
+                    finder(f) for f in excluded_folders
                 ]
             else:
                 print("Tryb: pomiń wykluczone foldery.")
                 folders_to_search = [
-                    self.exchange_connection.find_folder_by_display_name(f) 
-                    for f in folder_list if f not in excluded_folders
+                    finder(f) for f in folder_list if f not in excluded_folders
                 ]
         else:
-            folder = self.exchange_connection.find_folder_by_display_name(folder_name)
+            folder = finder(folder_name)
             if folder is None:
                 print(f"Błąd: nie znaleziono folderu: {folder_name}")
                 self.search_manager.progress_queue.put(f"Błąd: nie znaleziono folderu: {folder_name}")
@@ -177,7 +206,7 @@ class EmailSearcher:
             if folder is None or self.search_manager.search_cancelled:
                 continue
                 
-            folder_path = self.exchange_connection.get_folder_path(folder)
+            folder_path = getattr(folder, "absolute", None) or (self.exchange_connection.get_folder_path(folder) if hasattr(self.exchange_connection, "get_folder_path") else str(folder))
             print(f"Przeszukuję folder: {folder_path}")
             self.search_manager.progress_queue.put(f"Skanowanie folderu: {folder_path}")
             
