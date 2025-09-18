@@ -8,31 +8,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from exchangelib import errors, Q
 
 
-def list_all_folders(account):
-    """
-    Wylistuj wszystkie dostępne foldery na koncie Exchange (ścieżka + nazwa).
-    """
-    for folder in account.root.walk():
-        print(f"{folder.absolute} | {repr(folder.name)}")
-
-
-def find_folder_by_display_name(account, display_name):
-    """
-    Znajdź folder na podstawie nazwy wyświetlanej.
-    Szukanie nieczułe na wielkość liter i spacje.
-    Zwraca obiekt folderu lub None.
-    """
-    display_name_clean = display_name.strip().lower()
-    for folder in account.root.walk():
-        if folder.name and folder.name.strip().lower() == display_name_clean:
-            return folder
-    # Druga próba: po fragmencie nazwy (np. "inbox" zamiast "Skrzynka odbiorcza")
-    for folder in account.root.walk():
-        if folder.name and display_name_clean in folder.name.strip().lower():
-            return folder
-    return None
-
-
 class SearchManager:
     """Manages threaded search operations with progress tracking."""
     
@@ -115,11 +90,7 @@ class EmailSearcher:
             excluded_folders = excluded_folders or set()
             folder_list = folder_list or []
 
-            # LOGUJ przekazane daty na wejściu
             print(f"Zakres dat do szukania: date_from={date_from}, date_to={date_to}")
-
-            # DEBUG: Wylistuj wszystkie foldery (do analizy nazewnictwa)
-            # list_all_folders(self.exchange_connection)
 
             # Determine folders to search
             folders_to_search = self._determine_search_folders(
@@ -156,8 +127,7 @@ class EmailSearcher:
     def _determine_search_folders(self, search_all_folders, exclude_mode, 
                                 excluded_folders, folder_list, folder_name):
         """Determine which folders should be searched based on settings."""
-        # Używamy nowej funkcji wyszukiwania folderów
-        finder = lambda name: find_folder_by_display_name(self.exchange_connection, name)
+        finder = lambda name: self.exchange_connection.find_folder_by_display_name(name)
 
         if search_all_folders:
             if exclude_mode:
@@ -195,7 +165,7 @@ class EmailSearcher:
                                 seen_filenames, attachment_counter):
         """Collect all PDF attachments from specified folders."""
         from datetime import timezone
-        # Upewnij się, że daty są timezone-aware
+        # Ensure dates are timezone-aware
         if date_from and date_from.tzinfo is None:
             date_from = date_from.replace(tzinfo=timezone.utc)
         if date_to and date_to.tzinfo is None:
@@ -223,11 +193,7 @@ class EmailSearcher:
                         break
                         
                     dt = item.datetime_received
-
-                    # LOGUJ wartości daty maila oraz zakres
                     print(f"Mail: '{item.subject}' ({dt}) | Zakres: {date_from} - {date_to}")
-
-                    # Tu już nie trzeba sprawdzać zakresu, bo filtruje serwer!
 
                     for att in item.attachments:
                         if self.search_manager.search_cancelled:
