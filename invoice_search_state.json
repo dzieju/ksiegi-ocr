@@ -1,9 +1,9 @@
 {
   "last_folder": "Skrzynka odbiorcza",
   "last_nip": "5732475751",
-  "date_from": "2025-09-11",
-  "date_to": "2025-09-18",
-  "target_folder": "Wiadomoœci-œmieci",
+  "date_from": "2025-09-01",
+  "date_to": "2025-09-19",
+  "target_folder": "Skrzynka odbiorcza/Faktury",
   "search_all_folders": true,
   "excluded_folders": [
     "Skrzynka odbiorcza",

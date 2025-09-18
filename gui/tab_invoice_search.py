@@ -31,13 +31,11 @@ class InvoiceSearchTab(ttk.Frame):
 
         self.date_from_var = tk.StringVar()
         self.date_to_var = tk.StringVar()
-        self.search_all_folders_var = tk.BooleanVar()
-        self.excluded_folders = set()
-        self.exclude_mode_var = tk.BooleanVar(value=False)  # False: pomijane, True: tylko te
 
         self.results = []
         self.matched_items = []
 
+        # UPROSZCZONY PANEL
         ttk.Label(self, text="Podaj NIP do wyszukania:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self, textvariable=self.nip_var, width=30).grid(row=0, column=1, padx=5, pady=5)
 
@@ -45,19 +43,35 @@ class InvoiceSearchTab(ttk.Frame):
         self.folder_combo = ttk.Combobox(self, textvariable=self.folder_var, width=50, state="readonly")
         self.folder_combo.grid(row=1, column=1, padx=5, pady=5)
 
-        ttk.Label(self, text="Folder docelowy:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.target_combo = ttk.Combobox(self, textvariable=self.target_folder_var, width=50, state="readonly")
-        self.target_combo.grid(row=2, column=1, padx=5, pady=5)
+        # Przycisk do rozwijania opcji zaawansowanych
+        self.adv_btn = ttk.Button(self, text="Opcje zaawansowane...", command=self.toggle_advanced)
+        self.adv_btn.grid(row=1, column=2, padx=5, pady=5, sticky="w")
 
-        ttk.Button(self, text="Odśwież foldery", command=self.load_folders).grid(row=1, column=2, rowspan=2, padx=5, pady=5)
-        ttk.Button(self, text="Pomiń foldery...", command=self.open_exclude_folders_dialog).grid(row=1, column=3, rowspan=2, padx=5, pady=5)
+        # PANEL ZAawansowany - domyślnie ukryty
+        self.adv_frame = ttk.LabelFrame(self, text="Opcje zaawansowane")
+        self.adv_frame.grid(row=2, column=0, columnspan=4, padx=5, pady=5, sticky="ew")
+        self.adv_frame.grid_remove()
 
+        # Folder docelowy
+        ttk.Label(self.adv_frame, text="Folder docelowy:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        self.target_combo = ttk.Combobox(self.adv_frame, textvariable=self.target_folder_var, width=50, state="readonly")
+        self.target_combo.grid(row=0, column=1, padx=5, pady=5)
+
+        # Zaawansowane: przeszukiwanie wszystkich folderów
+        self.search_all_folders_var = tk.BooleanVar()
         ttk.Checkbutton(
-            self,
+            self.adv_frame,
             text="Przeszukaj całą skrzynkę pocztową (wszystkie foldery)",
             variable=self.search_all_folders_var
-        ).grid(row=2, column=2, sticky="w", padx=5, pady=5)
+        ).grid(row=0, column=2, sticky="w", padx=5, pady=5)
 
+        # Zaawansowane: wykluczanie/tylko foldery
+        self.excluded_folders = set()
+        self.exclude_mode_var = tk.BooleanVar(value=False)  # False: pomijane, True: tylko te
+
+        ttk.Button(self.adv_frame, text="Pomiń foldery...", command=self.open_exclude_folders_dialog).grid(row=0, column=3, padx=5, pady=5)
+
+        # Daty
         ttk.Label(self, text="Data od:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         try:
             self.date_from_entry = DateEntry(self, textvariable=self.date_from_var, width=12, date_pattern="yyyy-mm-dd", locale="pl_PL")
@@ -123,6 +137,14 @@ class InvoiceSearchTab(ttk.Frame):
         # Start processing queues
         self._process_result_queue()
         self._process_progress_queue()
+
+    def toggle_advanced(self):
+        if self.adv_frame.winfo_ismapped():
+            self.adv_frame.grid_remove()
+            self.adv_btn.config(text="Opcje zaawansowane...")
+        else:
+            self.adv_frame.grid()
+            self.adv_btn.config(text="Ukryj zaawansowane")
 
     def destroy(self):
         """Cleanup when widget is destroyed"""
