@@ -1,0 +1,4 @@
+exchangelib
+pdfplumber
+pdfminer.six
+tkcalendar
