@@ -16,6 +16,10 @@ TEMP_FILE = "temp_segmentacja_ocr.txt"
 X_MIN = 100
 X_MAX = 400
 
+# Ustalony crop do kolumny numerów faktur (pełna kolumna na stronie PDF)
+CROP_LEFT, CROP_RIGHT = 241, 518
+CROP_TOP, CROP_BOTTOM = 560, 2300
+
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 class KsiegiTab(ttk.Frame):
@@ -45,12 +49,14 @@ class KsiegiTab(ttk.Frame):
 
         ttk.Button(scroll_frame, text="Segmentuj tabelę i OCR", command=self.process_pdf).grid(row=1, column=1, pady=10)
         ttk.Button(scroll_frame, text="Pokaż wszystkie komórki OCR", command=self.show_all_ocr).grid(row=1, column=2, pady=10)
+        # NOWY PRZYCISK: OCR z kolumny (pełny crop, wszystkie strony PDF)
+        ttk.Button(scroll_frame, text="OCR z kolumny (wszystkie strony)", command=self.run_column_ocr).grid(row=1, column=3, padx=5, pady=10)
 
         self.text_area = ScrolledText(scroll_frame, wrap="word", width=100, height=25)
-        self.text_area.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        self.text_area.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
 
         self.canvas = tk.Canvas(scroll_frame, width=1000, height=1400)
-        self.canvas.grid(row=3, column=0, columnspan=3)
+        self.canvas.grid(row=3, column=0, columnspan=4)
 
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
         self.status_label.grid(row=4, column=1, pady=5)
@@ -60,6 +66,39 @@ class KsiegiTab(ttk.Frame):
         if path:
             self.file_path_var.set(path)
             self.status_label.config(text="Plik wybrany")
+
+    def run_column_ocr(self):
+        """
+        Prosty OCR wszystkich stron kolumny z numerami faktur (pełny crop, bez segmentacji komórek, bez scalania).
+        """
+        path = self.file_path_var.get().strip()
+        if not path or not os.path.exists(path):
+            messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
+            return
+
+        self.text_area.delete("1.0", tk.END)
+        try:
+            images = convert_from_path(path, dpi=300, poppler_path=POPPLER_PATH)
+            all_lines = []
+            for page_num, pil_img in enumerate(images, 1):
+                crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
+                ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
+                self.text_area.insert(tk.END, f"\n=== STRONA {page_num} ===\n")
+                self.text_area.insert(tk.END, ocr_text)
+                self.text_area.insert(tk.END, "\n")
+                # Dodatkowo: linie osobno
+                lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]
+                all_lines.extend([(page_num, l) for l in lines])
+
+            self.text_area.insert(tk.END, "\n---- Linie OCR z wszystkich stron ----\n")
+            for i, (page_num, line) in enumerate(all_lines, 1):
+                self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
+
+            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron")
+
+        except Exception as e:
+            messagebox.showerror("Błąd OCR z kolumny", str(e))
+            self.status_label.config(text="Błąd OCR kolumny")
 
     def process_pdf(self):
         path = self.file_path_var.get().strip()
