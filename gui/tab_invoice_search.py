@@ -7,6 +7,7 @@ import subprocess
 from datetime import datetime, timedelta, timezone
 from exchangelib import Credentials, Account, Configuration, DELEGATE
 import pdfplumber
+from tkcalendar import DateEntry
 
 CONFIG_FILE = "exchange_config.json"
 STATE_FILE = "invoice_search_state.json"
@@ -23,6 +24,10 @@ class InvoiceSearchTab(ttk.Frame):
         self.date_range_var = tk.StringVar()
         self.results = []
         self.matched_items = []
+        
+        # Variables for custom date selection
+        self.date_from_var = tk.StringVar()
+        self.date_to_var = tk.StringVar()
 
         self.date_options = {
             "Ostatni miesiąc": 30,
@@ -51,7 +56,18 @@ class InvoiceSearchTab(ttk.Frame):
         self.date_combo.grid(row=3, column=1, padx=5, pady=5)
         self.date_combo.set("Ostatni miesiąc")
 
-        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=4, column=1, pady=10)
+        # Custom date range fields
+        ttk.Label(self, text="Data od:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        self.date_from_entry = DateEntry(self, width=12, background='darkblue',
+                                        foreground='white', borderwidth=2, date_pattern='dd.MM.yyyy')
+        self.date_from_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
+        
+        ttk.Label(self, text="Data do:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        self.date_to_entry = DateEntry(self, width=12, background='darkblue',
+                                      foreground='white', borderwidth=2, date_pattern='dd.MM.yyyy')
+        self.date_to_entry.grid(row=5, column=1, padx=5, pady=5, sticky="w")
+
+        ttk.Button(self, text="Szukaj faktur", command=self.search_invoices).grid(row=6, column=1, pady=10)
 
         self.tree = ttk.Treeview(self, columns=("subject", "date", "filename"), show="headings", height=15)
         self.tree.heading("subject", text="Temat")
@@ -60,11 +76,11 @@ class InvoiceSearchTab(ttk.Frame):
         self.tree.column("subject", width=300)
         self.tree.column("date", width=100)
         self.tree.column("filename", width=250)
-        self.tree.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+        self.tree.grid(row=7, column=0, columnspan=3, padx=10, pady=10)
         self.tree.bind("<Double-1>", self.preview_pdf)
 
-        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=6, column=1, pady=5)
-        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=7, column=1, pady=10)
+        ttk.Button(self, text="Zapisz wybrany PDF", command=self.save_pdf).grid(row=8, column=1, pady=5)
+        ttk.Button(self, text="Przenieś wiadomości", command=self.move_messages).grid(row=9, column=1, pady=10)
 
         self.load_folders()
         self.load_last_state()
@@ -105,6 +121,21 @@ class InvoiceSearchTab(ttk.Frame):
                     self.nip_var.set(state.get("last_nip", ""))
                     self.date_range_var.set(state.get("last_range", "Ostatni miesiąc"))
                     self.target_folder_var.set(state.get("target_folder", "Archiwum"))
+                    
+                    # Load custom dates if available
+                    if "date_from" in state and state["date_from"]:
+                        try:
+                            date_from = datetime.strptime(state["date_from"], "%d.%m.%Y").date()
+                            self.date_from_entry.set_date(date_from)
+                        except:
+                            pass
+                    
+                    if "date_to" in state and state["date_to"]:
+                        try:
+                            date_to = datetime.strptime(state["date_to"], "%d.%m.%Y").date()
+                            self.date_to_entry.set_date(date_to)
+                        except:
+                            pass
             except:
                 pass
 
@@ -113,7 +144,9 @@ class InvoiceSearchTab(ttk.Frame):
             "last_folder": self.folder_var.get(),
             "last_nip": self.nip_var.get().strip(),
             "last_range": self.date_range_var.get(),
-            "target_folder": self.target_folder_var.get()
+            "target_folder": self.target_folder_var.get(),
+            "date_from": self.date_from_entry.get(),
+            "date_to": self.date_to_entry.get()
         }
         with open(STATE_FILE, "w") as f:
             json.dump(state, f)
@@ -141,10 +174,45 @@ class InvoiceSearchTab(ttk.Frame):
                 messagebox.showerror("Błąd folderu", f"Nie znaleziono folderu: {folder_name}")
                 return
 
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+            # Determine date range - custom dates take precedence
+            date_from_str = self.date_from_entry.get()
+            date_to_str = self.date_to_entry.get()
+            
+            start_date = None
+            end_date = None
+            
+            # Parse custom dates if provided
+            if date_from_str:
+                try:
+                    start_date = datetime.strptime(date_from_str, "%d.%m.%Y").replace(tzinfo=timezone.utc)
+                except ValueError:
+                    pass
+            
+            if date_to_str:
+                try:
+                    # Set end_date to end of day (23:59:59)
+                    end_date = datetime.strptime(date_to_str, "%d.%m.%Y").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+                except ValueError:
+                    pass
+            
+            # If no custom dates are set, use the preset range
+            if not start_date and not end_date:
+                cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+                start_date = cutoff_date
+            
+            # If only one custom date is set, handle accordingly
+            if start_date and not end_date:
+                # Only "from" date set - search from that date to now
+                end_date = datetime.now(timezone.utc)
+            elif not start_date and end_date:
+                # Only "to" date set - search from beginning of time to that date
+                start_date = datetime.min.replace(tzinfo=timezone.utc)
 
             for item in folder.all().order_by("-datetime_received")[:200]:
-                if item.datetime_received < cutoff_date:
+                # Apply date filtering
+                if start_date and item.datetime_received < start_date:
+                    continue
+                if end_date and item.datetime_received > end_date:
                     continue
 
                 for att in item.attachments:
