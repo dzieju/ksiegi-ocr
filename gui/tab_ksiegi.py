@@ -233,9 +233,10 @@ class KsiegiTab(ttk.Frame):
 
     def select_folder_and_generate_csv(self):
         """
-        Wybiera folder i generuje plik CSV z nazwami wszystkich plików (bez rozszerzeń)
-        znajdujących się w tym folderze. Plik CSV ma nazwę identyczną jak folder
-        i jest zapisywany w tym samym folderze, w którym znajduje się plik wyniki.csv.
+        Wybiera folder i generuje plik CSV z nazwami tylko widocznych plików PDF (bez rozszerzeń)
+        znajdujących się w tym folderze. Pomija ukryte pliki oraz pliki o innych rozszerzeniach.
+        Plik CSV ma nazwę identyczną jak folder i jest zapisywany w tym samym folderze, 
+        w którym znajduje się plik wyniki.csv.
         """
         folder_path = filedialog.askdirectory(title="Wybierz folder do odczytu")
         if not folder_path:
@@ -252,16 +253,21 @@ class KsiegiTab(ttk.Frame):
             wyniki_csv_dir = os.path.dirname(os.path.abspath("wyniki.csv"))
             csv_path = os.path.join(wyniki_csv_dir, csv_filename)
             
-            # Odczytaj wszystkie pliki w folderze (bez podfolderów)
+            # Odczytaj tylko widoczne pliki PDF z folderu (bez podfolderów)
             filenames_without_extension = []
             if os.path.exists(folder_path):
                 for item in os.listdir(folder_path):
                     item_path = os.path.join(folder_path, item)
                     # Sprawdź czy to plik (nie folder)
                     if os.path.isfile(item_path):
-                        # Pobierz nazwę bez rozszerzenia
-                        name_without_ext = os.path.splitext(item)[0]
-                        filenames_without_extension.append(name_without_ext)
+                        # Pomijaj ukryte pliki (zaczynające się od kropki)
+                        if item.startswith('.'):
+                            continue
+                        # Sprawdź czy plik ma rozszerzenie .pdf (case-insensitive)
+                        if item.lower().endswith('.pdf'):
+                            # Pobierz nazwę bez rozszerzenia
+                            name_without_ext = os.path.splitext(item)[0]
+                            filenames_without_extension.append(name_without_ext)
             
             # Zapisz do pliku CSV
             with open(csv_path, 'w', encoding='utf-8', newline='') as csvfile:
@@ -272,7 +278,7 @@ class KsiegiTab(ttk.Frame):
             # Pokaż wyniki w obszarze tekstowym
             self.text_area.delete("1.0", tk.END)
             self.text_area.insert(tk.END, f"Odczytano folder: {folder_path}\n")
-            self.text_area.insert(tk.END, f"Znaleziono {len(filenames_without_extension)} plików:\n\n")
+            self.text_area.insert(tk.END, f"Znaleziono {len(filenames_without_extension)} plików PDF (pomijając ukryte pliki i inne rozszerzenia):\n\n")
             
             for filename in filenames_without_extension:
                 self.text_area.insert(tk.END, f"{filename}\n")
@@ -280,9 +286,9 @@ class KsiegiTab(ttk.Frame):
             self.text_area.insert(tk.END, f"\nPlik CSV zapisany jako: {csv_path}")
             
             # Aktualizuj status
-            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} nazw plików do {csv_filename} w katalogu wyniki.csv")
+            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} plików PDF do {csv_filename} w katalogu wyniki.csv")
             
-            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}\nLokalizacja: {csv_path}")
+            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} plików PDF do {csv_filename}\nLokalizacja: {csv_path}")
             
         except Exception as e:
             error_msg = f"Błąd podczas przetwarzania folderu: {str(e)}"
