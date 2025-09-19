@@ -99,7 +99,7 @@ class KsiegiTab(ttk.Frame):
             # Zapisz wyniki do pliku wyniki.csv (nadpisanie)
             try:
                 with open("wyniki.csv", "w", encoding="utf-8", newline='') as csvfile:
-                    writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+                    writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
                     # Zapisz nagłówek
                     writer.writerow(["strona", "linia", "numer faktury"])
                     # Zapisz dane
