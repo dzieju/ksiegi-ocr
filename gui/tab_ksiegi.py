@@ -53,14 +53,17 @@ class KsiegiTab(ttk.Frame):
         # NOWY PRZYCISK: OCR z kolumny (pełny crop, wszystkie strony PDF)
         ttk.Button(scroll_frame, text="OCR z kolumny (wszystkie strony)", command=self.run_column_ocr).grid(row=1, column=3, padx=5, pady=10)
 
+        # NOWY PRZYCISK: Odczytaj folder
+        ttk.Button(scroll_frame, text="Odczytaj folder", command=self.select_folder_and_generate_csv).grid(row=2, column=1, pady=10)
+
         self.text_area = ScrolledText(scroll_frame, wrap="word", width=100, height=25)
-        self.text_area.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
+        self.text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
 
         self.canvas = tk.Canvas(scroll_frame, width=1000, height=1400)
-        self.canvas.grid(row=3, column=0, columnspan=4)
+        self.canvas.grid(row=4, column=0, columnspan=4)
 
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=4, column=1, pady=5)
+        self.status_label.grid(row=5, column=1, pady=5)
 
     def select_file(self):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
@@ -227,3 +230,58 @@ class KsiegiTab(ttk.Frame):
             roi = self.image[y:y+h, x:x+w]
             text = pytesseract.image_to_string(roi, lang='pol').strip()
             self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
+
+    def select_folder_and_generate_csv(self):
+        """
+        Wybiera folder i generuje plik CSV z nazwami wszystkich plików (bez rozszerzeń)
+        znajdujących się w tym folderze. Plik CSV ma nazwę identyczną jak folder
+        i jest zapisywany w tym samym folderze.
+        """
+        folder_path = filedialog.askdirectory(title="Wybierz folder do odczytu")
+        if not folder_path:
+            return
+        
+        try:
+            # Pobierz nazwę folderu (bez pełnej ścieżki)
+            folder_name = os.path.basename(folder_path)
+            csv_filename = f"{folder_name}.csv"
+            csv_path = os.path.join(folder_path, csv_filename)
+            
+            # Odczytaj wszystkie pliki w folderze (bez podfolderów)
+            filenames_without_extension = []
+            if os.path.exists(folder_path):
+                for item in os.listdir(folder_path):
+                    item_path = os.path.join(folder_path, item)
+                    # Sprawdź czy to plik (nie folder)
+                    if os.path.isfile(item_path):
+                        # Pobierz nazwę bez rozszerzenia
+                        name_without_ext = os.path.splitext(item)[0]
+                        filenames_without_extension.append(name_without_ext)
+            
+            # Zapisz do pliku CSV
+            with open(csv_path, 'w', encoding='utf-8', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                for filename in filenames_without_extension:
+                    writer.writerow([filename])
+            
+            # Pokaż wyniki w obszarze tekstowym
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert(tk.END, f"Odczytano folder: {folder_path}\n")
+            self.text_area.insert(tk.END, f"Znaleziono {len(filenames_without_extension)} plików:\n\n")
+            
+            for filename in filenames_without_extension:
+                self.text_area.insert(tk.END, f"{filename}\n")
+            
+            self.text_area.insert(tk.END, f"\nPlik CSV zapisany jako: {csv_path}")
+            
+            # Aktualizuj status
+            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}")
+            
+            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}")
+            
+        except Exception as e:
+            error_msg = f"Błąd podczas przetwarzania folderu: {str(e)}"
+            messagebox.showerror("Błąd", error_msg)
+            self.status_label.config(text="Błąd przetwarzania folderu")
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert(tk.END, error_msg)
