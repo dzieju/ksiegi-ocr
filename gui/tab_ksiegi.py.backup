@@ -53,97 +53,36 @@ class KsiegiTab(ttk.Frame):
         self.current_task = None
         self.processed_pages_data = {}  # Store results from parallel processing
 
-        # Konfiguracja stylów sekcji na początku
-        self._configure_section_styles()
+        ttk.Label(scroll_frame, text="Plik PDF (księgi):").grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(scroll_frame, textvariable=self.file_path_var, width=60).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(scroll_frame, text="Wybierz plik", command=self.select_file).grid(row=0, column=2, padx=5, pady=5)
 
-        current_row = 0
-
-        # ===== SEKCJA: Plik PDF (księgi) =====
-        pdf_frame = ttk.LabelFrame(scroll_frame, text="Plik PDF (księgi)", padding="10")
-        pdf_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
-        
-        # Konfiguracja wyrównania w poziomie
-        pdf_frame.columnconfigure(1, weight=1)  # Pole tekstowe rozciągane
-        
-        ttk.Label(pdf_frame, text="Plik:").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=5)
-        ttk.Entry(pdf_frame, textvariable=self.file_path_var, width=60).grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=5)
-        ttk.Button(pdf_frame, text="Wybierz plik", command=self.select_file).grid(row=0, column=2, padx=(0, 0), pady=5)
-        
-        current_row += 1
-
-        # Kontener główny dla sekcji funkcjonalnych
-        main_container = ttk.Frame(scroll_frame)
-        main_container.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
-        main_container.columnconfigure(0, weight=1)
-        main_container.columnconfigure(1, weight=1)
-        
-        # ===== SEKCJA: Przetwarzanie OCR =====
-        ocr_frame = ttk.LabelFrame(main_container, text="Przetwarzanie OCR", padding="10")
-        ocr_frame.grid(row=0, column=0, sticky="new", padx=(0, 5), pady=5)
-        
-        # Przyciski OCR o równej szerokości, ułożone pionowo
-        button_width = 25
-        
-        ttk.Button(ocr_frame, text="Segmentuj tabelę i OCR", 
-                  command=self.process_pdf, width=button_width).grid(row=0, column=0, sticky="ew", pady=2)
-        
+        ttk.Button(scroll_frame, text="Segmentuj tabelę i OCR", command=self.process_pdf).grid(row=1, column=1, pady=10)
         # Performance optimization: Button with cancellation capability 
-        self.show_ocr_button = ttk.Button(ocr_frame, text="Pokaż wszystkie komórki OCR", 
-                                         command=self.toggle_show_all_ocr, width=button_width)
-        self.show_ocr_button.grid(row=1, column=0, sticky="ew", pady=2)
-        
+        self.show_ocr_button = ttk.Button(scroll_frame, text="Pokaż wszystkie komórki OCR", command=self.toggle_show_all_ocr)
+        self.show_ocr_button.grid(row=1, column=2, pady=10)
         # Performance optimization: Updated button for threaded OCR processing
-        self.ocr_button = ttk.Button(ocr_frame, text="OCR z kolumny (wszystkie strony)", 
-                                    command=self.toggle_column_ocr, width=button_width)
-        self.ocr_button.grid(row=2, column=0, sticky="ew", pady=2)
-        
-        # ===== SEKCJA: Operacje na folderach =====
-        folder_frame = ttk.LabelFrame(main_container, text="Operacje na folderach", padding="10")
-        folder_frame.grid(row=0, column=1, sticky="new", padx=(5, 0), pady=5)
-        
-        # Przyciski operacji na folderach o równej szerokości, ułożone pionowo
-        ttk.Button(folder_frame, text="Odczytaj folder", 
-                  command=self.select_folder_and_generate_csv, width=button_width).grid(row=0, column=0, sticky="ew", pady=2)
-        
-        ttk.Button(folder_frame, text="Porównaj pliki CSV", 
-                  command=self.compare_csv_files, width=button_width).grid(row=1, column=0, sticky="ew", pady=2)
-        
-        current_row += 1
+        self.ocr_button = ttk.Button(scroll_frame, text="OCR z kolumny (wszystkie strony)", command=self.toggle_column_ocr)
+        self.ocr_button.grid(row=1, column=3, padx=5, pady=10)
 
-        # ===== SEKCJA: Wyniki/Logi =====
-        results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="10")
-        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
-        results_frame.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie pola tekstowego
+        # NOWY PRZYCISK: Odczytaj folder
+        ttk.Button(scroll_frame, text="Odczytaj folder", command=self.select_folder_and_generate_csv).grid(row=2, column=1, pady=10)
         
-        self.text_area = ScrolledText(results_frame, wrap="word", width=100, height=20)
-        self.text_area.grid(row=0, column=0, sticky="ew", pady=5)
-        
-        current_row += 1
+        # NOWY PRZYCISK: Porównaj CSV
+        ttk.Button(scroll_frame, text="Porównaj", command=self.compare_csv_files).grid(row=2, column=2, pady=10)
 
-        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności)
+        self.text_area = ScrolledText(scroll_frame, wrap="word", width=100, height=25)
+        self.text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
+
         self.canvas = tk.Canvas(scroll_frame, width=1000, height=1400)
-        self.canvas.grid(row=current_row, column=0, columnspan=2, padx=10, pady=5)
-        
-        current_row += 1
-        
-        # Status label na dole
+        self.canvas.grid(row=4, column=0, columnspan=4)
+
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=5)
+        self.status_label.grid(row=5, column=1, pady=5)
 
         # Performance optimization: Start processing queues for threaded operations
         self._process_ocr_result_queue()
         self._process_ocr_progress_queue()
-
-    def _configure_section_styles(self):
-        """
-        Konfiguruje podstawowe style dla różnych sekcji GUI.
-        """
-        style = ttk.Style()
-        
-        # Podstawowe style z lepszą widocznością granic sekcji
-        style.configure("TLabelframe", 
-                       borderwidth=2, 
-                       relief="groove")
 
     def destroy(self):
         """Cleanup when widget is destroyed - performance optimization"""
