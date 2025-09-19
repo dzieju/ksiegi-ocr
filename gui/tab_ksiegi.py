@@ -68,6 +68,20 @@ class KsiegiTab(ttk.Frame):
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
         self.status_label.grid(row=5, column=1, pady=5)
 
+    def _ensure_ksiegi_folder(self):
+        """
+        Tworzy folder 'Ksiegi' w głównym katalogu aplikacji, jeśli nie istnieje.
+        Zwraca ścieżkę do folderu 'Ksiegi'.
+        """
+        # Pobierz katalog główny aplikacji (tam gdzie znajduje się wyniki.csv)
+        main_dir = os.path.dirname(os.path.abspath("wyniki.csv"))
+        ksiegi_folder = os.path.join(main_dir, "Ksiegi")
+        
+        # Utwórz folder, jeśli nie istnieje
+        os.makedirs(ksiegi_folder, exist_ok=True)
+        
+        return ksiegi_folder
+
     def select_file(self):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if path:
@@ -102,9 +116,11 @@ class KsiegiTab(ttk.Frame):
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
 
-            # Zapisz wyniki do pliku wyniki.csv (nadpisanie)
+            # Zapisz wyniki do pliku wyniki.csv w folderze Ksiegi
             try:
-                with open("wyniki.csv", "w", encoding="utf-8", newline='') as csvfile:
+                ksiegi_folder = self._ensure_ksiegi_folder()
+                csv_path = os.path.join(ksiegi_folder, "wyniki.csv")
+                with open(csv_path, "w", encoding="utf-8", newline='') as csvfile:
                     writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
                     # Zapisz nagłówek
                     writer.writerow(["strona", "linia", "numer faktury"])
@@ -116,7 +132,7 @@ class KsiegiTab(ttk.Frame):
                 self.status_label.config(text="Błąd zapisu pliku CSV")
                 return
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do wyniki.csv")
+            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do Ksiegi/wyniki.csv")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
@@ -238,8 +254,7 @@ class KsiegiTab(ttk.Frame):
         """
         Wybiera folder i generuje plik CSV z nazwami tylko widocznych plików PDF (bez rozszerzeń)
         znajdujących się w tym folderze. Pomija ukryte pliki oraz pliki o innych rozszerzeniach.
-        Plik CSV ma nazwę identyczną jak folder i jest zapisywany w tym samym folderze, 
-        w którym znajduje się plik wyniki.csv.
+        Plik CSV ma nazwę identyczną jak folder i jest zapisywany w folderze "Ksiegi".
         """
         folder_path = filedialog.askdirectory(title="Wybierz folder do odczytu")
         if not folder_path:
@@ -251,10 +266,9 @@ class KsiegiTab(ttk.Frame):
             folder_name = os.path.basename(folder_path)
             csv_filename = f"{folder_name}.csv"
             
-            # Zapisz CSV w tym samym folderze, w którym znajduje się wyniki.csv
-            # (zazwyczaj jest to katalog główny aplikacji)
-            wyniki_csv_dir = os.path.dirname(os.path.abspath("wyniki.csv"))
-            csv_path = os.path.join(wyniki_csv_dir, csv_filename)
+            # Zapisz CSV w folderze Ksiegi
+            ksiegi_folder = self._ensure_ksiegi_folder()
+            csv_path = os.path.join(ksiegi_folder, csv_filename)
             
             # Odczytaj tylko widoczne pliki PDF z folderu (bez podfolderów)
             filenames_without_extension = []
@@ -289,7 +303,7 @@ class KsiegiTab(ttk.Frame):
             self.text_area.insert(tk.END, f"\nPlik CSV zapisany jako: {csv_path}")
             
             # Aktualizuj status
-            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} plików PDF do {csv_filename} w katalogu wyniki.csv")
+            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} plików PDF do {csv_filename} w folderze Ksiegi")
             
             messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} plików PDF do {csv_filename}\nLokalizacja: {csv_path}")
             
