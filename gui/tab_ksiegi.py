@@ -8,6 +8,7 @@ import numpy as np
 import pytesseract
 from pdf2image import convert_from_path
 import re
+import csv
 
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -70,6 +71,7 @@ class KsiegiTab(ttk.Frame):
     def run_column_ocr(self):
         """
         Prosty OCR wszystkich stron kolumny z numerami faktur (pełny crop, bez segmentacji komórek, bez scalania).
+        Zapisuje wyniki do pliku CSV z kolumnami: strona, linia, tekst.
         """
         path = self.file_path_var.get().strip()
         if not path or not os.path.exists(path):
@@ -94,12 +96,21 @@ class KsiegiTab(ttk.Frame):
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
 
-            # Zapisz wyniki do pliku wyniki.txt (nadpisanie)
-            with open("wyniki.txt", "w", encoding="utf-8") as f:
-                for i, (page_num, line) in enumerate(all_lines, 1):
-                    f.write(f"strona {page_num}, linia {i}: {line}\n")
+            # Zapisz wyniki do pliku wyniki.csv (nadpisanie)
+            try:
+                with open("wyniki.csv", "w", encoding="utf-8", newline='') as csvfile:
+                    writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+                    # Zapisz nagłówek
+                    writer.writerow(["strona", "linia", "tekst"])
+                    # Zapisz dane
+                    for i, (page_num, line) in enumerate(all_lines, 1):
+                        writer.writerow([page_num, i, line])
+            except Exception as e:
+                messagebox.showerror("Błąd zapisu pliku CSV", f"Nie udało się zapisać pliku wyniki.csv: {str(e)}")
+                self.status_label.config(text="Błąd zapisu pliku CSV")
+                return
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do wyniki.txt")
+            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do wyniki.csv")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
