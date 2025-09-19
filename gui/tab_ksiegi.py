@@ -94,7 +94,12 @@ class KsiegiTab(ttk.Frame):
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron")
+            # Zapisz wyniki do pliku wyniki.txt (nadpisanie)
+            with open("wyniki.txt", "w", encoding="utf-8") as f:
+                for i, (page_num, line) in enumerate(all_lines, 1):
+                    f.write(f"strona {page_num}, linia {i}: {line}\n")
+
+            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do wyniki.txt")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
