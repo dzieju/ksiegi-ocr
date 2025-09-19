@@ -101,7 +101,7 @@ class KsiegiTab(ttk.Frame):
                 with open("wyniki.csv", "w", encoding="utf-8", newline='') as csvfile:
                     writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
                     # Zapisz nagłówek
-                    writer.writerow(["strona", "linia", "tekst"])
+                    writer.writerow(["strona", "linia", "numer faktury"])
                     # Zapisz dane
                     for i, (page_num, line) in enumerate(all_lines, 1):
                         writer.writerow([page_num, i, line])
