@@ -55,6 +55,9 @@ class KsiegiTab(ttk.Frame):
 
         # NOWY PRZYCISK: Odczytaj folder
         ttk.Button(scroll_frame, text="Odczytaj folder", command=self.select_folder_and_generate_csv).grid(row=2, column=1, pady=10)
+        
+        # NOWY PRZYCISK: Porównaj CSV
+        ttk.Button(scroll_frame, text="Porównaj", command=self.compare_csv_files).grid(row=2, column=2, pady=10)
 
         self.text_area = ScrolledText(scroll_frame, wrap="word", width=100, height=25)
         self.text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
@@ -296,3 +299,167 @@ class KsiegiTab(ttk.Frame):
             self.status_label.config(text="Błąd przetwarzania folderu")
             self.text_area.delete("1.0", tk.END)
             self.text_area.insert(tk.END, error_msg)
+
+    def compare_csv_files(self):
+        """
+        Porównuje dwa pliki CSV i wyświetla różnice pomiędzy nimi.
+        Użytkownik może wybrać dwa pliki CSV przez osobne przyciski PLIK1 i PLIK2.
+        """
+        # Utwórz nowe okno dialogowe dla porównania
+        compare_window = tk.Toplevel(self)
+        compare_window.title("Porównaj pliki CSV")
+        compare_window.geometry("600x500")
+        compare_window.transient(self)
+        compare_window.grab_set()
+        
+        # Zmienne do przechowywania ścieżek plików
+        file1_var = tk.StringVar()
+        file2_var = tk.StringVar()
+        
+        # Interfejs użytkownika
+        ttk.Label(compare_window, text="Porównanie plików CSV", font=("Arial", 14, "bold")).grid(row=0, column=0, columnspan=3, pady=10)
+        
+        # PLIK1
+        ttk.Label(compare_window, text="PLIK1:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(compare_window, textvariable=file1_var, width=50, state="readonly").grid(row=1, column=1, padx=5, pady=5)
+        ttk.Button(compare_window, text="PLIK1", command=lambda: self._select_csv_file(file1_var, "Wybierz pierwszy plik CSV")).grid(row=1, column=2, padx=5, pady=5)
+        
+        # PLIK2
+        ttk.Label(compare_window, text="PLIK2:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(compare_window, textvariable=file2_var, width=50, state="readonly").grid(row=2, column=1, padx=5, pady=5)
+        ttk.Button(compare_window, text="PLIK2", command=lambda: self._select_csv_file(file2_var, "Wybierz drugi plik CSV")).grid(row=2, column=2, padx=5, pady=5)
+        
+        # Przycisk porównaj
+        ttk.Button(compare_window, text="Porównaj pliki", command=lambda: self._perform_csv_comparison(file1_var.get(), file2_var.get(), compare_window)).grid(row=3, column=1, pady=10)
+        
+        # Obszar wyników
+        result_frame = ttk.Frame(compare_window)
+        result_frame.grid(row=4, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+        
+        compare_window.grid_rowconfigure(4, weight=1)
+        compare_window.grid_columnconfigure(1, weight=1)
+        
+        result_text = ScrolledText(result_frame, wrap="word", width=70, height=20)
+        result_text.pack(fill="both", expand=True)
+        
+        # Przechowaj referencję do obszaru tekstowego
+        compare_window.result_text = result_text
+
+    def _select_csv_file(self, file_var, title):
+        """
+        Pomocnicza funkcja do wyboru pliku CSV.
+        """
+        file_path = filedialog.askopenfilename(
+            title=title,
+            filetypes=[("CSV files", "*.csv"), ("Wszystkie pliki", "*.*")]
+        )
+        if file_path:
+            file_var.set(file_path)
+
+    def _perform_csv_comparison(self, file1_path, file2_path, window):
+        """
+        Wykonuje porównanie dwóch plików CSV i wyświetla wyniki.
+        """
+        if not file1_path or not file2_path:
+            messagebox.showwarning("Błąd", "Proszę wybrać oba pliki CSV.")
+            return
+        
+        if not os.path.exists(file1_path) or not os.path.exists(file2_path):
+            messagebox.showerror("Błąd", "Jeden lub oba wybrane pliki nie istnieją.")
+            return
+        
+        try:
+            # Wczytaj dane z plików CSV
+            data1 = self._read_csv_file(file1_path)
+            data2 = self._read_csv_file(file2_path)
+            
+            # Wykonaj porównanie
+            only_in_file1 = []
+            only_in_file2 = []
+            
+            for row in data1:
+                if row not in data2:
+                    only_in_file1.append(row)
+            
+            for row in data2:
+                if row not in data1:
+                    only_in_file2.append(row)
+            
+            # Wyświetl wyniki
+            result_text = window.result_text
+            result_text.delete("1.0", tk.END)
+            
+            # Informacje ogólne
+            result_text.insert(tk.END, "=== PORÓWNANIE PLIKÓW CSV ===\n\n")
+            result_text.insert(tk.END, f"PLIK1: {os.path.basename(file1_path)} ({len(data1)} wierszy)\n")
+            result_text.insert(tk.END, f"PLIK2: {os.path.basename(file2_path)} ({len(data2)} wierszy)\n\n")
+            
+            # Wiersze tylko w PLIK1
+            result_text.insert(tk.END, f"=== WIERSZE TYLKO W PLIK1 ({len(only_in_file1)} wierszy) ===\n")
+            if only_in_file1:
+                for i, row in enumerate(only_in_file1, 1):
+                    result_text.insert(tk.END, f"{i}. {', '.join(row)}\n")
+            else:
+                result_text.insert(tk.END, "(Brak różnic)\n")
+            
+            result_text.insert(tk.END, "\n")
+            
+            # Wiersze tylko w PLIK2
+            result_text.insert(tk.END, f"=== WIERSZE TYLKO W PLIK2 ({len(only_in_file2)} wierszy) ===\n")
+            if only_in_file2:
+                for i, row in enumerate(only_in_file2, 1):
+                    result_text.insert(tk.END, f"{i}. {', '.join(row)}\n")
+            else:
+                result_text.insert(tk.END, "(Brak różnic)\n")
+            
+            result_text.insert(tk.END, "\n")
+            
+            # Podsumowanie
+            total_differences = len(only_in_file1) + len(only_in_file2)
+            if total_differences == 0:
+                result_text.insert(tk.END, "=== PODSUMOWANIE ===\n")
+                result_text.insert(tk.END, "Pliki są identyczne - nie znaleziono różnic.\n")
+            else:
+                result_text.insert(tk.END, "=== PODSUMOWANIE ===\n")
+                result_text.insert(tk.END, f"Znaleziono łącznie {total_differences} różnic:\n")
+                result_text.insert(tk.END, f"- {len(only_in_file1)} wierszy tylko w PLIK1\n")
+                result_text.insert(tk.END, f"- {len(only_in_file2)} wierszy tylko w PLIK2\n")
+            
+            # Przewiń na górę
+            result_text.see("1.0")
+            
+            messagebox.showinfo("Sukces", f"Porównanie ukończone. Znaleziono {total_differences} różnic.")
+            
+        except Exception as e:
+            error_msg = f"Błąd podczas porównywania plików: {str(e)}"
+            messagebox.showerror("Błąd", error_msg)
+            if hasattr(window, 'result_text'):
+                window.result_text.delete("1.0", tk.END)
+                window.result_text.insert(tk.END, error_msg)
+
+    def _read_csv_file(self, file_path):
+        """
+        Pomocnicza funkcja do wczytywania pliku CSV.
+        Zwraca listę wierszy jako tuple.
+        """
+        rows = []
+        with open(file_path, 'r', encoding='utf-8', newline='') as csvfile:
+            # Spróbuj różne delimitery
+            sample = csvfile.read(1024)
+            csvfile.seek(0)
+            
+            # Automatycznie wykryj delimiter
+            sniffer = csv.Sniffer()
+            try:
+                delimiter = sniffer.sniff(sample).delimiter
+            except:
+                delimiter = ','  # domyślny delimiter
+            
+            reader = csv.reader(csvfile, delimiter=delimiter)
+            for row in reader:
+                # Ignoruj puste wiersze
+                if row and any(cell.strip() for cell in row):
+                    # Konwertuj na tuple dla porównania
+                    rows.append(tuple(cell.strip() for cell in row))
+        
+        return rows
