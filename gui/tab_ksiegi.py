@@ -235,17 +235,22 @@ class KsiegiTab(ttk.Frame):
         """
         Wybiera folder i generuje plik CSV z nazwami wszystkich plików (bez rozszerzeń)
         znajdujących się w tym folderze. Plik CSV ma nazwę identyczną jak folder
-        i jest zapisywany w tym samym folderze.
+        i jest zapisywany w tym samym folderze, w którym znajduje się plik wyniki.csv.
         """
         folder_path = filedialog.askdirectory(title="Wybierz folder do odczytu")
         if not folder_path:
             return
         
         try:
-            # Pobierz nazwę folderu (bez pełnej ścieżki)
+            # Pobierz nazwę folderu (bez pełnej ścieżki) - normalizuj ścieżkę dla kompatybilności z różnymi systemami
+            folder_path = os.path.normpath(folder_path)
             folder_name = os.path.basename(folder_path)
             csv_filename = f"{folder_name}.csv"
-            csv_path = os.path.join(folder_path, csv_filename)
+            
+            # Zapisz CSV w tym samym folderze, w którym znajduje się wyniki.csv
+            # (zazwyczaj jest to katalog główny aplikacji)
+            wyniki_csv_dir = os.path.dirname(os.path.abspath("wyniki.csv"))
+            csv_path = os.path.join(wyniki_csv_dir, csv_filename)
             
             # Odczytaj wszystkie pliki w folderze (bez podfolderów)
             filenames_without_extension = []
@@ -275,9 +280,9 @@ class KsiegiTab(ttk.Frame):
             self.text_area.insert(tk.END, f"\nPlik CSV zapisany jako: {csv_path}")
             
             # Aktualizuj status
-            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}")
+            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} nazw plików do {csv_filename} w katalogu wyniki.csv")
             
-            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}")
+            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} nazw plików do {csv_filename}\nLokalizacja: {csv_path}")
             
         except Exception as e:
             error_msg = f"Błąd podczas przetwarzania folderu: {str(e)}"
