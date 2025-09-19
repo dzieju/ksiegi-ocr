@@ -1,10 +1,12 @@
 {
-  "last_folder": "Skrzynka odbiorcza/Odebrane",
+  "last_folder": "Skrzynka odbiorcza/Faktury",
   "last_nip": "5732475751",
-  "date_from": "2025-09-12",
+  "date_from": "2025-07-01",
   "date_to": "2025-09-19",
-  "target_folder": "Skrzynka odbiorcza/Faktury",
+  "target_folder": "Skrzynka odbiorcza",
   "search_all_folders": true,
-  "excluded_folders": [],
-  "exclude_mode": false
+  "excluded_folders": [
+    "Skrzynka odbiorcza/Faktury"
+  ],
+  "exclude_mode": true
 }
