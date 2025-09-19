@@ -372,7 +372,9 @@ class KsiegiTab(ttk.Frame):
 
     def _perform_csv_comparison(self, file1_path, file2_path, window):
         """
-        Wykonuje porównanie dwóch plików CSV i wyświetla wyniki.
+        Wykonuje porównanie kolumny C (trzeciej) dwóch plików CSV i zapisuje wyniki do pliku porownanie.csv.
+        file1_path - oczekuje wyniki.csv
+        file2_path - plik test.csv do porównania
         """
         if not file1_path or not file2_path:
             messagebox.showwarning("Błąd", "Proszę wybrać oba pliki CSV.")
@@ -391,67 +393,137 @@ class KsiegiTab(ttk.Frame):
             data1 = self._read_csv_file(file1_path)
             data2 = self._read_csv_file(file2_path)
             
-            # Wykonaj porównanie
-            only_in_file1 = []
-            only_in_file2 = []
+            # Wyodrębnij wartości z kolumny C (trzeciej kolumny) z obu plików
+            # Pomiń nagłówek (pierwszy wiersz)
+            values1 = []  # wartości z wyniki.csv (kolumna C)
+            values2 = []  # wartości z test.csv (kolumna C)
             
-            for row in data1:
-                if row not in data2:
-                    only_in_file1.append(row)
+            # Wyodrębnij kolumnę C z pierwszego pliku (wyniki.csv) - pomijamy nagłówek
+            for i, row in enumerate(data1[1:], start=2):  # start=2 bo pierwszy wiersz to nagłówek
+                if len(row) >= 3:
+                    values1.append((i, row[2]))  # (numer wiersza, wartość)
+                else:
+                    values1.append((i, ""))
             
-            for row in data2:
-                if row not in data1:
-                    only_in_file2.append(row)
+            # Wyodrębnij kolumnę C z drugiego pliku (test.csv) - pomijamy nagłówek
+            for i, row in enumerate(data2[1:], start=2):  # start=2 bo pierwszy wiersz to nagłówek
+                if len(row) >= 3:
+                    values2.append((i, row[2]))  # (numer wiersza, wartość)
+                else:
+                    values2.append((i, ""))
             
-            # Wyświetl wyniki
+            # Przygotuj dane do porównania
+            comparison_results = []
+            
+            # Stwórz zbiory wartości dla łatwiejszego porównania
+            set1 = {val.strip().lower() for _, val in values1 if val.strip()}  # wartości z wyniki.csv
+            set2 = {val.strip().lower() for _, val in values2 if val.strip()}  # wartości z test.csv
+            
+            # Mapuj oryginalne wartości na znormalizowane
+            map1 = {val.strip().lower(): val for _, val in values1 if val.strip()}
+            map2 = {val.strip().lower(): val for _, val in values2 if val.strip()}
+            
+            # Przygotuj kompletne porównanie wartość za wartość
+            all_values1 = [val for _, val in values1]
+            all_values2 = [val for _, val in values2]
+            
+            max_len = max(len(all_values1), len(all_values2))
+            
+            for i in range(max_len):
+                val1 = all_values1[i] if i < len(all_values1) else ""
+                val2 = all_values2[i] if i < len(all_values2) else ""
+                row_num = i + 2  # +2 bo pomijamy nagłówek
+                
+                val1_clean = val1.strip()
+                val2_clean = val2.strip()
+                
+                if val1_clean and val2_clean:
+                    if val1_clean.lower() == val2_clean.lower():
+                        status = "identyczne"
+                    else:
+                        status = "różne"
+                elif val1_clean and not val2_clean:
+                    status = "brak w pliku test.csv"
+                elif not val1_clean and val2_clean:
+                    status = "brak w wyniki.csv"
+                else:
+                    # Oba puste - pomijamy
+                    continue
+                
+                comparison_results.append({
+                    'row_number': row_num,
+                    'value_wyniki': val1_clean,
+                    'value_test': val2_clean,
+                    'status': status
+                })
+            
+            # Zapisz wyniki do pliku porownanie.csv w tym samym folderze co pliki porównywane
+            output_dir = os.path.dirname(file2_path)  # folder z plikiem test.csv
+            output_path = os.path.join(output_dir, "porownanie.csv")
+            
+            with open(output_path, 'w', encoding='utf-8', newline='') as csvfile:
+                writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+                
+                # Nagłówek
+                writer.writerow(["Numer wiersza", "Wartość z wyniki.csv", "Wartość z test.csv", "Status"])
+                
+                # Dane
+                for result in comparison_results:
+                    writer.writerow([
+                        result['row_number'],
+                        result['value_wyniki'],
+                        result['value_test'],
+                        result['status']
+                    ])
+            
+            # Wyświetl wyniki w oknie
             result_text = window.result_text
             result_text.delete("1.0", tk.END)
             
             # Informacje ogólne
-            result_text.insert(tk.END, "=== PORÓWNANIE PLIKÓW CSV ===\n\n")
+            result_text.insert(tk.END, "=== PORÓWNANIE KOLUMNY C PLIKÓW CSV ===\n\n")
             
-            # Informacje o wykrytych separatorach
+            # Informacje o plikach
             delimiter1_name = {',' : 'przecinek', ';' : 'średnik', '\t' : 'tabulacja', '|' : 'pionowa kreska', ':' : 'dwukropek'}.get(delimiter1, repr(delimiter1))
             delimiter2_name = {',' : 'przecinek', ';' : 'średnik', '\t' : 'tabulacja', '|' : 'pionowa kreska', ':' : 'dwukropek'}.get(delimiter2, repr(delimiter2))
             
-            result_text.insert(tk.END, f"PLIK1: {os.path.basename(file1_path)} ({len(data1)} wierszy, separator: {delimiter1_name})\n")
-            result_text.insert(tk.END, f"PLIK2: {os.path.basename(file2_path)} ({len(data2)} wierszy, separator: {delimiter2_name})\n\n")
+            result_text.insert(tk.END, f"WYNIKI.CSV: {os.path.basename(file1_path)} ({len(values1)} wartości, separator: {delimiter1_name})\n")
+            result_text.insert(tk.END, f"TEST.CSV: {os.path.basename(file2_path)} ({len(values2)} wartości, separator: {delimiter2_name})\n\n")
             
-            # Wiersze tylko w PLIK1
-            result_text.insert(tk.END, f"=== WIERSZE TYLKO W PLIK1 ({len(only_in_file1)} wierszy) ===\n")
-            if only_in_file1:
-                for i, row in enumerate(only_in_file1, 1):
-                    result_text.insert(tk.END, f"{i}. {', '.join(row)}\n")
-            else:
-                result_text.insert(tk.END, "(Brak różnic)\n")
+            # Podsumowanie wyników
+            identical = len([r for r in comparison_results if r['status'] == 'identyczne'])
+            different = len([r for r in comparison_results if r['status'] == 'różne'])
+            missing_in_test = len([r for r in comparison_results if r['status'] == 'brak w pliku test.csv'])
+            missing_in_wyniki = len([r for r in comparison_results if r['status'] == 'brak w wyniki.csv'])
             
-            result_text.insert(tk.END, "\n")
+            result_text.insert(tk.END, "=== WYNIKI PORÓWNANIA KOLUMNY C ===\n")
+            result_text.insert(tk.END, f"• Identyczne wartości: {identical}\n")
+            result_text.insert(tk.END, f"• Różne wartości: {different}\n")
+            result_text.insert(tk.END, f"• Wartości tylko w wyniki.csv: {missing_in_test}\n")
+            result_text.insert(tk.END, f"• Wartości tylko w test.csv: {missing_in_wyniki}\n")
+            result_text.insert(tk.END, f"• Łączna liczba porównanych rekordów: {len(comparison_results)}\n\n")
             
-            # Wiersze tylko w PLIK2
-            result_text.insert(tk.END, f"=== WIERSZE TYLKO W PLIK2 ({len(only_in_file2)} wierszy) ===\n")
-            if only_in_file2:
-                for i, row in enumerate(only_in_file2, 1):
-                    result_text.insert(tk.END, f"{i}. {', '.join(row)}\n")
-            else:
-                result_text.insert(tk.END, "(Brak różnic)\n")
+            # Przykładowe różnice
+            if different > 0:
+                result_text.insert(tk.END, "=== PRZYKŁADY RÓŻNYCH WARTOŚCI ===\n")
+                different_examples = [r for r in comparison_results if r['status'] == 'różne'][:10]
+                for example in different_examples:
+                    result_text.insert(tk.END, f"Wiersz {example['row_number']}: '{example['value_wyniki']}' vs '{example['value_test']}'\n")
+                result_text.insert(tk.END, "\n")
             
-            result_text.insert(tk.END, "\n")
-            
-            # Podsumowanie
-            total_differences = len(only_in_file1) + len(only_in_file2)
-            if total_differences == 0:
-                result_text.insert(tk.END, "=== PODSUMOWANIE ===\n")
-                result_text.insert(tk.END, "Pliki są identyczne - nie znaleziono różnic.\n")
-            else:
-                result_text.insert(tk.END, "=== PODSUMOWANIE ===\n")
-                result_text.insert(tk.END, f"Znaleziono łącznie {total_differences} różnic:\n")
-                result_text.insert(tk.END, f"- {len(only_in_file1)} wierszy tylko w PLIK1\n")
-                result_text.insert(tk.END, f"- {len(only_in_file2)} wierszy tylko w PLIK2\n")
+            # Informacja o zapisanym pliku
+            result_text.insert(tk.END, f"=== PLIK WYNIKÓW ===\n")
+            result_text.insert(tk.END, f"Szczegółowe wyniki zapisano w pliku:\n{output_path}\n\n")
+            result_text.insert(tk.END, f"Plik zawiera {len(comparison_results)} wierszy porównania.\n")
             
             # Przewiń na górę
             result_text.see("1.0")
             
-            messagebox.showinfo("Sukces", f"Porównanie ukończone. Znaleziono {total_differences} różnic.")
+            total_issues = different + missing_in_test + missing_in_wyniki
+            if total_issues == 0:
+                messagebox.showinfo("Sukces", f"Porównanie ukończone. Wszystkie wartości w kolumnie C są identyczne!\nWyniki zapisano do: {output_path}")
+            else:
+                messagebox.showinfo("Sukces", f"Porównanie ukończone. Znaleziono {total_issues} różnic w kolumnie C.\nWyniki zapisano do: {output_path}")
             
         except Exception as e:
             error_msg = f"Błąd podczas porównywania plików: {str(e)}"
