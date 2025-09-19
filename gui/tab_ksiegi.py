@@ -58,7 +58,9 @@ class KsiegiTab(ttk.Frame):
         ttk.Button(scroll_frame, text="Wybierz plik", command=self.select_file).grid(row=0, column=2, padx=5, pady=5)
 
         ttk.Button(scroll_frame, text="Segmentuj tabelę i OCR", command=self.process_pdf).grid(row=1, column=1, pady=10)
-        ttk.Button(scroll_frame, text="Pokaż wszystkie komórki OCR", command=self.show_all_ocr).grid(row=1, column=2, pady=10)
+        # Performance optimization: Button with cancellation capability 
+        self.show_ocr_button = ttk.Button(scroll_frame, text="Pokaż wszystkie komórki OCR", command=self.toggle_show_all_ocr)
+        self.show_ocr_button.grid(row=1, column=2, pady=10)
         # Performance optimization: Updated button for threaded OCR processing
         self.ocr_button = ttk.Button(scroll_frame, text="OCR z kolumny (wszystkie strony)", command=self.toggle_column_ocr)
         self.ocr_button.grid(row=1, column=3, padx=5, pady=10)
@@ -100,6 +102,15 @@ class KsiegiTab(ttk.Frame):
                     self._display_page_result(result)
                 elif result['type'] == 'task_complete':
                     self._handle_ocr_completion(result)
+                elif result['type'] == 'cell_result':
+                    # Real-time feedback: display cell OCR results as they complete
+                    self._display_cell_result(result)
+                elif result['type'] == 'all_cells_complete':
+                    self._handle_all_cells_completion(result)
+                elif result['type'] == 'csv_comparison_result':
+                    self._handle_csv_comparison_result(result)
+                elif result['type'] == 'folder_processing_result':
+                    self._handle_folder_processing_result(result)
         except Exception as e:
             print(f"Błąd przetwarzania kolejki wyników OCR: {e}")
         
@@ -138,6 +149,57 @@ class KsiegiTab(ttk.Frame):
         
         # Auto-scroll to show latest results
         self.text_area.see(tk.END)
+
+    def _display_cell_result(self, result):
+        """
+        Performance optimization: Display individual cell OCR result.
+        Provides real-time feedback during show_all_ocr processing.
+        """
+        x, y, text = result['x'], result['y'], result['text']
+        self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
+        # Auto-scroll to show latest results
+        self.text_area.see(tk.END)
+
+    def _handle_all_cells_completion(self, result):
+        """
+        Performance optimization: Handle completion of all cells OCR processing.
+        """
+        processed_count = result['processed_count']
+        self.status_label.config(text=f"Ukończono OCR {processed_count} komórek")
+        self.show_ocr_button.config(text="Pokaż wszystkie komórki OCR")
+
+    def _handle_csv_comparison_result(self, result):
+        """
+        Performance optimization: Handle CSV comparison results.
+        """
+        if 'window' in result:
+            window = result['window']
+            comparison_text = result['comparison_text']
+            window.result_text.delete("1.0", tk.END)
+            window.result_text.insert(tk.END, comparison_text)
+
+    def _handle_folder_processing_result(self, result):
+        """
+        Performance optimization: Handle folder processing results.
+        """
+        if result['success']:
+            result_text = result['result_text']
+            csv_filename = result['csv_filename']
+            file_count = result['file_count']
+            csv_path = result['csv_path']
+            
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert(tk.END, result_text)
+            self.status_label.config(text=f"Zapisano {file_count} plików PDF do {csv_filename}")
+            
+            # Show success message
+            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {file_count} plików PDF do {csv_filename}\nLokalizacja: {csv_path}")
+        else:
+            error_msg = result['error']
+            self.status_label.config(text=f"Błąd: {error_msg}")
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert(tk.END, error_msg)
+            messagebox.showerror("Błąd", error_msg)
 
     def _handle_ocr_completion(self, result):
         """
@@ -450,50 +512,171 @@ class KsiegiTab(ttk.Frame):
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
 
     def show_all_ocr(self):
+        """
+        Performance optimization: Threaded OCR processing of all cells.
+        GUI remains responsive during processing of many cells.
+        """
         self.text_area.delete("1.0", tk.END)
         if not self.cells or self.image is None:
             self.text_area.insert(tk.END, "Brak wysegmentowanych komórek do wyświetlenia.\n")
             return
 
-        for (x, y, w, h) in self.cells:
-            roi = self.image[y:y+h, x:x+w]
-            text = pytesseract.image_to_string(roi, lang='pol').strip()
-            self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
+        # Check if OCR task is already running
+        if self.ksiegi_processor.task_manager.is_task_active():
+            self.status_label.config(text="Zadanie OCR już w toku...")
+            return
+
+        # Clear previous results and start threaded processing
+        self.status_label.config(text="Rozpoczynam OCR wszystkich komórek...")
+        
+        # Start threaded OCR processing of all cells
+        self.ksiegi_processor.task_manager.start_task(
+            self._process_all_cells_threaded,
+            cells=self.cells.copy(),
+            image=self.image.copy()
+        )
+
+    def _process_all_cells_threaded(self, cells, image):
+        """
+        Performance optimization: Process all cells in background thread.
+        """
+        try:
+            total_cells = len(cells)
+            processed_count = 0
+            
+            self.ksiegi_processor.task_manager.progress_queue.put(
+                f"Przetwarzanie {total_cells} komórek OCR..."
+            )
+            
+            for i, (x, y, w, h) in enumerate(cells):
+                if self.ksiegi_processor.task_manager.task_cancelled:
+                    break
+                    
+                try:
+                    roi = image[y:y+h, x:x+w]
+                    text = pytesseract.image_to_string(roi, lang='pol').strip()
+                    
+                    # Send result immediately for real-time display
+                    self.ksiegi_processor.task_manager.result_queue.put({
+                        'type': 'cell_result',
+                        'x': x, 'y': y, 'text': text
+                    })
+                    
+                    processed_count += 1
+                    
+                    # Update progress every 5 cells or on last cell
+                    if processed_count % 5 == 0 or processed_count == total_cells:
+                        self.ksiegi_processor.task_manager.progress_queue.put(
+                            f"OCR komórek: {processed_count}/{total_cells}"
+                        )
+                        
+                except Exception as e:
+                    print(f"Błąd OCR komórki {i}: {e}")
+                    
+            # Send completion signal
+            if not self.ksiegi_processor.task_manager.task_cancelled:
+                self.ksiegi_processor.task_manager.result_queue.put({
+                    'type': 'all_cells_complete',
+                    'processed_count': processed_count
+                })
+                
+        except Exception as e:
+            print(f"Błąd przetwarzania wszystkich komórek: {e}")
+            self.ksiegi_processor.task_manager.progress_queue.put(f"Błąd: {str(e)}")
+
+    def toggle_show_all_ocr(self):
+        """
+        Performance optimization: Toggle between starting and cancelling show all OCR task.
+        """
+        if self.ksiegi_processor.task_manager.is_task_active():
+            # Cancel the current task
+            self.cancel_ocr_task()
+            self.show_ocr_button.config(text="Pokaż wszystkie komórki OCR")
+        else:
+            # Start show all OCR
+            self.show_ocr_button.config(text="Anuluj pokazywanie OCR")
+            self.show_all_ocr()
 
     def select_folder_and_generate_csv(self):
         """
-        Performance optimization: Enhanced folder processing with optimized file operations.
-        Wybiera folder i generuje plik CSV z nazwami tylko widocznych plików PDF.
+        Performance optimization: Threaded folder processing for large directories.
+        GUI remains responsive during processing of large folders with many files.
         """
         folder_path = filedialog.askdirectory(title="Wybierz folder do odczytu")
         if not folder_path:
             return
         
-        # Performance optimization: Show progress during processing
-        self.status_label.config(text="Przetwarzanie folderu...")
+        # Check if OCR task is already running
+        if self.ksiegi_processor.task_manager.is_task_active():
+            messagebox.showwarning("Zadanie w toku", "Poczekaj na zakończenie obecnego zadania.")
+            return
         
+        # Performance optimization: Show progress during processing
+        self.status_label.config(text="Rozpoczynam przetwarzanie folderu...")
+        
+        # Start threaded folder processing
+        self.ksiegi_processor.task_manager.start_task(
+            self._folder_processing_threaded,
+            folder_path=folder_path
+        )
+
+    def _folder_processing_threaded(self, folder_path):
+        """
+        Performance optimization: Process folder in background thread.
+        """
         try:
+            self.ksiegi_processor.task_manager.progress_queue.put("Normalizowanie ścieżki folderu...")
+            
             # Normalize path for cross-platform compatibility
             folder_path = os.path.normpath(folder_path)
             folder_name = os.path.basename(folder_path)
             csv_filename = f"{folder_name}.csv"
             
+            self.ksiegi_processor.task_manager.progress_queue.put("Przygotowywanie ścieżki wyjściowej...")
+            
             # Get output path
             ksiegi_folder = self._ensure_ksiegi_folder()
             csv_path = os.path.join(ksiegi_folder, csv_filename)
             
-            # Performance optimization: Optimized file filtering with list comprehension
+            self.ksiegi_processor.task_manager.progress_queue.put("Skanowanie plików w folderze...")
+            
+            # Performance optimization: Optimized file filtering with progress updates
             if os.path.exists(folder_path):
-                # Single pass file processing with combined filtering
-                filenames_without_extension = [
-                    os.path.splitext(item)[0] 
-                    for item in os.listdir(folder_path)
+                # Get all items first
+                all_items = os.listdir(folder_path)
+                total_items = len(all_items)
+                
+                self.ksiegi_processor.task_manager.progress_queue.put(
+                    f"Przetwarzanie {total_items} elementów..."
+                )
+                
+                # Process files with progress updates
+                filenames_without_extension = []
+                processed_count = 0
+                
+                for item in all_items:
+                    if self.ksiegi_processor.task_manager.task_cancelled:
+                        break
+                        
                     if (os.path.isfile(os.path.join(folder_path, item)) and 
                         not item.startswith('.') and 
-                        item.lower().endswith('.pdf'))
-                ]
+                        item.lower().endswith('.pdf')):
+                        filenames_without_extension.append(os.path.splitext(item)[0])
+                    
+                    processed_count += 1
+                    
+                    # Update progress every 100 files or on completion
+                    if processed_count % 100 == 0 or processed_count == total_items:
+                        self.ksiegi_processor.task_manager.progress_queue.put(
+                            f"Przetworzono {processed_count}/{total_items} elementów, znaleziono {len(filenames_without_extension)} plików PDF"
+                        )
             else:
                 filenames_without_extension = []
+            
+            if self.ksiegi_processor.task_manager.task_cancelled:
+                return
+            
+            self.ksiegi_processor.task_manager.progress_queue.put("Zapisywanie pliku CSV...")
             
             # Performance optimization: Batch CSV writing
             with open(csv_path, 'w', encoding='utf-8', newline='') as csvfile:
@@ -501,30 +684,38 @@ class KsiegiTab(ttk.Frame):
                 # Write all rows in one operation
                 writer.writerows([[filename] for filename in filenames_without_extension])
             
-            # Performance optimization: Batch text area updates
-            result_text = [
+            self.ksiegi_processor.task_manager.progress_queue.put("Przygotowywanie wyników...")
+            
+            # Performance optimization: Prepare results for main thread
+            result_text = "\n".join([
                 f"Odczytano folder: {folder_path}",
                 f"Znaleziono {len(filenames_without_extension)} plików PDF (pomijając ukryte pliki i inne rozszerzenia):",
                 "",
                 *filenames_without_extension,
                 "",
                 f"Plik CSV zapisany jako: {csv_path}"
-            ]
+            ])
             
-            self.text_area.delete("1.0", tk.END)
-            self.text_area.insert(tk.END, "\n".join(result_text))
+            # Send completion result
+            self.ksiegi_processor.task_manager.result_queue.put({
+                'type': 'folder_processing_result',
+                'success': True,
+                'result_text': result_text,
+                'csv_filename': csv_filename,
+                'file_count': len(filenames_without_extension),
+                'csv_path': csv_path
+            })
             
-            # Update status
-            self.status_label.config(text=f"Zapisano {len(filenames_without_extension)} plików PDF do {csv_filename}")
-            
-            messagebox.showinfo("Sukces", f"Pomyślnie zapisano {len(filenames_without_extension)} plików PDF do {csv_filename}\nLokalizacja: {csv_path}")
+            self.ksiegi_processor.task_manager.progress_queue.put("Przetwarzanie folderu ukończone")
             
         except Exception as e:
             error_msg = f"Błąd podczas przetwarzania folderu: {str(e)}"
-            messagebox.showerror("Błąd", error_msg)
-            self.status_label.config(text="Błąd przetwarzania folderu")
-            self.text_area.delete("1.0", tk.END)
-            self.text_area.insert(tk.END, error_msg)
+            self.ksiegi_processor.task_manager.progress_queue.put(f"Błąd: {error_msg}")
+            self.ksiegi_processor.task_manager.result_queue.put({
+                'type': 'folder_processing_result',
+                'success': False,
+                'error': error_msg
+            })
 
     def compare_csv_files(self):
         """
@@ -584,8 +775,8 @@ class KsiegiTab(ttk.Frame):
 
     def _perform_csv_comparison(self, file1_path, file2_path, window):
         """
-        Performance optimization: Enhanced CSV comparison with optimized processing.
-        Wykonuje porównanie kolumny C (trzeciej) dwóch plików CSV z lepszą wydajnością.
+        Performance optimization: Threaded CSV comparison for large files.
+        GUI remains responsive during comparison of large CSV files.
         """
         if not file1_path or not file2_path:
             messagebox.showwarning("Błąd", "Proszę wybrać oba pliki CSV.")
@@ -595,40 +786,81 @@ class KsiegiTab(ttk.Frame):
             messagebox.showerror("Błąd", "Jeden lub oba wybrane pliki nie istnieją.")
             return
         
+        # Check if OCR task is already running
+        if self.ksiegi_processor.task_manager.is_task_active():
+            messagebox.showwarning("Zadanie w toku", "Poczekaj na zakończenie obecnego zadania.")
+            return
+        
         # Performance optimization: Show progress during processing
         window.result_text.delete("1.0", tk.END)
-        window.result_text.insert(tk.END, "Przetwarzanie porównania CSV...\n")
-        window.result_text.update()
+        window.result_text.insert(tk.END, "Rozpoczynam porównanie CSV...\n")
         
+        # Start threaded CSV comparison
+        self.ksiegi_processor.task_manager.start_task(
+            self._csv_comparison_threaded,
+            file1_path=file1_path,
+            file2_path=file2_path,
+            window=window
+        )
+
+    def _csv_comparison_threaded(self, file1_path, file2_path, window):
+        """
+        Performance optimization: Process CSV comparison in background thread.
+        """
         try:
+            # Progress updates
+            self.ksiegi_processor.task_manager.progress_queue.put("Wykrywanie delimitatorów CSV...")
+            
             # Performance optimization: Detect delimiters efficiently
             delimiter1 = self._detect_csv_delimiter(file1_path)
             delimiter2 = self._detect_csv_delimiter(file2_path)
+            
+            self.ksiegi_processor.task_manager.progress_queue.put("Odczytywanie plików CSV...")
             
             # Performance optimization: Read CSV files with optimized parsing
             data1 = self._read_csv_file(file1_path)
             data2 = self._read_csv_file(file2_path)
             
+            self.ksiegi_processor.task_manager.progress_queue.put("Przetwarzanie kolumny C...")
+            
             # Extract column C values with optimized processing
             values1, values2 = self._extract_column_values_optimized(data1, data2)
+            
+            self.ksiegi_processor.task_manager.progress_queue.put("Wykonywanie porównania...")
             
             # Performance optimization: Efficient comparison algorithm
             comparison_results = self._compare_values_optimized(values1, values2)
             
+            self.ksiegi_processor.task_manager.progress_queue.put("Zapisywanie wyników...")
+            
             # Save results with batch writing
             output_path = self._save_comparison_results_optimized(file2_path, comparison_results)
             
-            # Display results with optimized text formatting
-            self._display_comparison_results_optimized(window, file1_path, file2_path, 
-                                                     delimiter1, delimiter2, values1, values2, 
-                                                     comparison_results, output_path)
+            self.ksiegi_processor.task_manager.progress_queue.put("Formatowanie wyników...")
+            
+            # Format results for display
+            comparison_text = self._format_comparison_results_optimized(
+                file1_path, file2_path, delimiter1, delimiter2, 
+                values1, values2, comparison_results, output_path
+            )
+            
+            # Send completion result
+            self.ksiegi_processor.task_manager.result_queue.put({
+                'type': 'csv_comparison_result',
+                'window': window,
+                'comparison_text': comparison_text
+            })
+            
+            self.ksiegi_processor.task_manager.progress_queue.put("Porównanie CSV ukończone")
             
         except Exception as e:
             error_msg = f"Błąd podczas porównywania plików: {str(e)}"
-            messagebox.showerror("Błąd", error_msg)
-            if hasattr(window, 'result_text'):
-                window.result_text.delete("1.0", tk.END)
-                window.result_text.insert(tk.END, error_msg)
+            self.ksiegi_processor.task_manager.progress_queue.put(f"Błąd: {error_msg}")
+            self.ksiegi_processor.task_manager.result_queue.put({
+                'type': 'csv_comparison_result',
+                'window': window,
+                'comparison_text': error_msg
+            })
 
     def _extract_column_values_optimized(self, data1, data2):
         """
@@ -764,6 +996,60 @@ class KsiegiTab(ttk.Frame):
         
         # Single text insertion for better performance
         result_text.insert(tk.END, "\n".join(result_lines))
+
+    def _format_comparison_results_optimized(self, file1_path, file2_path, 
+                                            delimiter1, delimiter2, values1, values2, 
+                                            comparison_results, output_path):
+        """
+        Performance optimization: Format comparison results for threaded display.
+        """
+        # Performance optimization: Build entire text content at once
+        delimiter_names = {
+            ',': 'przecinek', ';': 'średnik', '\t': 'tabulacja', 
+            '|': 'pionowa kreska', ':': 'dwukropek'
+        }
+        delimiter1_name = delimiter_names.get(delimiter1, repr(delimiter1))
+        delimiter2_name = delimiter_names.get(delimiter2, repr(delimiter2))
+        
+        # Calculate statistics
+        stats = {
+            'identical': len([r for r in comparison_results if r['status'] == 'identyczne']),
+            'different': len([r for r in comparison_results if r['status'] == 'różne']),
+            'missing_in_test': len([r for r in comparison_results if r['status'] == 'brak w pliku test.csv']),
+            'missing_in_wyniki': len([r for r in comparison_results if r['status'] == 'brak w wyniki.csv'])
+        }
+        
+        # Build complete result text
+        result_lines = [
+            "=== PORÓWNANIE KOLUMNY C PLIKÓW CSV ===\n",
+            f"WYNIKI.CSV: {os.path.basename(file1_path)} ({len(values1)} wartości, separator: {delimiter1_name})",
+            f"TEST.CSV: {os.path.basename(file2_path)} ({len(values2)} wartości, separator: {delimiter2_name})\n",
+            "=== WYNIKI PORÓWNANIA KOLUMNY C ===",
+            f"• Identyczne wartości: {stats['identical']}",
+            f"• Różne wartości: {stats['different']}",
+            f"• Wartości tylko w wyniki.csv: {stats['missing_in_test']}",
+            f"• Wartości tylko w test.csv: {stats['missing_in_wyniki']}",
+            f"• Łączna liczba porównanych rekordów: {len(comparison_results)}\n"
+        ]
+        
+        # Add examples of differences if any exist
+        if stats['different'] > 0:
+            result_lines.append("=== PRZYKŁADY RÓŻNYCH WARTOŚCI ===")
+            different_examples = [r for r in comparison_results if r['status'] == 'różne'][:10]
+            for example in different_examples:
+                result_lines.append(f"Wiersz {example['row_number']}: '{example['value_wyniki']}' vs '{example['value_test']}'")
+            result_lines.append("")
+        
+        # Add file information
+        result_lines.extend([
+            "=== PLIK WYNIKÓW ===",
+            f"Szczegółowe wyniki zapisano w pliku:",
+            output_path,
+            "",
+            f"Plik zawiera {len(comparison_results)} wierszy porównania."
+        ])
+        
+        return "\n".join(result_lines)
         result_text.see("1.0")
         
         # Show completion message
