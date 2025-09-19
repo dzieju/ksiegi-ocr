@@ -383,6 +383,10 @@ class KsiegiTab(ttk.Frame):
             return
         
         try:
+            # Wykryj separatory dla każdego pliku
+            delimiter1 = self._detect_csv_delimiter(file1_path)
+            delimiter2 = self._detect_csv_delimiter(file2_path)
+            
             # Wczytaj dane z plików CSV
             data1 = self._read_csv_file(file1_path)
             data2 = self._read_csv_file(file2_path)
@@ -405,8 +409,13 @@ class KsiegiTab(ttk.Frame):
             
             # Informacje ogólne
             result_text.insert(tk.END, "=== PORÓWNANIE PLIKÓW CSV ===\n\n")
-            result_text.insert(tk.END, f"PLIK1: {os.path.basename(file1_path)} ({len(data1)} wierszy)\n")
-            result_text.insert(tk.END, f"PLIK2: {os.path.basename(file2_path)} ({len(data2)} wierszy)\n\n")
+            
+            # Informacje o wykrytych separatorach
+            delimiter1_name = {',' : 'przecinek', ';' : 'średnik', '\t' : 'tabulacja', '|' : 'pionowa kreska', ':' : 'dwukropek'}.get(delimiter1, repr(delimiter1))
+            delimiter2_name = {',' : 'przecinek', ';' : 'średnik', '\t' : 'tabulacja', '|' : 'pionowa kreska', ':' : 'dwukropek'}.get(delimiter2, repr(delimiter2))
+            
+            result_text.insert(tk.END, f"PLIK1: {os.path.basename(file1_path)} ({len(data1)} wierszy, separator: {delimiter1_name})\n")
+            result_text.insert(tk.END, f"PLIK2: {os.path.basename(file2_path)} ({len(data2)} wierszy, separator: {delimiter2_name})\n\n")
             
             # Wiersze tylko w PLIK1
             result_text.insert(tk.END, f"=== WIERSZE TYLKO W PLIK1 ({len(only_in_file1)} wierszy) ===\n")
@@ -451,29 +460,150 @@ class KsiegiTab(ttk.Frame):
                 window.result_text.delete("1.0", tk.END)
                 window.result_text.insert(tk.END, error_msg)
 
+    def _detect_csv_delimiter(self, file_path):
+        """
+        Wykrywa separator CSV używając kilku metod w kolejności priorytetu.
+        Zwraca wykryty delimiter lub None jeśli się nie uda.
+        """
+        # Popularne separatory w kolejności preferencji
+        common_delimiters = [';', ',', '\t', '|', ':']
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8', newline='') as csvfile:
+                # Sprawdź czy plik nie jest pusty
+                content = csvfile.read()
+                if not content.strip():
+                    raise ValueError("Plik CSV jest pusty")
+                
+                csvfile.seek(0)
+                
+                # Odczytaj pierwsze kilka linii do analizy
+                sample_lines = []
+                for i in range(5):  # Analiza maksymalnie 5 pierwszych linii
+                    line = csvfile.readline()
+                    if not line:
+                        break
+                    sample_lines.append(line.strip())
+                
+                if not sample_lines:
+                    raise ValueError("Plik nie zawiera czytelnych linii")
+                
+                # Metoda 1: Użyj csv.Sniffer (najnowocześniejszy sposób)
+                csvfile.seek(0)
+                sample = csvfile.read(1024)
+                csvfile.seek(0)
+                
+                try:
+                    sniffer = csv.Sniffer()
+                    detected = sniffer.sniff(sample).delimiter
+                    if detected in common_delimiters:
+                        # Zweryfikuj wykryty delimiter poprzez próbę odczytu
+                        reader = csv.reader(csvfile, delimiter=detected)
+                        first_row = next(reader, None)
+                        if first_row and len(first_row) > 1:
+                            csvfile.seek(0)
+                            return detected
+                except Exception:
+                    pass  # Sniffer zawiódł, przejdź do następnej metody
+                
+                # Metoda 2: Zlicz występowania każdego separatora
+                delimiter_counts = {}
+                for delimiter in common_delimiters:
+                    count = 0
+                    for line in sample_lines:
+                        count += line.count(delimiter)
+                    delimiter_counts[delimiter] = count
+                
+                # Znajdź najczęściej występujący separator (z przynajmniej jednym wystąpieniem)
+                best_delimiter = None
+                max_count = 0
+                
+                for delimiter in common_delimiters:  # Zachowaj kolejność preferencji
+                    count = delimiter_counts[delimiter]
+                    if count > max_count:
+                        max_count = count
+                        best_delimiter = delimiter
+                
+                if best_delimiter and max_count > 0:
+                    # Zweryfikuj poprzez próbę odczytu
+                    try:
+                        csvfile.seek(0)
+                        reader = csv.reader(csvfile, delimiter=best_delimiter)
+                        rows = list(reader)
+                        if rows and any(len(row) > 1 for row in rows):
+                            csvfile.seek(0)
+                            return best_delimiter
+                    except Exception:
+                        pass
+                
+                # Metoda 3: Sprawdź konsystencję liczby pól dla każdego delimitera
+                for delimiter in common_delimiters:
+                    try:
+                        csvfile.seek(0)
+                        reader = csv.reader(csvfile, delimiter=delimiter)
+                        rows = list(reader)
+                        if not rows:
+                            continue
+                        
+                        # Sprawdź czy liczba pól jest spójna
+                        field_counts = [len(row) for row in rows if row]
+                        if not field_counts:
+                            continue
+                        
+                        # Znajdź najczęstszą liczbę pól
+                        most_common_count = max(set(field_counts), key=field_counts.count)
+                        if most_common_count > 1:  # Musi być więcej niż jedno pole
+                            # Sprawdź spójność (co najmniej 80% wierszy ma tę samą liczbę pól)
+                            consistency = field_counts.count(most_common_count) / len(field_counts)
+                            if consistency >= 0.8:
+                                csvfile.seek(0)
+                                return delimiter
+                    except Exception:
+                        continue
+                
+                # Jeśli wszystko zawiodło, sprawdź czy to może być plik z jedną kolumną
+                # (każda linia to jedna wartość)
+                if len(sample_lines) > 0 and all(delimiter not in line for line in sample_lines for delimiter in common_delimiters):
+                    # To może być plik z jedną kolumną na linię - użyj przecinka jako separatora zastępczego
+                    csvfile.seek(0)
+                    return ','
+                
+                return None  # Nie udało się wykryć separatora
+                
+        except Exception as e:
+            raise ValueError(f"Błąd podczas analizy pliku CSV: {str(e)}")
+
     def _read_csv_file(self, file_path):
         """
-        Pomocnicza funkcja do wczytywania pliku CSV.
+        Pomocnicza funkcja do wczytywania pliku CSV z automatycznym wykrywaniem separatora.
         Zwraca listę wierszy jako tuple.
         """
         rows = []
-        with open(file_path, 'r', encoding='utf-8', newline='') as csvfile:
-            # Spróbuj różne delimitery
-            sample = csvfile.read(1024)
-            csvfile.seek(0)
-            
-            # Automatycznie wykryj delimiter
-            sniffer = csv.Sniffer()
-            try:
-                delimiter = sniffer.sniff(sample).delimiter
-            except:
-                delimiter = ','  # domyślny delimiter
-            
-            reader = csv.reader(csvfile, delimiter=delimiter)
-            for row in reader:
-                # Ignoruj puste wiersze
-                if row and any(cell.strip() for cell in row):
-                    # Konwertuj na tuple dla porównania
-                    rows.append(tuple(cell.strip() for cell in row))
         
-        return rows
+        try:
+            # Wykryj separator
+            delimiter = self._detect_csv_delimiter(file_path)
+            if delimiter is None:
+                raise ValueError(
+                    "Nie udało się automatycznie wykryć separatora w pliku CSV.\n"
+                    "Sprawdź czy plik zawiera poprawnie sformatowane dane CSV "
+                    "z jednym z popularnych separatorów: ; , Tab |"
+                )
+            
+            # Wczytaj plik z wykrytym separatorem
+            with open(file_path, 'r', encoding='utf-8', newline='') as csvfile:
+                reader = csv.reader(csvfile, delimiter=delimiter)
+                for row in reader:
+                    # Ignoruj puste wiersze
+                    if row and any(cell.strip() for cell in row):
+                        # Konwertuj na tuple dla porównania
+                        rows.append(tuple(cell.strip() for cell in row))
+            
+            if not rows:
+                raise ValueError("Plik CSV nie zawiera żadnych danych do przetworzenia")
+            
+            return rows
+            
+        except Exception as e:
+            # Przekaż błąd wyżej z dodatkowym kontekstem
+            raise ValueError(f"Błąd odczytu pliku CSV '{os.path.basename(file_path)}': {str(e)}")
