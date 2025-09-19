@@ -290,7 +290,7 @@ class KsiegiTab(ttk.Frame):
             with open(csv_path, 'w', encoding='utf-8', newline='') as csvfile:
                 writer = csv.writer(csvfile)
                 for filename in filenames_without_extension:
-                    writer.writerow([filename])
+                    writer.writerow(["", "", filename])
             
             # Pokaż wyniki w obszarze tekstowym
             self.text_area.delete("1.0", tk.END)
