@@ -140,23 +140,66 @@ class KsiegiTab(ttk.Frame):
         self.text_area = ScrolledText(results_inner, wrap="word", width=120, height=15)
         self.text_area.grid(row=0, column=0, sticky="ew", pady=2, padx=2)
         
-        current_row += 1
-
-        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, zredukowana wysokość)
+        # Dodaj placeholder text gdy pole jest puste
+        self._add_placeholder_if_empty()
+        
+        # Bind events to manage placeholder
+        self.text_area.bind("<FocusIn>", self._on_text_focus_in)
+        self.text_area.bind("<KeyPress>", self._on_text_key_press)
+        
+        # Konfiguruj rozciągnięcie wyników do dołu okna
+        scroll_frame.grid_rowconfigure(current_row, weight=1)
+        results_frame.grid_configure(sticky="nsew")
+        results_inner.grid_configure(sticky="nsew")
+        results_inner.grid_rowconfigure(0, weight=1)
+        self.text_area.grid_configure(sticky="nsew")
+        
+        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, ale ukryty)
         self.canvas = tk.Canvas(scroll_frame, width=800, height=600)
-        self.canvas.grid(row=current_row, column=0, columnspan=2, padx=0, pady=2)
-        
-        current_row += 1
-        
-        # Status label na dole
-        self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=2)
+        # Nie dodajemy canvas do grid - pozostaje ukryty
 
         # Performance optimization: Start processing queues for threaded operations
         self._process_ocr_result_queue()
         self._process_ocr_progress_queue()
 
-    def _configure_scroll_frame(self, event):
+    def _add_placeholder_if_empty(self):
+        """
+        Dodaje tekst placeholder gdy pole wyników jest puste.
+        """
+        current_content = self.text_area.get("1.0", tk.END).strip()
+        if not current_content:
+            self.text_area.insert("1.0", "Brak danych")
+            self.text_area.configure(foreground="gray")
+    
+    def _remove_placeholder_if_exists(self):
+        """
+        Usuwa tekst placeholder jeśli istnieje.
+        """
+        current_content = self.text_area.get("1.0", tk.END).strip()
+        if current_content == "Brak danych":
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.configure(foreground="black")
+    
+    def _on_text_focus_in(self, event):
+        """Event handler gdy użytkownik fokusuje pole tekstowe."""
+        self._remove_placeholder_if_exists()
+    
+    def _on_text_key_press(self, event):
+        """Event handler dla naciśnięcia klawisza."""
+        self._remove_placeholder_if_exists()
+    
+    def _add_status_message(self, message):
+        """
+        Dodaje wiadomość statusu do pola wyników zamiast do usuniętego status_label.
+        """
+        self._remove_placeholder_if_exists()
+        # Dodaj separator przed nową wiadomością jeśli pole nie jest puste
+        current_content = self.text_area.get("1.0", tk.END).strip()
+        if current_content:
+            self.text_area.insert(tk.END, "\n" + "="*50 + "\n")
+        
+        self.text_area.insert(tk.END, f"Status: {message}\n")
+        self.text_area.see(tk.END)  # Auto-scroll to show new message
         """Configure scroll_frame width to match canvas width"""
         canvas_width = event.width
         self.canvas_container.itemconfig(self.canvas_container.find_all()[0], width=canvas_width)
@@ -213,7 +256,7 @@ class KsiegiTab(ttk.Frame):
         try:
             updates = self.ksiegi_processor.task_manager.get_progress_updates()
             for progress in updates:
-                self.status_label.config(text=progress)
+                self._add_status_message(progress)
         except Exception as e:
             print(f"Błąd przetwarzania kolejki postępu OCR: {e}")
         
@@ -231,6 +274,9 @@ class KsiegiTab(ttk.Frame):
         # Store for final processing
         self.processed_pages_data[page_num] = result
         
+        # Remove placeholder and add content
+        self._remove_placeholder_if_exists()
+        
         # Minimized GUI updates: batch text insertion
         page_text = f"\n=== STRONA {page_num} ===\n{ocr_text}\n"
         self.text_area.insert(tk.END, page_text)
@@ -244,6 +290,7 @@ class KsiegiTab(ttk.Frame):
         Provides real-time feedback during show_all_ocr processing.
         """
         x, y, text = result['x'], result['y'], result['text']
+        self._remove_placeholder_if_exists()
         self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
         # Auto-scroll to show latest results
         self.text_area.see(tk.END)
@@ -253,7 +300,7 @@ class KsiegiTab(ttk.Frame):
         Performance optimization: Handle completion of all cells OCR processing.
         """
         processed_count = result['processed_count']
-        self.status_label.config(text=f"Ukończono OCR {processed_count} komórek")
+        self._add_status_message(f"Ukończono OCR {processed_count} komórek")
         self.show_ocr_button.config(text="Pokaż wszystkie komórki OCR")
 
     def _handle_csv_comparison_result(self, result):
@@ -278,15 +325,16 @@ class KsiegiTab(ttk.Frame):
             
             self.text_area.delete("1.0", tk.END)
             self.text_area.insert(tk.END, result_text)
-            self.status_label.config(text=f"Zapisano {file_count} plików PDF do {csv_filename}")
+            self._add_status_message(f"Zapisano {file_count} plików PDF do {csv_filename}")
             
             # Show success message
             messagebox.showinfo("Sukces", f"Pomyślnie zapisano {file_count} plików PDF do {csv_filename}\nLokalizacja: {csv_path}")
         else:
             error_msg = result['error']
-            self.status_label.config(text=f"Błąd: {error_msg}")
+            self._add_status_message(f"Błąd: {error_msg}")
             self.text_area.delete("1.0", tk.END)
             self.text_area.insert(tk.END, error_msg)
+            self._add_placeholder_if_empty()  # Add if the error message is empty
             messagebox.showerror("Błąd", error_msg)
 
     def _handle_ocr_completion(self, result):
@@ -296,6 +344,9 @@ class KsiegiTab(ttk.Frame):
         if result['success']:
             all_lines = result['all_lines']
             total_pages = result['total_pages']
+            
+            # Remove placeholder and add final results
+            self._remove_placeholder_if_exists()
             
             # Performance optimization: Batch GUI updates for final results
             final_text = "\n---- Linie OCR z wszystkich stron ----\n"
@@ -309,11 +360,11 @@ class KsiegiTab(ttk.Frame):
             # Save results to CSV with optimized batch writing
             self._save_ocr_results_optimized(all_lines)
             
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {total_pages} stron, zapisano do Ksiegi/wyniki.csv")
+            self._add_status_message(f"OCR z kolumny gotowy, {len(all_lines)} linii z {total_pages} stron, zapisano do Ksiegi/wyniki.csv")
         else:
             error_msg = result.get('error', 'Nieznany błąd')
             messagebox.showerror("Błąd OCR z kolumny", error_msg)
-            self.status_label.config(text="Błąd OCR kolumny")
+            self._add_status_message("Błąd OCR kolumny")
         
         # Reset button state
         self.ocr_button.config(text="OCR z kolumny (wszystkie strony)")
@@ -339,7 +390,7 @@ class KsiegiTab(ttk.Frame):
                 
         except Exception as e:
             messagebox.showerror("Błąd zapisu pliku CSV", f"Nie udało się zapisać pliku wyniki.csv: {str(e)}")
-            self.status_label.config(text="Błąd zapisu pliku CSV")
+            self._add_status_message("Błąd zapisu pliku CSV")
 
     def toggle_column_ocr(self):
         """
@@ -353,7 +404,7 @@ class KsiegiTab(ttk.Frame):
     def cancel_ocr_task(self):
         """Performance optimization: Cancel ongoing OCR task"""
         self.ksiegi_processor.task_manager.cancel_task()
-        self.status_label.config(text="Anulowanie OCR...")
+        self._add_status_message("Anulowanie OCR...")
         self.ocr_button.config(text="OCR z kolumny (wszystkie strony)")
 
     def run_column_ocr_threaded(self):
@@ -368,11 +419,12 @@ class KsiegiTab(ttk.Frame):
 
         # Clear previous results
         self.text_area.delete("1.0", tk.END)
+        self._add_placeholder_if_empty()
         self.processed_pages_data.clear()
         
         # Update UI for processing state
         self.ocr_button.config(text="Anuluj OCR")
-        self.status_label.config(text="Rozpoczynam OCR...")
+        self._add_status_message("Rozpoczynam OCR...")
         
         # Start threaded OCR processing
         self.ksiegi_processor.task_manager.start_task(
@@ -398,7 +450,7 @@ class KsiegiTab(ttk.Frame):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
         if path:
             self.file_path_var.set(path)
-            self.status_label.config(text="Plik wybrany")
+            self._add_status_message("Plik wybrany")
 
     def run_column_ocr_legacy(self):
         """
@@ -411,9 +463,14 @@ class KsiegiTab(ttk.Frame):
             return
 
         self.text_area.delete("1.0", tk.END)
+        self._add_placeholder_if_empty()
         try:
             images = convert_from_path(path, dpi=300, poppler_path=POPPLER_PATH)
             all_lines = []
+            
+            # Remove placeholder before adding OCR results
+            self._remove_placeholder_if_exists()
+            
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
                 ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
@@ -441,14 +498,14 @@ class KsiegiTab(ttk.Frame):
                         writer.writerow([page_num, i, line])
             except Exception as e:
                 messagebox.showerror("Błąd zapisu pliku CSV", f"Nie udało się zapisać pliku wyniki.csv: {str(e)}")
-                self.status_label.config(text="Błąd zapisu pliku CSV")
+                self._add_status_message("Błąd zapisu pliku CSV")
                 return
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do Ksiegi/wyniki.csv")
+            self._add_status_message(f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, zapisano do Ksiegi/wyniki.csv")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
-            self.status_label.config(text="Błąd OCR kolumny")
+            self._add_status_message("Błąd OCR kolumny")
 
     def process_pdf(self):
         """
@@ -461,12 +518,13 @@ class KsiegiTab(ttk.Frame):
             return
 
         self.text_area.delete("1.0", tk.END)
+        self._add_placeholder_if_empty()
         self.canvas.delete("all")
         self.cells.clear()
         self.ocr_results.clear()
         
         # Performance optimization: Show progress during processing
-        self.status_label.config(text="Ładowanie strony PDF...")
+        self._add_status_message("Ładowanie strony PDF...")
 
         try:
             # Load first page with optimized DPI for faster processing
@@ -476,7 +534,7 @@ class KsiegiTab(ttk.Frame):
                 return
                 
             pil_img = images[0]
-            self.status_label.config(text="Przetwarzanie segmentacji tabeli...")
+            self._add_status_message("Przetwarzanie segmentacji tabeli...")
             
             # Performance optimization: Use optimized processor for better performance
             result = self.ksiegi_processor.process_single_page_segmented(pil_img)
@@ -490,11 +548,13 @@ class KsiegiTab(ttk.Frame):
                 self.display_image_with_boxes()
 
                 if not self.ocr_results:
+                    self._remove_placeholder_if_exists()
                     self.text_area.insert(tk.END, "Nie znaleziono numerów faktur.")
-                    self.status_label.config(text="Brak wyników")
+                    self._add_status_message("Brak wyników")
                     return
 
                 # Performance optimization: Batch text insertion
+                self._remove_placeholder_if_exists()
                 result_texts = [f"x={x} y={y} → {text}" for x, y, text in self.ocr_results]
                 self.text_area.insert(tk.END, "\n".join(result_texts) + "\n")
 
@@ -502,13 +562,13 @@ class KsiegiTab(ttk.Frame):
                 with open(TEMP_FILE, "w", encoding="utf-8") as f:
                     f.writelines(f"x={x} y={y} → {text}\n" for x, y, text in self.ocr_results)
 
-                self.status_label.config(text=f"Znaleziono {len(self.ocr_results)} wpisów")
+                self._add_status_message(f"Znaleziono {len(self.ocr_results)} wpisów")
             else:
-                self.status_label.config(text="Błąd przetwarzania strony")
+                self._add_status_message("Błąd przetwarzania strony")
 
         except Exception as e:
             messagebox.showerror("Błąd segmentacji", str(e))
-            self.status_label.config(text="Błąd")
+            self._add_status_message("Błąd")
 
     def detect_table_cells(self, image):
         """
@@ -606,16 +666,17 @@ class KsiegiTab(ttk.Frame):
         """
         self.text_area.delete("1.0", tk.END)
         if not self.cells or self.image is None:
+            self._remove_placeholder_if_exists()
             self.text_area.insert(tk.END, "Brak wysegmentowanych komórek do wyświetlenia.\n")
             return
 
         # Check if OCR task is already running
         if self.ksiegi_processor.task_manager.is_task_active():
-            self.status_label.config(text="Zadanie OCR już w toku...")
+            self._add_status_message("Zadanie OCR już w toku...")
             return
 
         # Clear previous results and start threaded processing
-        self.status_label.config(text="Rozpoczynam OCR wszystkich komórek...")
+        self._add_status_message("Rozpoczynam OCR wszystkich komórek...")
         
         # Start threaded OCR processing of all cells
         self.ksiegi_processor.task_manager.start_task(
@@ -700,7 +761,7 @@ class KsiegiTab(ttk.Frame):
             return
         
         # Performance optimization: Show progress during processing
-        self.status_label.config(text="Rozpoczynam przetwarzanie folderu...")
+        self._add_status_message("Rozpoczynam przetwarzanie folderu...")
         
         # Start threaded folder processing
         self.ksiegi_processor.task_manager.start_task(
