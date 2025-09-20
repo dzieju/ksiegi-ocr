@@ -188,6 +188,11 @@ class KsiegiTab(ttk.Frame):
         """Event handler dla naciśnięcia klawisza."""
         self._remove_placeholder_if_exists()
     
+    def _configure_scroll_frame(self, event):
+        """Configure scroll_frame width to match canvas width"""
+        canvas_width = event.width
+        self.canvas_container.itemconfig(self.canvas_container.find_all()[0], width=canvas_width)
+
     def _add_status_message(self, message):
         """
         Dodaje wiadomość statusu do pola wyników zamiast do usuniętego status_label.
@@ -200,9 +205,6 @@ class KsiegiTab(ttk.Frame):
         
         self.text_area.insert(tk.END, f"Status: {message}\n")
         self.text_area.see(tk.END)  # Auto-scroll to show new message
-        """Configure scroll_frame width to match canvas width"""
-        canvas_width = event.width
-        self.canvas_container.itemconfig(self.canvas_container.find_all()[0], width=canvas_width)
 
     def _configure_section_styles(self):
         """
