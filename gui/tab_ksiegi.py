@@ -128,6 +128,12 @@ class KsiegiTab(ttk.Frame):
         
         current_row += 1
 
+        # Status label wyśrodkowany nad polem "Wyniki/Logi"
+        self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
+        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=2)
+        
+        current_row += 1
+
         # ===== SEKCJA: Wyniki/Logi =====
         results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="5")
         results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=2)
@@ -145,12 +151,6 @@ class KsiegiTab(ttk.Frame):
         # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, zredukowana wysokość)
         self.canvas = tk.Canvas(scroll_frame, width=800, height=600)
         self.canvas.grid(row=current_row, column=0, columnspan=2, padx=0, pady=2)
-        
-        current_row += 1
-        
-        # Status label na dole
-        self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=2)
 
         # Performance optimization: Start processing queues for threaded operations
         self._process_ocr_result_queue()
