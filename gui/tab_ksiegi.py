@@ -39,9 +39,19 @@ class KsiegiTab(ttk.Frame):
         scroll_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Ensure scroll_frame expands to fill canvas width
+        canvas.bind('<Configure>', self._configure_scroll_frame)
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        
+        # Store reference to canvas for width configuration
+        self.canvas_container = canvas
+        
+        # Configure scroll_frame to expand horizontally
+        scroll_frame.columnconfigure(0, weight=1)
+        scroll_frame.columnconfigure(1, weight=1)
 
         self.file_path_var = tk.StringVar()
         self.cells = []
@@ -59,92 +69,97 @@ class KsiegiTab(ttk.Frame):
         current_row = 0
 
         # ===== SEKCJA: Plik PDF (księgi) =====
-        pdf_frame = ttk.LabelFrame(scroll_frame, text="Plik PDF (księgi)", padding="10")
-        pdf_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        pdf_frame = ttk.LabelFrame(scroll_frame, text="Plik PDF (księgi)", padding="5")
+        pdf_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=2)
         pdf_frame.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie wewnętrznej ramki
         # Subtelne tło za pomocą wewnętrznej ramki
         pdf_inner = tk.Frame(pdf_frame, bg="#f8f9fa", relief="flat")
-        pdf_inner.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        pdf_inner.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
         pdf_inner.columnconfigure(1, weight=1)
         
-        ttk.Label(pdf_inner, text="Plik:", background="#f8f9fa").grid(row=0, column=0, sticky="w", padx=(5, 10), pady=5)
-        ttk.Entry(pdf_inner, textvariable=self.file_path_var, width=60).grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=5)
-        ttk.Button(pdf_inner, text="Wybierz plik", command=self.select_file).grid(row=0, column=2, padx=(0, 5), pady=5)
+        ttk.Label(pdf_inner, text="Plik:", background="#f8f9fa").grid(row=0, column=0, sticky="w", padx=(3, 5), pady=3)
+        ttk.Entry(pdf_inner, textvariable=self.file_path_var, width=60).grid(row=0, column=1, sticky="ew", padx=(0, 5), pady=3)
+        ttk.Button(pdf_inner, text="Wybierz plik", command=self.select_file).grid(row=0, column=2, padx=(0, 3), pady=3)
         
         current_row += 1
 
         # Kontener główny dla sekcji funkcjonalnych
         main_container = ttk.Frame(scroll_frame)
-        main_container.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        main_container.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=2)
         main_container.columnconfigure(0, weight=1)
         main_container.columnconfigure(1, weight=1)
         
         # ===== SEKCJA: Przetwarzanie OCR =====
-        ocr_frame = ttk.LabelFrame(main_container, text="Przetwarzanie OCR", padding="10")
-        ocr_frame.grid(row=0, column=0, sticky="new", padx=(0, 5), pady=5)
+        ocr_frame = ttk.LabelFrame(main_container, text="Przetwarzanie OCR", padding="5")
+        ocr_frame.grid(row=0, column=0, sticky="new", padx=(0, 2), pady=2)
         # Subtelne tło
         ocr_inner = tk.Frame(ocr_frame, bg="#f0f8ff", relief="flat")
-        ocr_inner.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        ocr_inner.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
         
         # Przyciski OCR o równej szerokości, ułożone pionowo
         button_width = 25
         
         ttk.Button(ocr_inner, text="Segmentuj tabelę i OCR", 
-                  command=self.process_pdf, width=button_width).grid(row=0, column=0, sticky="ew", pady=2, padx=5)
+                  command=self.process_pdf, width=button_width).grid(row=0, column=0, sticky="ew", pady=1, padx=3)
         
         # Performance optimization: Button with cancellation capability 
         self.show_ocr_button = ttk.Button(ocr_inner, text="Pokaż wszystkie komórki OCR", 
                                          command=self.toggle_show_all_ocr, width=button_width)
-        self.show_ocr_button.grid(row=1, column=0, sticky="ew", pady=2, padx=5)
+        self.show_ocr_button.grid(row=1, column=0, sticky="ew", pady=1, padx=3)
         
         # Performance optimization: Updated button for threaded OCR processing
         self.ocr_button = ttk.Button(ocr_inner, text="OCR z kolumny (wszystkie strony)", 
                                     command=self.toggle_column_ocr, width=button_width)
-        self.ocr_button.grid(row=2, column=0, sticky="ew", pady=2, padx=5)
+        self.ocr_button.grid(row=2, column=0, sticky="ew", pady=1, padx=3)
         
         # ===== SEKCJA: Operacje na folderach =====
-        folder_frame = ttk.LabelFrame(main_container, text="Operacje na folderach", padding="10")
-        folder_frame.grid(row=0, column=1, sticky="new", padx=(5, 0), pady=5)
+        folder_frame = ttk.LabelFrame(main_container, text="Operacje na folderach", padding="5")
+        folder_frame.grid(row=0, column=1, sticky="new", padx=(2, 0), pady=2)
         # Subtelne tło  
         folder_inner = tk.Frame(folder_frame, bg="#f0fff0", relief="flat")
-        folder_inner.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        folder_inner.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
         
         # Przyciski operacji na folderach o równej szerokości, ułożone pionowo
         ttk.Button(folder_inner, text="Odczytaj folder", 
-                  command=self.select_folder_and_generate_csv, width=button_width).grid(row=0, column=0, sticky="ew", pady=2, padx=5)
+                  command=self.select_folder_and_generate_csv, width=button_width).grid(row=0, column=0, sticky="ew", pady=1, padx=3)
         
         ttk.Button(folder_inner, text="Porównaj pliki CSV", 
-                  command=self.compare_csv_files, width=button_width).grid(row=1, column=0, sticky="ew", pady=2, padx=5)
+                  command=self.compare_csv_files, width=button_width).grid(row=1, column=0, sticky="ew", pady=1, padx=3)
         
         current_row += 1
 
         # ===== SEKCJA: Wyniki/Logi =====
-        results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="10")
-        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=10, pady=5)
+        results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="5")
+        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=2)
         results_frame.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie wewnętrznej ramki
         # Subtelne tło
         results_inner = tk.Frame(results_frame, bg="#fff8f0", relief="flat")
-        results_inner.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        results_inner.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
         results_inner.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie pola tekstowego
         
-        self.text_area = ScrolledText(results_inner, wrap="word", width=100, height=20)
-        self.text_area.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
+        self.text_area = ScrolledText(results_inner, wrap="word", width=120, height=15)
+        self.text_area.grid(row=0, column=0, sticky="ew", pady=2, padx=2)
         
         current_row += 1
 
-        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności)
-        self.canvas = tk.Canvas(scroll_frame, width=1000, height=1400)
-        self.canvas.grid(row=current_row, column=0, columnspan=2, padx=10, pady=5)
+        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, zredukowana wysokość)
+        self.canvas = tk.Canvas(scroll_frame, width=800, height=600)
+        self.canvas.grid(row=current_row, column=0, columnspan=2, padx=0, pady=2)
         
         current_row += 1
         
         # Status label na dole
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=5)
+        self.status_label.grid(row=current_row, column=0, columnspan=2, pady=2)
 
         # Performance optimization: Start processing queues for threaded operations
         self._process_ocr_result_queue()
         self._process_ocr_progress_queue()
+
+    def _configure_scroll_frame(self, event):
+        """Configure scroll_frame width to match canvas width"""
+        canvas_width = event.width
+        self.canvas_container.itemconfig(self.canvas_container.find_all()[0], width=canvas_width)
 
     def _configure_section_styles(self):
         """
@@ -580,7 +595,7 @@ class KsiegiTab(ttk.Frame):
 
         img_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
         img_pil = Image.fromarray(img_rgb)
-        img_pil = img_pil.resize((1000, 1400)) if img_pil.width > 1000 or img_pil.height > 1400 else img_pil
+        img_pil = img_pil.resize((800, 600)) if img_pil.width > 800 or img_pil.height > 600 else img_pil
         self.tk_image = ImageTk.PhotoImage(img_pil)
         self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
 
