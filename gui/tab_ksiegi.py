@@ -129,16 +129,16 @@ class KsiegiTab(ttk.Frame):
         current_row += 1
 
         # ===== SEKCJA: Wyniki/Logi =====
-        results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="5")
-        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=2)
+        results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="2")
+        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=0)
         results_frame.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie wewnętrznej ramki
         # Subtelne tło
         results_inner = tk.Frame(results_frame, bg="#fff8f0", relief="flat")
-        results_inner.grid(row=0, column=0, sticky="ew", padx=1, pady=1)
+        results_inner.grid(row=0, column=0, sticky="ew", padx=0, pady=0)
         results_inner.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie pola tekstowego
         
         self.text_area = ScrolledText(results_inner, wrap="word", width=120, height=15)
-        self.text_area.grid(row=0, column=0, sticky="ew", pady=2, padx=2)
+        self.text_area.grid(row=0, column=0, sticky="ew", pady=0, padx=0)
         
         # Dodaj placeholder text gdy pole jest puste
         self._add_placeholder_if_empty()

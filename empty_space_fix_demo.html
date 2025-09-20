@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Księgi Tab - Empty Space Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { display: flex; gap: 20px; }
+        .tab { width: 450px; height: 600px; background: white; border: 1px solid #ccc; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 10px; border: 1px solid #bbb; border-radius: 3px; }
+        .section-header { background: #e9ecef; padding: 8px; font-weight: bold; border-bottom: 1px solid #bbb; }
+        .results-section-old { background: #fff8f0; height: 200px; margin-bottom: 40px; padding-bottom: 20px; }
+        .results-section-new { background: #fff8f0; height: calc(100% - 260px); margin-bottom: 0; padding-bottom: 0; }
+        .results-content { background: white; border: 1px solid #ddd; height: calc(100% - 40px); padding: 5px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        .empty-space { background: #ffcccc; border: 2px dashed #ff6b6b; height: 40px; text-align: center; line-height: 40px; color: #d63031; font-weight: bold; }
+        .fix-indicator { background: #00b894; color: white; text-align: center; padding: 5px; border-radius: 3px; margin-bottom: 10px; font-weight: bold; }
+        .title { text-align: center; color: #2d3436; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Księgi Tab - Empty Space Fix</h1>
+    <div class="container">
+        <div class="tab">
+            <h3 class="title">BEFORE</h3>
+            <div class="section">
+                <div class="section-header">Plik PDF</div>
+            </div>
+            <div class="section">
+                <div class="section-header">OCR | Folders</div>
+            </div>
+            <div class="section results-section-old">
+                <div class="section-header">Wyniki/Logi</div>
+                <div class="results-content">Results area with excessive padding</div>
+            </div>
+            <div class="empty-space">⚠️ UNWANTED EMPTY SPACE ⚠️</div>
+        </div>
+        <div class="tab">
+            <h3 class="title">AFTER</h3>
+            <div class="fix-indicator">✅ FIXED</div>
+            <div class="section">
+                <div class="section-header">Plik PDF</div>
+            </div>
+            <div class="section">
+                <div class="section-header">OCR | Folders</div>
+            </div>
+            <div class="section results-section-new">
+                <div class="section-header">Wyniki/Logi</div>
+                <div class="results-content">Results area extends to bottom - no empty space!</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
