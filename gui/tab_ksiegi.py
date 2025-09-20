@@ -130,15 +130,15 @@ class KsiegiTab(ttk.Frame):
 
         # ===== SEKCJA: Wyniki/Logi =====
         results_frame = ttk.LabelFrame(scroll_frame, text="Wyniki/Logi", padding="2")
-        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="ew", padx=0, pady=0)
+        results_frame.grid(row=current_row, column=0, columnspan=2, sticky="nsew", padx=0, pady=0)
         results_frame.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie wewnętrznej ramki
         # Subtelne tło
         results_inner = tk.Frame(results_frame, bg="#fff8f0", relief="flat")
-        results_inner.grid(row=0, column=0, sticky="ew", padx=0, pady=0)
+        results_inner.grid(row=0, column=0, sticky="nsew", padx=0, pady=0)
         results_inner.columnconfigure(0, weight=1)  # Pozwala na rozciągnięcie pola tekstowego
         
         self.text_area = ScrolledText(results_inner, wrap="word", width=120, height=15)
-        self.text_area.grid(row=0, column=0, sticky="ew", pady=0, padx=0)
+        self.text_area.grid(row=0, column=0, sticky="nsew", pady=0, padx=0)
         
         # Dodaj placeholder text gdy pole jest puste
         self._add_placeholder_if_empty()
@@ -149,10 +149,7 @@ class KsiegiTab(ttk.Frame):
         
         # Konfiguruj rozciągnięcie wyników do dołu okna
         scroll_frame.grid_rowconfigure(current_row, weight=1)
-        results_frame.grid_configure(sticky="nsew")
-        results_inner.grid_configure(sticky="nsew")
         results_inner.grid_rowconfigure(0, weight=1)
-        self.text_area.grid_configure(sticky="nsew")
         
         # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, ale ukryty)
         self.canvas = tk.Canvas(scroll_frame, width=800, height=600)
