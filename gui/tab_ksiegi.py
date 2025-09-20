@@ -140,51 +140,14 @@ class KsiegiTab(ttk.Frame):
         self.text_area = ScrolledText(results_inner, wrap="word", width=120, height=15)
         self.text_area.grid(row=0, column=0, sticky="nsew", pady=0, padx=0)
         
-        # Dodaj placeholder text gdy pole jest puste
-        self._add_placeholder_if_empty()
-        
-        # Bind events to manage placeholder
-        self.text_area.bind("<FocusIn>", self._on_text_focus_in)
-        self.text_area.bind("<KeyPress>", self._on_text_key_press)
-        
         # Konfiguruj rozciągnięcie wyników do dołu okna
         scroll_frame.grid_rowconfigure(current_row, weight=1)
         results_inner.grid_rowconfigure(0, weight=1)
-        
-        # Canvas do wyświetlania obrazów (zachowany dla kompatybilności, ale ukryty)
-        self.canvas = tk.Canvas(scroll_frame, width=800, height=600)
-        # Nie dodajemy canvas do grid - pozostaje ukryty
 
         # Performance optimization: Start processing queues for threaded operations
         self._process_ocr_result_queue()
         self._process_ocr_progress_queue()
 
-    def _add_placeholder_if_empty(self):
-        """
-        Dodaje tekst placeholder gdy pole wyników jest puste.
-        """
-        current_content = self.text_area.get("1.0", tk.END).strip()
-        if not current_content:
-            self.text_area.insert("1.0", "Brak danych")
-            self.text_area.configure(foreground="gray")
-    
-    def _remove_placeholder_if_exists(self):
-        """
-        Usuwa tekst placeholder jeśli istnieje.
-        """
-        current_content = self.text_area.get("1.0", tk.END).strip()
-        if current_content == "Brak danych":
-            self.text_area.delete("1.0", tk.END)
-            self.text_area.configure(foreground="black")
-    
-    def _on_text_focus_in(self, event):
-        """Event handler gdy użytkownik fokusuje pole tekstowe."""
-        self._remove_placeholder_if_exists()
-    
-    def _on_text_key_press(self, event):
-        """Event handler dla naciśnięcia klawisza."""
-        self._remove_placeholder_if_exists()
-    
     def _configure_scroll_frame(self, event):
         """Configure scroll_frame width to match canvas width"""
         canvas_width = event.width
@@ -194,7 +157,6 @@ class KsiegiTab(ttk.Frame):
         """
         Dodaje wiadomość statusu do pola wyników zamiast do usuniętego status_label.
         """
-        self._remove_placeholder_if_exists()
         # Dodaj separator przed nową wiadomością jeśli pole nie jest puste
         current_content = self.text_area.get("1.0", tk.END).strip()
         if current_content:
@@ -273,9 +235,6 @@ class KsiegiTab(ttk.Frame):
         # Store for final processing
         self.processed_pages_data[page_num] = result
         
-        # Remove placeholder and add content
-        self._remove_placeholder_if_exists()
-        
         # Minimized GUI updates: batch text insertion
         page_text = f"\n=== STRONA {page_num} ===\n{ocr_text}\n"
         self.text_area.insert(tk.END, page_text)
@@ -289,7 +248,6 @@ class KsiegiTab(ttk.Frame):
         Provides real-time feedback during show_all_ocr processing.
         """
         x, y, text = result['x'], result['y'], result['text']
-        self._remove_placeholder_if_exists()
         self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
         # Auto-scroll to show latest results
         self.text_area.see(tk.END)
@@ -333,7 +291,6 @@ class KsiegiTab(ttk.Frame):
             self._add_status_message(f"Błąd: {error_msg}")
             self.text_area.delete("1.0", tk.END)
             self.text_area.insert(tk.END, error_msg)
-            self._add_placeholder_if_empty()  # Add if the error message is empty
             messagebox.showerror("Błąd", error_msg)
 
     def _handle_ocr_completion(self, result):
@@ -345,7 +302,6 @@ class KsiegiTab(ttk.Frame):
             total_pages = result['total_pages']
             
             # Remove placeholder and add final results
-            self._remove_placeholder_if_exists()
             
             # Performance optimization: Batch GUI updates for final results
             final_text = "\n---- Linie OCR z wszystkich stron ----\n"
@@ -418,7 +374,6 @@ class KsiegiTab(ttk.Frame):
 
         # Clear previous results
         self.text_area.delete("1.0", tk.END)
-        self._add_placeholder_if_empty()
         self.processed_pages_data.clear()
         
         # Update UI for processing state
@@ -462,13 +417,11 @@ class KsiegiTab(ttk.Frame):
             return
 
         self.text_area.delete("1.0", tk.END)
-        self._add_placeholder_if_empty()
         try:
             images = convert_from_path(path, dpi=300, poppler_path=POPPLER_PATH)
             all_lines = []
             
             # Remove placeholder before adding OCR results
-            self._remove_placeholder_if_exists()
             
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
@@ -517,8 +470,6 @@ class KsiegiTab(ttk.Frame):
             return
 
         self.text_area.delete("1.0", tk.END)
-        self._add_placeholder_if_empty()
-        self.canvas.delete("all")
         self.cells.clear()
         self.ocr_results.clear()
         
@@ -547,13 +498,11 @@ class KsiegiTab(ttk.Frame):
                 self.display_image_with_boxes()
 
                 if not self.ocr_results:
-                    self._remove_placeholder_if_exists()
                     self.text_area.insert(tk.END, "Nie znaleziono numerów faktur.")
                     self._add_status_message("Brak wyników")
                     return
 
                 # Performance optimization: Batch text insertion
-                self._remove_placeholder_if_exists()
                 result_texts = [f"x={x} y={y} → {text}" for x, y, text in self.ocr_results]
                 self.text_area.insert(tk.END, "\n".join(result_texts) + "\n")
 
@@ -640,23 +589,8 @@ class KsiegiTab(ttk.Frame):
         return False
 
     def display_image_with_boxes(self):
-        img_copy = self.image.copy()
-        for (x, y, w, h) in self.cells:
-            roi = self.image[y:y+h, x:x+w]
-            text = pytesseract.image_to_string(roi, lang='pol').strip()
-            if self.contains_invoice_number(text):
-                color = (0, 0, 255)  # czerwony = trafienie
-            elif X_MIN <= x <= X_MAX:
-                color = (0, 255, 0)  # zielony = w kolumnie
-            else:
-                color = (180, 180, 180)  # szary = poza zakresem
-            cv2.rectangle(img_copy, (x, y), (x+w, y+h), color, 2)
-
-        img_rgb = cv2.cvtColor(img_copy, cv2.COLOR_BGR2RGB)
-        img_pil = Image.fromarray(img_rgb)
-        img_pil = img_pil.resize((800, 600)) if img_pil.width > 800 or img_pil.height > 600 else img_pil
-        self.tk_image = ImageTk.PhotoImage(img_pil)
-        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
+        # Visual display removed - simplified layout without canvas
+        pass
 
     def show_all_ocr(self):
         """
@@ -665,7 +599,6 @@ class KsiegiTab(ttk.Frame):
         """
         self.text_area.delete("1.0", tk.END)
         if not self.cells or self.image is None:
-            self._remove_placeholder_if_exists()
             self.text_area.insert(tk.END, "Brak wysegmentowanych komórek do wyświetlenia.\n")
             return
 
