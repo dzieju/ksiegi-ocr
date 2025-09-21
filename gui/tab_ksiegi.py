@@ -113,6 +113,8 @@ class KsiegiTab(ttk.Frame):
                     csv_path = self.save_invoice_numbers_to_csv(invoice_numbers)
                     csv_saved = True
                     self.text_area.insert(tk.END, f"\n✓ Zapisano {len(invoice_numbers)} numerów faktur do pliku: {csv_path}\n")
+                    # Pokaż komunikat potwierdzenia
+                    messagebox.showinfo("Eksport zakończony", f"Wyeksportowano {len(invoice_numbers)} numerów do odczyty/ksiegi.csv")
                 except Exception as csv_error:
                     self.text_area.insert(tk.END, f"\n✗ Błąd podczas zapisywania CSV: {str(csv_error)}\n")
             else:
