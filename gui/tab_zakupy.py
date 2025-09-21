@@ -140,11 +140,6 @@ class ZakupiTab(ttk.Frame):
                         # Restore button state and show final results
                         self.process_button.config(text="Odczytaj numery faktur")
                         
-                        # Resize text area to 50% width
-                        current_width = self.text_area.cget("width")
-                        new_width = int(current_width * 0.5)
-                        self.text_area.config(width=new_width)
-                        
                         invoice_info = f" (znaleziono {result['invoice_count']} faktur)" if result['invoice_count'] > 0 else ""
                         self.status_label.config(
                             text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}", 
@@ -270,17 +265,16 @@ class ZakupiTab(ttk.Frame):
                     all_lines.append((page_num, line))
                     ocr_log_data.append((page_num, line))  # Add to log data
                     
-                    # Check if line contains invoice number
+                    # Check if line contains invoice number (for counting)
                     if self.contains_invoice_number(line):
                         invoice_count += 1
-                        display_line = line
                     
-                    # Send line to GUI
+                    # Send line to GUI exactly as OCR recognized it
                     self.result_queue.put({
                         'type': 'ocr_line',
                         'page_num': page_num,
                         'line_num': line_counter,
-                        'line': display_line
+                        'line': line
                     })
                 
                 # Small delay to allow GUI updates and cancellation
@@ -333,8 +327,8 @@ class ZakupiTab(ttk.Frame):
         self.status_label = ttk.Label(self, text="Brak wybranego pliku", foreground="blue")
         self.status_label.grid(row=3, column=1, pady=5)
         
-        # Text area for OCR results
-        self.text_area = ScrolledText(self, wrap="word", width=100, height=25)
+        # Text area for OCR results - fixed width of ~47 chars (~10 cm for monospace fonts)
+        self.text_area = ScrolledText(self, wrap="word", width=47, height=25)
         self.text_area.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
         
     def wybierz_plik_pdf(self):
@@ -378,11 +372,6 @@ class ZakupiTab(ttk.Frame):
             self.text_area.insert(tk.END, "----- Linie OCR -----\n")
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
-
-            # Zmniejsz szerokość okna wyników do 50%
-            current_width = self.text_area.cget("width")
-            new_width = int(current_width * 0.5)
-            self.text_area.config(width=new_width)
 
             self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron", foreground="green")
 
