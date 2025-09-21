@@ -45,8 +45,12 @@ class ZakupiTab(ttk.Frame):
 
     def contains_invoice_number(self, text):
         """
-        Check if text contains invoice number using fuzzy matching.
-        Uses regex pattern allowing missing 'F' at the beginning: r'(F?/?\\d{5}/\\d{2}/\\d{2}/M1)'
+        Check if text contains invoice number.
+        Now accepts ANY line that looks like an invoice number (not just specific patterns):
+        - Contains at least one digit
+        - Contains "/" or "-" separator
+        - Minimum 5 characters length
+        - Not on blacklist
         """
         # Blacklist of specific problematic phrases to exclude from invoice detection
         blacklist_phrases = [
@@ -86,28 +90,21 @@ class ZakupiTab(ttk.Frame):
             if re.search(r'\b' + re.escape(word.lower()) + r'\b', text_lower):
                 return False
         
-        # Primary pattern with optional F prefix - handles all variations:
-        # F/12345/01/25/M1, /12345/01/25/M1, 12345/01/25/M1
-        pattern = r'(?:F/|/|^|\s)?\d{5}/\d{2}/\d{2}/M1'
-        
-        if re.search(pattern, text):
-            return True
+        # NEW LOGIC: Accept ANY line that looks like an invoice number
+        # Requirements: at least one digit, contains "/" or "-", minimum 5 characters
+        text_stripped = text.strip()
+        if len(text_stripped) < 5:
+            return False
             
-        # Additional patterns for other invoice formats (from tab_ksiegi.py)
-        additional_patterns = [
-            r"\b\d{5}/\d{2}/\d{4}/UP\b",
-            r"\b\d{5}/\d{2}\b",
-            r"\b\d{3}/\d{4}\b",
-            r"\bF/M\d{2}/\d{7}/\d{2}/\d{2}\b",
-            r"\b\d{2}/\d{2}/\d{4}\b",
-            r"\b\d{1,2}/\d{2}/\d{4}\b"
-        ]
-        
-        for pattern in additional_patterns:
-            if re.search(pattern, text):
-                return True
-                
-        return False
+        # Must contain at least one digit
+        if not re.search(r'\d', text_stripped):
+            return False
+            
+        # Must contain "/" or "-"  
+        if not re.search(r'[/-]', text_stripped):
+            return False
+            
+        return True
 
     def save_ocr_log(self, ocr_data):
         """
