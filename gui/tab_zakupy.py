@@ -4,6 +4,7 @@ from tkinter.scrolledtext import ScrolledText
 import os
 import pytesseract
 from pdf2image import convert_from_path
+from PIL import ImageEnhance
 import threading
 import queue
 import time
@@ -16,6 +17,12 @@ TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 # Crop coordinates for invoice numbers column (same as in tab_ksiegi.py)
 CROP_LEFT, CROP_RIGHT = 503, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
+
+# OCR enhancement settings
+# Contrast enhancement factor - higher values increase contrast
+# To change contrast: modify CONTRAST_FACTOR value (recommended range: 1.0-3.0)
+# 1.0 = no enhancement, 2.0 = double contrast, 3.0 = triple contrast
+CONTRAST_FACTOR = 2.0
 
 # OCR log file
 OCR_LOG_FILE = "ocr_log.txt"
@@ -255,8 +262,13 @@ class ZakupiTab(ttk.Frame):
                 # Crop the image to the specified region
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
                 
-                # Perform OCR
-                ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
+                # Enhance contrast to improve OCR accuracy
+                # To modify contrast: change CONTRAST_FACTOR constant at the top of the file
+                enhancer = ImageEnhance.Contrast(crop)
+                crop_enhanced = enhancer.enhance(CONTRAST_FACTOR)
+                
+                # Perform OCR on the enhanced image
+                ocr_text = pytesseract.image_to_string(crop_enhanced, lang='pol+eng')
                 
                 # Process lines
                 lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]
@@ -372,7 +384,13 @@ class ZakupiTab(ttk.Frame):
             all_lines = []
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
-                ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
+                
+                # Enhance contrast to improve OCR accuracy
+                # To modify contrast: change CONTRAST_FACTOR constant at the top of the file
+                enhancer = ImageEnhance.Contrast(crop)
+                crop_enhanced = enhancer.enhance(CONTRAST_FACTOR)
+                
+                ocr_text = pytesseract.image_to_string(crop_enhanced, lang='pol+eng')
                 # Dodatkowo: linie osobno
                 lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]
                 all_lines.extend([(page_num, l) for l in lines])
