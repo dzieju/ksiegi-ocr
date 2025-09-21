@@ -14,7 +14,7 @@ POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Crop coordinates for invoice numbers column (same as in tab_ksiegi.py)
-CROP_LEFT, CROP_RIGHT = 503, 771
+CROP_LEFT, CROP_RIGHT = 499, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
 
 # OCR log file
@@ -273,9 +273,6 @@ class ZakupiTab(ttk.Frame):
                     # Check if line contains invoice number
                     if self.contains_invoice_number(line):
                         invoice_count += 1
-                        # Highlight invoice numbers in display
-                        display_line = f"[FAKTURA] {line}"
-                    else:
                         display_line = line
                     
                     # Send line to GUI
