@@ -7,14 +7,18 @@ from pdf2image import convert_from_path
 import threading
 import queue
 import time
+import re
 
 # Configuration paths (same as in tab_ksiegi.py)
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Crop coordinates for invoice numbers column (same as in tab_ksiegi.py)
-CROP_LEFT, CROP_RIGHT = 499, 771
+CROP_LEFT, CROP_RIGHT = 503, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
+
+# OCR log file
+OCR_LOG_FILE = "ocr_log.txt"
 
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
@@ -39,6 +43,85 @@ class ZakupiTab(ttk.Frame):
         self._process_result_queue()
         self._process_progress_queue()
 
+    def contains_invoice_number(self, text):
+        """
+        Check if text contains invoice number using fuzzy matching.
+        Uses regex pattern allowing missing 'F' at the beginning: r'(F?/?\\d{5}/\\d{2}/\\d{2}/M1)'
+        """
+        # Primary pattern with optional F prefix - handles all variations:
+        # F/12345/01/25/M1, /12345/01/25/M1, 12345/01/25/M1
+        pattern = r'(?:F/|/|^|\s)?\d{5}/\d{2}/\d{2}/M1'
+        
+        if re.search(pattern, text):
+            return True
+            
+        # Additional patterns for other invoice formats (from tab_ksiegi.py)
+        additional_patterns = [
+            r"\b\d{5}/\d{2}/\d{4}/UP\b",
+            r"\b\d{5}/\d{2}\b",
+            r"\b\d{3}/\d{4}\b",
+            r"\bF/M\d{2}/\d{7}/\d{2}/\d{2}\b",
+            r"\b\d{2}/\d{2}/\d{4}\b",
+            r"\b\d{1,2}/\d{2}/\d{4}\b"
+        ]
+        
+        for pattern in additional_patterns:
+            if re.search(pattern, text):
+                return True
+                
+        return False
+
+    def save_ocr_log(self, ocr_data):
+        """
+        Save original OCR results to log file (overwrite, not append).
+        Args:
+            ocr_data: List of tuples (page_num, line_text)
+        """
+        try:
+            with open(OCR_LOG_FILE, "w", encoding="utf-8") as f:
+                f.write("=== OCR LOG ===\n")
+                f.write(f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(f"Total pages processed: {max([page_num for page_num, _ in ocr_data], default=0)}\n")
+                f.write(f"Total lines: {len(ocr_data)}\n")
+                f.write("\n--- RAW OCR OUTPUT ---\n")
+                
+                for page_num, line in ocr_data:
+                    f.write(f"Page {page_num}: {line}\n")
+        except Exception as e:
+            print(f"Error saving OCR log: {e}")
+
+    def show_ocr_log_preview(self):
+        """Open new window with current OCR log content"""
+        try:
+            if not os.path.exists(OCR_LOG_FILE):
+                messagebox.showinfo("Podgląd loga", "Brak pliku loga. Najpierw wykonaj odczyt OCR.")
+                return
+                
+            with open(OCR_LOG_FILE, "r", encoding="utf-8") as f:
+                log_content = f.read()
+            
+            # Create new window
+            log_window = tk.Toplevel(self)
+            log_window.title("Podgląd loga OCR")
+            log_window.geometry("800x600")
+            log_window.transient(self)
+            log_window.grab_set()
+            
+            # Create text widget with scrollbar
+            text_widget = ScrolledText(log_window, wrap="word", width=100, height=35)
+            text_widget.pack(fill="both", expand=True, padx=10, pady=10)
+            
+            # Insert log content
+            text_widget.insert("1.0", log_content)
+            text_widget.config(state="disabled")  # Make read-only
+            
+            # Add close button
+            close_btn = ttk.Button(log_window, text="Zamknij", command=log_window.destroy)
+            close_btn.pack(pady=5)
+            
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Nie można otworzyć loga: {str(e)}")
+
     def destroy(self):
         """Cleanup when widget is destroyed"""
         self.cancel_processing()
@@ -62,8 +145,9 @@ class ZakupiTab(ttk.Frame):
                         new_width = int(current_width * 0.5)
                         self.text_area.config(width=new_width)
                         
+                        invoice_info = f" (znaleziono {result['invoice_count']} faktur)" if result['invoice_count'] > 0 else ""
                         self.status_label.config(
-                            text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron", 
+                            text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}", 
                             foreground="green"
                         )
                     elif result['type'] == 'processing_error':
@@ -157,7 +241,9 @@ class ZakupiTab(ttk.Frame):
             self.result_queue.put({'type': 'ocr_line', 'page_num': 0, 'line_num': 0, 'line': "----- Linie OCR -----"})
             
             all_lines = []
+            ocr_log_data = []  # Store raw OCR data for logging
             line_counter = 0
+            invoice_count = 0  # Count detected invoice numbers
             
             for page_num, pil_img in enumerate(images, 1):
                 if self.processing_cancelled:
@@ -182,24 +268,38 @@ class ZakupiTab(ttk.Frame):
                     
                     line_counter += 1
                     all_lines.append((page_num, line))
+                    ocr_log_data.append((page_num, line))  # Add to log data
+                    
+                    # Check if line contains invoice number
+                    if self.contains_invoice_number(line):
+                        invoice_count += 1
+                        # Highlight invoice numbers in display
+                        display_line = f"[FAKTURA] {line}"
+                    else:
+                        display_line = line
                     
                     # Send line to GUI
                     self.result_queue.put({
                         'type': 'ocr_line',
                         'page_num': page_num,
                         'line_num': line_counter,
-                        'line': line
+                        'line': display_line
                     })
                 
                 # Small delay to allow GUI updates and cancellation
                 time.sleep(0.01)
+
+            # Save OCR log (always overwrite)
+            if not self.processing_cancelled:
+                self.save_ocr_log(ocr_log_data)
 
             # Processing complete
             if not self.processing_cancelled:
                 self.result_queue.put({
                     'type': 'processing_complete',
                     'total_lines': len(all_lines),
-                    'total_pages': total_pages
+                    'total_pages': total_pages,
+                    'invoice_count': invoice_count
                 })
 
         except Exception as e:
@@ -227,6 +327,10 @@ class ZakupiTab(ttk.Frame):
         # Invoice reading button
         self.process_button = ttk.Button(self, text="Odczytaj numery faktur", command=self.toggle_processing)
         self.process_button.grid(row=2, column=1, pady=20)
+        
+        # Log preview button
+        self.log_preview_button = ttk.Button(self, text="Podgląd loga w nowym oknie", command=self.show_ocr_log_preview)
+        self.log_preview_button.grid(row=2, column=2, padx=10, pady=20)
         
         # Status label
         self.status_label = ttk.Label(self, text="Brak wybranego pliku", foreground="blue")
