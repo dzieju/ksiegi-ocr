@@ -53,7 +53,11 @@ class ZakupiTab(ttk.Frame):
             "py dla sprzedaży wyłącznie",
             "dla sprzedaży wyłącznie", 
             "dla sprzedaży",
-            "sprzedaży wyłącznie"
+            "sprzedaży wyłącznie",
+            "wyłącznie dla sprzedaży",
+            "materiały do sprzedaży",
+            "przeznaczone do sprzedaży",
+            "artykuły do sprzedaży"
         ]
         
         # Blacklist of individual words that should cause exclusion if they appear in the text
@@ -64,7 +68,10 @@ class ZakupiTab(ttk.Frame):
             "sprzedaż",
             "towarów",
             "zakup",
-            "spółka"
+            "spółka",
+            "materiałów",
+            "artykułów",
+            "przeznaczone"
         ]
         
         text_lower = text.lower().strip()
