@@ -43,3 +43,6 @@ invoice_search_state.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated CSV files
+Ksiegi/*.csv
