@@ -6,6 +6,7 @@ from gui.tab_invoice_search import InvoiceSearchTab
 from gui.tab_ksiegi import KsiegiTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
+from gui.tab_search_criteria import SearchCriteriaTab
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -33,6 +34,10 @@ class MainWindow(tk.Tk):
 
         zakupy_tab = ZakupiTab(notebook)
         notebook.add(zakupy_tab, text="Zakupy")
+
+        # Dodanie zakładki Kryteria Wyszukiwania
+        search_criteria_tab = SearchCriteriaTab(notebook)
+        notebook.add(search_criteria_tab, text="Kryteria wyszukiwania")
 
         # Dodanie rozbudowanej zakładki System
         system_tab = SystemTab(notebook)
