@@ -8,6 +8,7 @@ import numpy as np
 import pytesseract
 from pdf2image import convert_from_path
 import re
+import csv
 
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -70,6 +71,7 @@ class KsiegiTab(ttk.Frame):
     def run_column_ocr(self):
         """
         Prosty OCR wszystkich stron kolumny z numerami faktur (pełny crop, bez segmentacji komórek, bez scalania).
+        Automatycznie zapisuje rozpoznane numery faktur do pliku ksiegi.csv.
         """
         path = self.file_path_var.get().strip()
         if not path or not os.path.exists(path):
@@ -80,6 +82,8 @@ class KsiegiTab(ttk.Frame):
         try:
             images = convert_from_path(path, dpi=300, poppler_path=POPPLER_PATH)
             all_lines = []
+            invoice_numbers = []  # Lista rozpoznanych numerów faktur
+            
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
                 ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
@@ -94,7 +98,31 @@ class KsiegiTab(ttk.Frame):
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron")
+            # Filtruj rozpoznane numery faktur
+            self.text_area.insert(tk.END, "\n---- Rozpoznane numery faktur ----\n")
+            for page_num, line in all_lines:
+                if self.contains_invoice_number(line):
+                    invoice_numbers.append(line.strip())
+                    self.text_area.insert(tk.END, f"FAKTURA: {line}\n")
+
+            # Zapisz do pliku CSV
+            csv_saved = False
+            csv_path = ""
+            if invoice_numbers:
+                try:
+                    csv_path = self.save_invoice_numbers_to_csv(invoice_numbers)
+                    csv_saved = True
+                    self.text_area.insert(tk.END, f"\n✓ Zapisano {len(invoice_numbers)} numerów faktur do pliku: {csv_path}\n")
+                except Exception as csv_error:
+                    self.text_area.insert(tk.END, f"\n✗ Błąd podczas zapisywania CSV: {str(csv_error)}\n")
+            else:
+                self.text_area.insert(tk.END, "\nBrak rozpoznanych numerów faktur do zapisania.\n")
+
+            # Zaktualizuj status
+            status_message = f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron, {len(invoice_numbers)} faktur rozpoznanych"
+            if csv_saved:
+                status_message += f" → zapisano do CSV"
+            self.status_label.config(text=status_message, foreground="green" if csv_saved else "blue")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
@@ -181,6 +209,28 @@ class KsiegiTab(ttk.Frame):
             if re.search(pattern, text):
                 return True
         return False
+
+    def save_invoice_numbers_to_csv(self, invoice_numbers):
+        """
+        Zapisuje rozpoznane numery faktur do pliku ksiegi.csv w folderze /Ksiegi
+        """
+        try:
+            # Ścieżka do pliku CSV względem katalogu głównego projektu
+            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Ksiegi", "ksiegi.csv")
+            
+            # Upewnij się, że katalog istnieje
+            os.makedirs(os.path.dirname(csv_file_path), exist_ok=True)
+            
+            # Zapisz do pliku CSV (nadpisuje poprzedni plik)
+            with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                # Zapisz każdy numer faktury w osobnej kolumnie A
+                for invoice_number in invoice_numbers:
+                    writer.writerow([invoice_number])
+            
+            return csv_file_path
+        except Exception as e:
+            raise Exception(f"Błąd podczas zapisywania CSV: {str(e)}")
 
     def display_image_with_boxes(self):
         img_copy = self.image.copy()
