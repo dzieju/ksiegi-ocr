@@ -43,6 +43,26 @@ class ZakupiTab(ttk.Frame):
         self._process_result_queue()
         self._process_progress_queue()
 
+    def clean_invoice_name(self, text):
+        """
+        Clean invoice name by removing leading '|' symbol and spaces.
+        
+        Args:
+            text: Raw invoice name from OCR
+            
+        Returns:
+            Cleaned invoice name with leading '|' and spaces removed
+        """
+        if not text:
+            return text
+            
+        # First remove leading whitespace, then remove leading '|', then remove any remaining leading whitespace
+        cleaned = text.lstrip()  # Remove leading whitespace
+        if cleaned.startswith('|'):
+            cleaned = cleaned[1:]  # Remove the first '|' character
+        cleaned = cleaned.lstrip()  # Remove any remaining leading whitespace
+        return cleaned
+
     def contains_invoice_number(self, text):
         """
         Check if text contains invoice number.
@@ -170,7 +190,9 @@ class ZakupiTab(ttk.Frame):
                     result = self.result_queue.get_nowait()
                     if result['type'] == 'ocr_line':
                         # Add only the recognized invoice name to text area (single column)
-                        self.text_area.insert(tk.END, f"{result['line']}\n")
+                        # Clean the invoice name by removing leading '|' and spaces
+                        cleaned_line = self.clean_invoice_name(result['line'])
+                        self.text_area.insert(tk.END, f"{cleaned_line}\n")
                     elif result['type'] == 'processing_complete':
                         # Restore button state and show final results
                         self.process_button.config(text="Odczytaj numery faktur")
@@ -409,7 +431,9 @@ class ZakupiTab(ttk.Frame):
             for i, (page_num, line) in enumerate(all_lines, 1):
                 if self.contains_invoice_number(line):
                     invoice_count += 1
-                    self.text_area.insert(tk.END, f"{line}\n")
+                    # Clean the invoice name by removing leading '|' and spaces
+                    cleaned_line = self.clean_invoice_name(line)
+                    self.text_area.insert(tk.END, f"{cleaned_line}\n")
 
             self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron (wykryto {invoice_count} numerów faktur)", foreground="green")
 
