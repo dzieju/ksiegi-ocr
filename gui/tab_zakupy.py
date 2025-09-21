@@ -366,8 +366,8 @@ class ZakupiTab(ttk.Frame):
         self.status_label = ttk.Label(self, text="Brak wybranego pliku", foreground="blue")
         self.status_label.grid(row=3, column=1, pady=5)
         
-        # Text area for OCR results - fixed width of ~47 chars (~10 cm for monospace fonts)
-        self.text_area = ScrolledText(self, wrap="word", width=47, height=25)
+        # Text area for OCR results - fixed width of ~57 chars (~12 cm for monospace fonts)
+        self.text_area = ScrolledText(self, wrap="word", width=57, height=25)
         self.text_area.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
         
     def wybierz_plik_pdf(self):
