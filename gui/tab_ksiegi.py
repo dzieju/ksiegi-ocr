@@ -212,11 +212,11 @@ class KsiegiTab(ttk.Frame):
 
     def save_invoice_numbers_to_csv(self, invoice_numbers):
         """
-        Zapisuje rozpoznane numery faktur do pliku ksiegi.csv w folderze /Ksiegi
+        Zapisuje rozpoznane numery faktur do pliku ksiegi.csv w folderze /odczyty
         """
         try:
             # Ścieżka do pliku CSV względem katalogu głównego projektu
-            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Ksiegi", "ksiegi.csv")
+            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "odczyty", "ksiegi.csv")
             
             # Upewnij się, że katalog istnieje
             os.makedirs(os.path.dirname(csv_file_path), exist_ok=True)
