@@ -1,0 +1,8 @@
+# Search Criteria directory
+# This directory stores saved search criteria configurations
+
+# Ignore temporary and cache files
+*.tmp
+*.cache
+.DS_Store
+Thumbs.db

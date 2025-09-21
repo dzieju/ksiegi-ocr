@@ -6,7 +6,7 @@ saving/loading criteria sets, and executing searches based on the defined parame
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, simpledialog
 import os
 from datetime import datetime, date, timedelta
 from typing import List, Optional
@@ -627,7 +627,3 @@ class TabSearchCriteria(ttk.Frame):
         self.results_text.config(state="disabled")
         
         messagebox.showinfo("Wyszukiwanie", "Symulacja wyszukiwania wykonana. Zobacz wyniki poniżej.")
-
-
-# Import simpledialog at the top of the file
-import tkinter.simpledialog
