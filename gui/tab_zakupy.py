@@ -142,8 +142,8 @@ class ZakupiTab(ttk.Frame):
             log_window.transient(self)
             log_window.grab_set()
             
-            # Create text widget with scrollbar
-            text_widget = ScrolledText(log_window, wrap="word", width=100, height=35)
+            # Create text widget with scrollbar (consistent with main report width)
+            text_widget = ScrolledText(log_window, wrap="word", width=57, height=35)
             text_widget.pack(fill="both", expand=True, padx=10, pady=10)
             
             # Insert log content
