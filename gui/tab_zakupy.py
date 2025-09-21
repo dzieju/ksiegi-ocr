@@ -48,6 +48,37 @@ class ZakupiTab(ttk.Frame):
         Check if text contains invoice number using fuzzy matching.
         Uses regex pattern allowing missing 'F' at the beginning: r'(F?/?\\d{5}/\\d{2}/\\d{2}/M1)'
         """
+        # Blacklist of specific problematic phrases to exclude from invoice detection
+        blacklist_phrases = [
+            "py dla sprzedaży wyłącznie",
+            "dla sprzedaży wyłącznie", 
+            "dla sprzedaży",
+            "sprzedaży wyłącznie"
+        ]
+        
+        # Blacklist of individual words that should cause exclusion if they appear in the text
+        blacklist_words = [
+            "usług",
+            "zakupu", 
+            "naturze",
+            "sprzedaż",
+            "towarów",
+            "zakup",
+            "spółka"
+        ]
+        
+        text_lower = text.lower().strip()
+        
+        # Check if text contains any blacklisted phrase (substring match)
+        for phrase in blacklist_phrases:
+            if phrase.lower() in text_lower:
+                return False
+        
+        # Check if text contains any blacklisted word (using word boundaries for precision)
+        for word in blacklist_words:
+            if re.search(r'\b' + re.escape(word.lower()) + r'\b', text_lower):
+                return False
+        
         # Primary pattern with optional F prefix - handles all variations:
         # F/12345/01/25/M1, /12345/01/25/M1, 12345/01/25/M1
         pattern = r'(?:F/|/|^|\s)?\d{5}/\d{2}/\d{2}/M1'
@@ -140,7 +171,8 @@ class ZakupiTab(ttk.Frame):
                         # Restore button state and show final results
                         self.process_button.config(text="Odczytaj numery faktur")
                         
-                        invoice_info = f" (znaleziono {result['invoice_count']} faktur)" if result['invoice_count'] > 0 else ""
+                        # Updated summary format: show total lines and detected invoice numbers separately
+                        invoice_info = f" (wykryto {result['invoice_count']} numerów faktur)" if result['invoice_count'] > 0 else " (wykryto 0 numerów faktur)"
                         self.status_label.config(
                             text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}", 
                             foreground="green"
