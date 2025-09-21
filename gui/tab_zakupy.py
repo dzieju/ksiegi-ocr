@@ -13,7 +13,7 @@ POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Crop coordinates for invoice numbers column (same as in tab_ksiegi.py)
-CROP_LEFT, CROP_RIGHT = 503, 771
+CROP_LEFT, CROP_RIGHT = 499, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
 
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
