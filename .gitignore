@@ -46,3 +46,6 @@ Thumbs.db
 
 # Generated CSV files
 Ksiegi/*.csv
+
+# OCR output directory
+odczyty/
