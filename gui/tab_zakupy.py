@@ -169,8 +169,8 @@ class ZakupiTab(ttk.Frame):
                 try:
                     result = self.result_queue.get_nowait()
                     if result['type'] == 'ocr_line':
-                        # Add OCR line to text area
-                        self.text_area.insert(tk.END, f"strona {result['page_num']}, linia {result['line_num']}: {result['line']}\n")
+                        # Add only the recognized invoice name to text area (single column)
+                        self.text_area.insert(tk.END, f"{result['line']}\n")
                     elif result['type'] == 'processing_complete':
                         # Restore button state and show final results
                         self.process_button.config(text="Odczytaj numery faktur")
@@ -269,7 +269,7 @@ class ZakupiTab(ttk.Frame):
                 self.result_queue.put({'type': 'processing_cancelled'})
                 return
             
-            self.result_queue.put({'type': 'ocr_line', 'page_num': 0, 'line_num': 0, 'line': "----- Linie OCR -----"})
+            self.result_queue.put({'type': 'ocr_line', 'page_num': 0, 'line_num': 0, 'line': "----- Rozpoznane numery faktur -----"})
             
             all_lines = []
             ocr_log_data = []  # Store raw OCR data for logging
@@ -301,17 +301,16 @@ class ZakupiTab(ttk.Frame):
                     all_lines.append((page_num, line))
                     ocr_log_data.append((page_num, line))  # Add to log data
                     
-                    # Check if line contains invoice number (for counting)
+                    # Check if line contains invoice number and send only those to the report
                     if self.contains_invoice_number(line):
                         invoice_count += 1
-                    
-                    # Send line to GUI exactly as OCR recognized it
-                    self.result_queue.put({
-                        'type': 'ocr_line',
-                        'page_num': page_num,
-                        'line_num': line_counter,
-                        'line': line
-                    })
+                        # Send only the recognized invoice number to GUI (single column)
+                        self.result_queue.put({
+                            'type': 'ocr_line',
+                            'page_num': page_num,
+                            'line_num': line_counter,
+                            'line': line
+                        })
                 
                 # Small delay to allow GUI updates and cancellation
                 time.sleep(0.01)
@@ -404,12 +403,15 @@ class ZakupiTab(ttk.Frame):
                 lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]
                 all_lines.extend([(page_num, l) for l in lines])
 
-            # Wyświetl tylko linie OCR (bez nagłówków stron)
-            self.text_area.insert(tk.END, "----- Linie OCR -----\n")
+            # Wyświetl tylko rozpoznane numery faktur (pojedyncza kolumna)
+            self.text_area.insert(tk.END, "----- Rozpoznane numery faktur -----\n")
+            invoice_count = 0
             for i, (page_num, line) in enumerate(all_lines, 1):
-                self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
+                if self.contains_invoice_number(line):
+                    invoice_count += 1
+                    self.text_area.insert(tk.END, f"{line}\n")
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron", foreground="green")
+            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron (wykryto {invoice_count} numerów faktur)", foreground="green")
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
