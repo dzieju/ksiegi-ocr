@@ -48,27 +48,35 @@ class ZakupiTab(ttk.Frame):
         Check if text contains invoice number using fuzzy matching.
         Uses regex pattern allowing missing 'F' at the beginning: r'(F?/?\\d{5}/\\d{2}/\\d{2}/M1)'
         """
-        # Blacklist of phrases to exclude from invoice detection
+        # Blacklist of specific problematic phrases to exclude from invoice detection
         blacklist_phrases = [
             "py dla sprzedaży wyłącznie",
             "dla sprzedaży wyłącznie", 
             "dla sprzedaży",
-            "sprzedaży wyłącznie",
-            "usług",
-            "zakupu",
-            "naturze",
-            "wartości",
-            "spółka",
-            "akcyjn",
-            "sprzedaż",
-            "towarów",
-            "zakup"
+            "sprzedaży wyłącznie"
         ]
         
-        # Check if text contains any blacklisted phrase (case-insensitive)
-        text_lower = text.lower()
+        # Blacklist of individual words that should cause exclusion if they appear in the text
+        blacklist_words = [
+            "usług",
+            "zakupu", 
+            "naturze",
+            "sprzedaż",
+            "towarów",
+            "zakup",
+            "spółka"
+        ]
+        
+        text_lower = text.lower().strip()
+        
+        # Check if text contains any blacklisted phrase (substring match)
         for phrase in blacklist_phrases:
             if phrase.lower() in text_lower:
+                return False
+        
+        # Check if text contains any blacklisted word (using word boundaries for precision)
+        for word in blacklist_words:
+            if re.search(r'\b' + re.escape(word.lower()) + r'\b', text_lower):
                 return False
         
         # Primary pattern with optional F prefix - handles all variations:
