@@ -9,6 +9,7 @@ import pytesseract
 from pdf2image import convert_from_path
 import re
 import csv
+import time
 
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
@@ -39,6 +40,7 @@ class KsiegiTab(ttk.Frame):
         scrollbar.pack(side="right", fill="y")
 
         self.file_path_var = tk.StringVar()
+        self.log_filename_var = tk.StringVar()
         self.cells = []
         self.ocr_results = []
         self.image = None
@@ -53,14 +55,19 @@ class KsiegiTab(ttk.Frame):
         # NOWY PRZYCISK: OCR z kolumny (pełny crop, wszystkie strony PDF)
         ttk.Button(scroll_frame, text="OCR z kolumny (wszystkie strony)", command=self.run_column_ocr).grid(row=1, column=3, padx=5, pady=10)
 
+        # Nowa sekcja do zapisywania logów
+        ttk.Label(scroll_frame, text="Nazwa pliku loga:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(scroll_frame, textvariable=self.log_filename_var, width=30).grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        ttk.Button(scroll_frame, text="Zapisz logi", command=self.save_logs).grid(row=2, column=2, padx=5, pady=5)
+
         self.text_area = ScrolledText(scroll_frame, wrap="word", width=100, height=25)
-        self.text_area.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
+        self.text_area.grid(row=3, column=0, columnspan=4, padx=10, pady=10)
 
         self.canvas = tk.Canvas(scroll_frame, width=1000, height=1400)
-        self.canvas.grid(row=3, column=0, columnspan=4)
+        self.canvas.grid(row=4, column=0, columnspan=4)
 
         self.status_label = ttk.Label(scroll_frame, text="Brak danych", foreground="blue")
-        self.status_label.grid(row=4, column=1, pady=5)
+        self.status_label.grid(row=5, column=1, pady=5)
 
     def select_file(self):
         path = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
@@ -263,3 +270,69 @@ class KsiegiTab(ttk.Frame):
             roi = self.image[y:y+h, x:x+w]
             text = pytesseract.image_to_string(roi, lang='pol').strip()
             self.text_area.insert(tk.END, f"x={x} y={y} → {text}\n")
+
+    def save_logs(self):
+        """
+        Zapisuje aktualne wyniki OCR z widocznego obszaru tekstowego do pliku CSV
+        """
+        # Pobierz nazwę pliku z pola tekstowego
+        filename = self.log_filename_var.get().strip()
+        
+        # Jeśli pole jest puste, zaproponuj domyślną nazwę
+        if not filename:
+            result = messagebox.askyesno(
+                "Brak nazwy pliku", 
+                "Pole z nazwą pliku jest puste. Czy chcesz użyć domyślnej nazwy 'log_ksiegi.csv'?"
+            )
+            if result:
+                filename = "log_ksiegi.csv"
+            else:
+                return
+        
+        # Dodaj rozszerzenie .csv jeśli nie ma
+        if not filename.lower().endswith('.csv'):
+            filename += '.csv'
+        
+        # Pobierz zawartość z obszaru tekstowego
+        content = self.text_area.get("1.0", tk.END).strip()
+        
+        if not content:
+            messagebox.showwarning("Brak danych", "Obszar tekstowy jest pusty. Najpierw wykonaj OCR.")
+            return
+        
+        try:
+            # Utwórz folder odczyty jeśli nie istnieje
+            script_dir = os.path.dirname(os.path.dirname(__file__))  # Główny katalog projektu
+            odczyty_dir = os.path.join(script_dir, "odczyty")
+            os.makedirs(odczyty_dir, exist_ok=True)
+            
+            # Ścieżka do pliku
+            file_path = os.path.join(odczyty_dir, filename)
+            
+            # Zapisz do pliku CSV
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                
+                # Nagłówek CSV
+                writer.writerow(["=== OCR LOG ==="])
+                writer.writerow([f"Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S')}"])
+                writer.writerow([""])
+                writer.writerow(["--- RAW OCR OUTPUT ---"])
+                
+                # Podziel zawartość na linie i zapisz każdą
+                lines = content.split('\n')
+                for line in lines:
+                    if line.strip():  # Pomijaj puste linie
+                        writer.writerow([line.strip()])
+            
+            # Pokaż komunikat potwierdzenia
+            messagebox.showinfo(
+                "Eksport zakończony", 
+                f"Logi zostały zapisane w pliku:\n{file_path}"
+            )
+            
+            # Wyczyść pole nazwy pliku
+            self.log_filename_var.set("")
+            
+        except Exception as e:
+            messagebox.showerror("Błąd zapisu", f"Nie udało się zapisać pliku:\n{str(e)}")
