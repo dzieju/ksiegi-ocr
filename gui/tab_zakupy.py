@@ -81,16 +81,19 @@ class ZakupiTab(ttk.Frame):
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
                 ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
-                self.text_area.insert(tk.END, f"\n=== STRONA {page_num} ===\n")
-                self.text_area.insert(tk.END, ocr_text)
-                self.text_area.insert(tk.END, "\n")
                 # Dodatkowo: linie osobno
                 lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]
                 all_lines.extend([(page_num, l) for l in lines])
 
-            self.text_area.insert(tk.END, "\n---- Linie OCR z wszystkich stron ----\n")
+            # Wyświetl tylko linie OCR (bez nagłówków stron)
+            self.text_area.insert(tk.END, "----- Linie OCR -----\n")
             for i, (page_num, line) in enumerate(all_lines, 1):
                 self.text_area.insert(tk.END, f"strona {page_num}, linia {i}: {line}\n")
+
+            # Zmniejsz szerokość okna wyników do 50%
+            current_width = self.text_area.cget("width")
+            new_width = int(current_width * 0.5)
+            self.text_area.config(width=new_width)
 
             self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron", foreground="green")
 
