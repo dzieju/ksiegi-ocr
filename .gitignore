@@ -49,3 +49,6 @@ Ksiegi/*.csv
 
 # OCR output directory
 odczyty/
+
+# Test files
+test_*.py
