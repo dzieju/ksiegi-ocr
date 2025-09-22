@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
+from gui.tab_mail_search import MailSearchTab
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -24,6 +25,10 @@ class MainWindow(tk.Tk):
         # Zakładka: Konfiguracja poczty
         exchange_tab = ExchangeConfigTab(notebook)
         notebook.add(exchange_tab, text="Konfiguracja poczty")
+
+        # Zakładka: Przeszukiwanie Poczty
+        mail_search_tab = MailSearchTab(notebook)
+        notebook.add(mail_search_tab, text="Przeszukiwanie Poczty")
 
 if __name__ == "__main__":
     app = MainWindow()
