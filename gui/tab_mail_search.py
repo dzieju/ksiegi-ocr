@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
 import json
+from datetime import datetime, timedelta
 from exchangelib import Credentials, Account, Configuration, DELEGATE, Q
 from exchangelib.folders import Inbox
 from exchangelib.properties import Mailbox
@@ -20,6 +21,9 @@ class MailSearchTab(ttk.Frame):
         self.attachments_required_var = tk.BooleanVar()
         self.attachment_name_var = tk.StringVar()
         self.attachment_extension_var = tk.StringVar()
+        
+        # Date period selection variables
+        self.selected_period = tk.StringVar(value="wszystkie")  # Default: no date filter
         
         self.create_widgets()
         
@@ -55,16 +59,40 @@ class MailSearchTab(ttk.Frame):
         ttk.Label(self, text="Rozszerzenie załącznika:").grid(row=7, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self, textvariable=self.attachment_extension_var, width=40).grid(row=7, column=1, padx=5, pady=5)
         
+        # Date period selection
+        ttk.Label(self, text="Okres wiadomości:", font=("Arial", 10, "bold")).grid(row=8, column=0, sticky="w", padx=5, pady=(15, 5))
+        
+        # Create frame for period buttons
+        period_frame = ttk.Frame(self)
+        period_frame.grid(row=8, column=1, columnspan=2, sticky="w", padx=5, pady=(15, 5))
+        
+        # Period selection buttons
+        periods = [
+            ("wszystkie", "Wszystkie"),
+            ("1month", "Ostatni miesiąc"),
+            ("3months", "Ostatnie 3 miesiące"),
+            ("6months", "Ostatnie 6 miesięcy"),
+            ("1year", "Ostatni rok")
+        ]
+        
+        for i, (value, text) in enumerate(periods):
+            ttk.Radiobutton(
+                period_frame, 
+                text=text, 
+                variable=self.selected_period, 
+                value=value
+            ).grid(row=0, column=i, padx=5, sticky="w")
+        
         # Search button
-        ttk.Button(self, text="Przeszukaj pocztę", command=self.search_emails).grid(row=8, column=1, pady=20)
+        ttk.Button(self, text="Przeszukaj pocztę", command=self.search_emails).grid(row=9, column=1, pady=20)
         
         # Status label
         self.status_label = ttk.Label(self, text="Gotowy do wyszukiwania", foreground="blue")
-        self.status_label.grid(row=9, column=1, pady=5)
+        self.status_label.grid(row=10, column=1, pady=5)
         
         # Results area
         self.results_area = ScrolledText(self, wrap="word", width=120, height=25)
-        self.results_area.grid(row=10, column=0, columnspan=3, padx=10, pady=10)
+        self.results_area.grid(row=11, column=0, columnspan=3, padx=10, pady=10)
         
     def load_exchange_config(self):
         """Load Exchange configuration from config file"""
@@ -175,6 +203,23 @@ class MailSearchTab(ttk.Frame):
             # Attachments filter
             if self.attachments_required_var.get():
                 query_filters.append(Q(has_attachments=True))
+            
+            # Date period filter
+            period = self.selected_period.get()
+            if period != "wszystkie":
+                end_date = datetime.now()
+                
+                if period == "1month":
+                    start_date = end_date - timedelta(days=30)
+                elif period == "3months":
+                    start_date = end_date - timedelta(days=90)
+                elif period == "6months":
+                    start_date = end_date - timedelta(days=180)
+                elif period == "1year":
+                    start_date = end_date - timedelta(days=365)
+                
+                query_filters.append(Q(datetime_received__gte=start_date))
+                query_filters.append(Q(datetime_received__lte=end_date))
             
             # Combine all filters
             if query_filters:
