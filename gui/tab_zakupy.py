@@ -8,6 +8,7 @@ import threading
 import queue
 import time
 import re
+import csv
 
 # Configuration paths (same as in tab_ksiegi.py)
 POPPLER_PATH = r"C:\poppler\Library\bin"
@@ -145,6 +146,28 @@ class ZakupiTab(ttk.Frame):
         except Exception as e:
             print(f"Error saving OCR log: {e}")
 
+    def save_invoice_numbers_to_csv(self, invoice_numbers):
+        """
+        Zapisuje rozpoznane numery faktur do pliku ksiegi.csv w folderze /odczyty
+        """
+        try:
+            # Ścieżka do pliku CSV względem katalogu głównego projektu
+            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "odczyty", "ksiegi.csv")
+            
+            # Upewnij się, że katalog istnieje
+            os.makedirs(os.path.dirname(csv_file_path), exist_ok=True)
+            
+            # Zapisz do pliku CSV (nadpisuje poprzedni plik)
+            with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                # Zapisz każdy numer faktury w osobnej kolumnie A
+                for invoice_number in invoice_numbers:
+                    writer.writerow([invoice_number])
+            
+            return csv_file_path
+        except Exception as e:
+            raise Exception(f"Błąd podczas zapisywania CSV: {str(e)}")
+
     def show_ocr_log_preview(self):
         """Open new window with current OCR log content"""
         try:
@@ -193,14 +216,21 @@ class ZakupiTab(ttk.Frame):
                         # Clean the invoice name by removing leading '|' and spaces
                         cleaned_line = self.clean_invoice_name(result['line'])
                         self.text_area.insert(tk.END, f"{cleaned_line}\n")
+                    elif result['type'] == 'csv_export_success':
+                        # Show CSV export success messagebox
+                        messagebox.showinfo("Eksport zakończony", f"Wyeksportowano {result['invoice_count']} numerów do odczyty/ksiegi.csv")
+                    elif result['type'] == 'csv_export_error':
+                        # Show CSV export error
+                        messagebox.showerror("Błąd eksportu CSV", f"Błąd podczas zapisywania CSV: {result['error']}")
                     elif result['type'] == 'processing_complete':
                         # Restore button state and show final results
                         self.process_button.config(text="Odczytaj numery faktur")
                         
                         # Updated summary format: show total lines and detected invoice numbers separately
                         invoice_info = f" (wykryto {result['invoice_count']} numerów faktur)" if result['invoice_count'] > 0 else " (wykryto 0 numerów faktur)"
+                        csv_info = " → zapisano do CSV" if result.get('csv_saved', False) else ""
                         self.status_label.config(
-                            text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}", 
+                            text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}{csv_info}", 
                             foreground="green"
                         )
                     elif result['type'] == 'processing_error':
@@ -297,6 +327,7 @@ class ZakupiTab(ttk.Frame):
             ocr_log_data = []  # Store raw OCR data for logging
             line_counter = 0
             invoice_count = 0  # Count detected invoice numbers
+            invoice_numbers = []  # Store detected invoice numbers for CSV export
             
             for page_num, pil_img in enumerate(images, 1):
                 if self.processing_cancelled:
@@ -326,6 +357,7 @@ class ZakupiTab(ttk.Frame):
                     # Check if line contains invoice number and send only those to the report
                     if self.contains_invoice_number(line):
                         invoice_count += 1
+                        invoice_numbers.append(line.strip())  # Add to CSV export list
                         # Send only the recognized invoice number to GUI (single column)
                         self.result_queue.put({
                             'type': 'ocr_line',
@@ -341,13 +373,34 @@ class ZakupiTab(ttk.Frame):
             if not self.processing_cancelled:
                 self.save_ocr_log(ocr_log_data)
 
+            # Export invoice numbers to CSV and show messagebox if any were found
+            csv_saved = False
+            csv_path = ""
+            if not self.processing_cancelled and invoice_numbers:
+                try:
+                    csv_path = self.save_invoice_numbers_to_csv(invoice_numbers)
+                    csv_saved = True
+                    
+                    # Schedule messagebox to be shown in main thread
+                    self.result_queue.put({
+                        'type': 'csv_export_success',
+                        'invoice_count': len(invoice_numbers),
+                        'csv_path': csv_path
+                    })
+                except Exception as csv_error:
+                    self.result_queue.put({
+                        'type': 'csv_export_error',
+                        'error': str(csv_error)
+                    })
+
             # Processing complete
             if not self.processing_cancelled:
                 self.result_queue.put({
                     'type': 'processing_complete',
                     'total_lines': len(all_lines),
                     'total_pages': total_pages,
-                    'invoice_count': invoice_count
+                    'invoice_count': invoice_count,
+                    'csv_saved': csv_saved
                 })
 
         except Exception as e:
