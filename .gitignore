@@ -52,3 +52,8 @@ odczyty/
 
 # Test files
 test_*.py
+
+# Temporary screenshots and generated images
+*test*.png
+mail_search*.png
+przeszukiwanie_poczty_tab.png
