@@ -2,10 +2,16 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
 import json
+import queue
+import threading
 from datetime import datetime, timedelta, timezone
 from exchangelib import Credentials, Account, Configuration, DELEGATE, Q
 from exchangelib.folders import Inbox
 from exchangelib.properties import Mailbox
+
+from gui.mail_search_components.exchange_connection import ExchangeConnection
+from gui.mail_search_components.search_engine import EmailSearchEngine
+from gui.mail_search_components.results_display import ResultsDisplay
 
 CONFIG_FILE = "exchange_config.json"
 
@@ -25,7 +31,19 @@ class MailSearchTab(ttk.Frame):
         # Date period selection variables
         self.selected_period = tk.StringVar(value="wszystkie")  # Default: no date filter
         
+        # Threading support variables
+        self.result_queue = queue.Queue()
+        self.progress_queue = queue.Queue()
+        
+        # Initialize components
+        self.connection = ExchangeConnection()
+        self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
+        
         self.create_widgets()
+        
+        # Start processing queues
+        self._process_result_queue()
+        self._process_progress_queue()
         
     def create_widgets(self):
         # Title label
@@ -48,31 +66,30 @@ class MailSearchTab(ttk.Frame):
         ttk.Entry(self, textvariable=self.sender_var, width=40).grid(row=3, column=1, padx=5, pady=5)
         
         # Checkboxes
-        ttk.Checkbutton(self, text="Tylko nieprzeczytane", variable=self.unread_only_var).grid(row=4, column=0, columnspan=2, sticky="w", padx=5, pady=5)
-        
-        ttk.Checkbutton(self, text="Wymagane załączniki", variable=self.attachments_required_var).grid(row=5, column=0, columnspan=2, sticky="w", padx=5, pady=5)
+        ttk.Checkbutton(self, text="Tylko nieprzeczytane", variable=self.unread_only_var).grid(row=4, column=0, sticky="w", padx=5, pady=5)
+        ttk.Checkbutton(self, text="Tylko z załącznikami", variable=self.attachments_required_var).grid(row=4, column=1, sticky="w", padx=5, pady=5)
         
         # Attachment filters
-        ttk.Label(self, text="Nazwa załącznika ma zawierać:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self, textvariable=self.attachment_name_var, width=40).grid(row=6, column=1, padx=5, pady=5)
+        ttk.Label(self, text="Nazwa załącznika (zawiera):").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self, textvariable=self.attachment_name_var, width=40).grid(row=5, column=1, padx=5, pady=5)
         
-        ttk.Label(self, text="Rozszerzenie załącznika:").grid(row=7, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self, textvariable=self.attachment_extension_var, width=40).grid(row=7, column=1, padx=5, pady=5)
+        ttk.Label(self, text="Rozszerzenie załącznika:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self, textvariable=self.attachment_extension_var, width=40).grid(row=6, column=1, padx=5, pady=5)
         
         # Date period selection
-        ttk.Label(self, text="Okres wiadomości:", font=("Arial", 10, "bold")).grid(row=8, column=0, sticky="w", padx=5, pady=(15, 5))
+        ttk.Label(self, text="Okres wiadomości:", font=("Arial", 10, "bold")).grid(row=7, column=0, sticky="w", padx=5, pady=(15, 5))
         
         # Create frame for period buttons
         period_frame = ttk.Frame(self)
-        period_frame.grid(row=8, column=1, columnspan=2, sticky="w", padx=5, pady=(15, 5))
+        period_frame.grid(row=7, column=1, columnspan=2, sticky="w", padx=5, pady=(15, 5))
         
         # Period selection buttons
         periods = [
             ("wszystkie", "Wszystkie"),
-            ("1month", "Ostatni miesiąc"),
-            ("3months", "Ostatnie 3 miesiące"),
-            ("6months", "Ostatnie 6 miesięcy"),
-            ("1year", "Ostatni rok")
+            ("ostatni_miesiac", "Ostatni miesiąc"),
+            ("ostatnie_3_miesiace", "Ostatnie 3 miesiące"),
+            ("ostatnie_6_miesiecy", "Ostatnie 6 miesięcy"),
+            ("ostatni_rok", "Ostatni rok")
         ]
         
         for i, (value, text) in enumerate(periods):
@@ -83,238 +100,154 @@ class MailSearchTab(ttk.Frame):
                 value=value
             ).grid(row=0, column=i, padx=5, sticky="w")
         
-        # Search button
-        ttk.Button(self, text="Przeszukaj pocztę", command=self.search_emails).grid(row=9, column=1, pady=20)
+        # Search button and status
+        search_frame = ttk.Frame(self)
+        search_frame.grid(row=8, column=0, columnspan=3, pady=20)
         
-        # Status label
-        self.status_label = ttk.Label(self, text="Gotowy do wyszukiwania", foreground="blue")
-        self.status_label.grid(row=10, column=1, pady=5)
+        self.search_button = ttk.Button(search_frame, text="Rozpocznij wyszukiwanie", command=self.toggle_search)
+        self.search_button.pack(side="left", padx=5)
+        
+        self.status_label = ttk.Label(search_frame, text="Gotowy", foreground="green")
+        self.status_label.pack(side="left", padx=10)
         
         # Results area
         self.results_area = ScrolledText(self, wrap="word", width=120, height=25)
-        self.results_area.grid(row=11, column=0, columnspan=3, padx=10, pady=10)
+        self.results_area.grid(row=9, column=0, columnspan=3, padx=10, pady=10)
         
-    def load_exchange_config(self):
-        """Load Exchange configuration from config file"""
-        try:
-            with open(CONFIG_FILE, "r") as f:
-                config = json.load(f)
-                return config
-        except FileNotFoundError:
-            messagebox.showerror("Błąd konfiguracji", "Brak konfiguracji poczty. Skonfiguruj połączenie w zakładce 'Konfiguracja poczty'.")
-            return None
-        except Exception as e:
-            messagebox.showerror("Błąd konfiguracji", f"Błąd odczytu konfiguracji: {str(e)}")
-            return None
-    
-    def get_account(self):
-        """Get Exchange account connection"""
-        config = self.load_exchange_config()
-        if not config:
-            return None
-            
-        try:
-            creds = Credentials(
-                username=config.get("username", ""),
-                password=config.get("password", "")
-            )
-            account_config = Configuration(
-                server=config.get("server", ""),
-                credentials=creds
-            )
-            account = Account(
-                primary_smtp_address=config.get("email", ""),
-                config=account_config,
-                autodiscover=False,
-                access_type=DELEGATE
-            )
-            return account
-        except Exception as e:
-            messagebox.showerror("Błąd połączenia", f"Nie można połączyć z serwerem poczty: {str(e)}")
-            return None
-    
-    def get_folder_by_path(self, account, folder_path):
-        """Get folder by path like 'Skrzynka odbiorcza/Kompensaty Quadra'"""
-        try:
-            if not folder_path or folder_path.lower() in ["skrzynka odbiorcza", "inbox"]:
-                return account.inbox
-                
-            # Split path and navigate to folder
-            path_parts = folder_path.split('/')
-            current_folder = account.inbox
-            
-            for part in path_parts:
-                part = part.strip()
-                if part.lower() in ["skrzynka odbiorcza", "inbox"]:
-                    continue
-                    
-                # Search for subfolder
-                found = False
-                for child in current_folder.children:
-                    if child.name.lower() == part.lower():
-                        current_folder = child
-                        found = True
-                        break
-                
-                if not found:
-                    messagebox.showwarning("Błąd folderu", f"Nie znaleziono folderu: {part}")
-                    return account.inbox
-                    
-            return current_folder
-        except Exception as e:
-            messagebox.showerror("Błąd folderu", f"Błąd dostępu do folderu: {str(e)}")
-            return account.inbox
-    
-    def search_emails(self):
-        """Perform email search based on criteria"""
-        self.status_label.config(text="Wyszukiwanie w toku...")
-        self.results_area.delete("1.0", tk.END)
+        # Initialize results display
+        self.results_display = ResultsDisplay(self.results_area)
         
-        # Get account connection
-        account = self.get_account()
-        if not account:
-            self.status_label.config(text="Błąd połączenia")
-            return
-            
-        # Get target folder
-        folder = self.get_folder_by_path(account, self.folder_path_var.get().strip())
-        if not folder:
-            self.status_label.config(text="Błąd folderu")
-            return
-            
+    def toggle_search(self):
+        """Toggle between starting and cancelling search"""
+        if self.search_engine.search_thread and self.search_engine.search_thread.is_alive():
+            self.cancel_search()
+        else:
+            self.start_search()
+    
+    def cancel_search(self):
+        """Cancel ongoing search"""
+        self.search_engine.cancel_search()
+        self.status_label.config(text="Anulowanie...", foreground="orange")
+        self.search_button.config(text="Rozpocznij wyszukiwanie")
+    
+    def start_search(self):
+        """Start the threaded search"""
+        # Clear previous results
+        self.results_display.clear_results()
+        
+        # Update UI
+        self.search_button.config(text="Anuluj wyszukiwanie")
+        self.status_label.config(text="Nawiązywanie połączenia...", foreground="blue")
+
+        # Start search in background thread
+        search_thread = threading.Thread(
+            target=self._perform_search,
+            daemon=True
+        )
+        search_thread.start()
+    
+    def _perform_search(self):
+        """Perform search operation in background thread"""
         try:
-            # Build search query
-            query_filters = []
-            
-            # Subject filter
-            subject_text = self.subject_search_var.get().strip()
-            if subject_text:
-                query_filters.append(Q(subject__icontains=subject_text))
-            
-            # Sender filter
-            sender_email = self.sender_var.get().strip()
-            if sender_email:
-                query_filters.append(Q(sender=sender_email))
-            
-            # Unread filter
-            if self.unread_only_var.get():
-                query_filters.append(Q(is_read=False))
-            
-            # Attachments filter
-            if self.attachments_required_var.get():
-                query_filters.append(Q(has_attachments=True))
-            
-            # Date period filter
-            period = self.selected_period.get()
-            if period != "wszystkie":
-                end_date = datetime.now(timezone.utc)
+            # Get account connection
+            account = self.connection.get_account()
+            if not account:
+                self._add_result({
+                    'type': 'search_error',
+                    'error': "Nie można nawiązać połączenia z serwerem poczty"
+                })
+                return
                 
-                if period == "1month":
-                    start_date = end_date - timedelta(days=30)
-                elif period == "3months":
-                    start_date = end_date - timedelta(days=90)
-                elif period == "6months":
-                    start_date = end_date - timedelta(days=180)
-                elif period == "1year":
-                    start_date = end_date - timedelta(days=365)
+            # Get target folder
+            folder = self.connection.get_folder_by_path(account, self.folder_path_var.get().strip())
+            if not folder:
+                self._add_result({
+                    'type': 'search_error',
+                    'error': "Nie można uzyskać dostępu do folderu"
+                })
+                return
                 
-                query_filters.append(Q(datetime_received__gte=start_date))
-                query_filters.append(Q(datetime_received__lte=end_date))
+            # Prepare search criteria
+            criteria = {
+                'subject': self.subject_search_var.get().strip(),
+                'sender': self.sender_var.get().strip(),
+                'unread_only': self.unread_only_var.get(),
+                'attachments_required': self.attachments_required_var.get(),
+                'attachment_name': self.attachment_name_var.get().strip(),
+                'attachment_extension': self.attachment_extension_var.get().strip(),
+                'date_period': self.selected_period.get()
+            }
             
-            # Combine all filters
-            if query_filters:
-                combined_query = query_filters[0]
-                for q in query_filters[1:]:
-                    combined_query &= q
-                messages = folder.filter(combined_query)
-            else:
-                messages = folder.all()
+            # Start search
+            self.search_engine.search_emails_threaded(self.connection, folder, criteria)
             
-            # Process results
-            results = []
-            # --- USUNIĘTO LIMIT ---
-            for message in messages:
+        except Exception as e:
+            self._add_result({
+                'type': 'search_error',
+                'error': str(e)
+            })
+    
+    def _add_progress(self, message):
+        """Add progress message to queue"""
+        self.progress_queue.put(message)
+    
+    def _add_result(self, result):
+        """Add result to queue"""
+        self.result_queue.put(result)
+    
+    def _process_result_queue(self):
+        """Process results from worker thread"""
+        try:
+            while True:
                 try:
-                    # Check attachment filters if needed
-                    if self.attachments_required_var.get() or self.attachment_name_var.get().strip() or self.attachment_extension_var.get().strip():
-                        if not self.check_attachment_filters(message):
-                            continue
+                    result = self.result_queue.get_nowait()
                     
-                    # Format result
-                    result_info = {
-                        'datetime_received': message.datetime_received,
-                        'subject': message.subject or '(brak tematu)',
-                        'sender': str(message.sender) if message.sender else '(nieznany nadawca)',
-                        'is_read': message.is_read,
-                        'has_attachments': message.has_attachments,
-                        'attachment_count': len(message.attachments) if message.attachments else 0
-                    }
-                    results.append(result_info)
-                    
-                except Exception as e:
-                    # Skip messages that cause errors
-                    continue
-            
-            # Display results (bez parametru more_available)
-            self.display_results(results)
-            self.status_label.config(text=f"Znaleziono {len(results)} wiadomości")
-            
+                    if result['type'] == 'search_complete':
+                        results = result['results']
+                        count = result['count']
+                        self.results_display.display_results(results)
+                        self.status_label.config(text=f"Znaleziono {count} wiadomości", foreground="green")
+                        self.search_button.config(text="Rozpocznij wyszukiwanie")
+                        
+                    elif result['type'] == 'search_cancelled':
+                        self.status_label.config(text="Wyszukiwanie anulowane", foreground="orange")
+                        self.search_button.config(text="Rozpocznij wyszukiwanie")
+                        
+                    elif result['type'] == 'search_error':
+                        error_msg = result['error']
+                        messagebox.showerror("Błąd wyszukiwania", f"Błąd podczas wyszukiwania: {error_msg}")
+                        self.status_label.config(text="Błąd wyszukiwania", foreground="red")
+                        self.search_button.config(text="Rozpocznij wyszukiwanie")
+                        
+                except queue.Empty:
+                    break
         except Exception as e:
-            messagebox.showerror("Błąd wyszukiwania", f"Błąd podczas wyszukiwania: {str(e)}")
-            self.status_label.config(text="Błąd wyszukiwania")
+            print(f"Błąd przetwarzania kolejki wyników: {e}")
+        
+        # Schedule next check
+        self.after(100, self._process_result_queue)
     
-    def check_attachment_filters(self, message):
-        """Check if message meets attachment criteria"""
-        if not message.has_attachments and self.attachments_required_var.get():
-            return False
-            
-        attachment_name_filter = self.attachment_name_var.get().strip().lower()
-        attachment_ext_filter = self.attachment_extension_var.get().strip().lower()
+    def _process_progress_queue(self):
+        """Process progress updates from worker thread"""
+        try:
+            while True:
+                try:
+                    progress = self.progress_queue.get_nowait()
+                    self.status_label.config(text=progress, foreground="blue")
+                except queue.Empty:
+                    break
+        except Exception as e:
+            print(f"Błąd przetwarzania kolejki postępu: {e}")
         
-        if not attachment_name_filter and not attachment_ext_filter:
-            return True
-            
-        if not message.attachments:
-            return False
-            
-        for attachment in message.attachments:
-            if hasattr(attachment, 'name') and attachment.name:
-                attachment_name = attachment.name.lower()
-                
-                # Check name filter
-                if attachment_name_filter and attachment_name_filter not in attachment_name:
-                    continue
-                    
-                # Check extension filter
-                if attachment_ext_filter:
-                    if not attachment_name.endswith(f'.{attachment_ext_filter}'):
-                        continue
-                
-                # If we get here, attachment matches filters
-                return True
-        
-        return False
+        # Schedule next check
+        self.after(100, self._process_progress_queue)
+
+    def search_emails(self):
+        """Legacy method for backward compatibility"""
+        self.start_search()
     
-    def display_results(self, results):
-        """Display search results in the text area"""
-        if not results:
-            self.results_area.insert(tk.END, "Nie znaleziono żadnych wiadomości spełniających kryteria.\n")
-            return
-            
-        # Header
-        header = f"{'Data':<20} | {'Nadawca':<30} | {'Temat':<50} | {'Status':<12} | {'Załączniki':<10}"
-        self.results_area.insert(tk.END, header + "\n")
-        self.results_area.insert(tk.END, "-" * len(header) + "\n")
-        
-        # Results
-        for result in results:
-            date_str = result['datetime_received'].strftime('%Y-%m-%d %H:%M') if result['datetime_received'] else 'Brak daty'
-            sender = result['sender'][:28] if len(result['sender']) > 28 else result['sender']
-            subject = result['subject'][:48] if len(result['subject']) > 48 else result['subject']
-            status = "Nieprzeczyt." if not result['is_read'] else "Przeczytane"
-            attachments = f"{result['attachment_count']}" if result['has_attachments'] else "Brak"
-            
-            line = f"{date_str:<20} | {sender:<30} | {subject:<50} | {status:<12} | {attachments:<10}"
-            self.results_area.insert(tk.END, line + "\n")
-        
-        # Usunięto komunikat o limicie wyników
+    def destroy(self):
+        """Cleanup when widget is destroyed"""
+        if self.search_engine.search_thread and self.search_engine.search_thread.is_alive():
+            self.search_engine.cancel_search()
+        super().destroy()
