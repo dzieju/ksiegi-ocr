@@ -161,8 +161,10 @@ class ZakupiTab(ttk.Frame):
             with open(csv_file_path, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
                 # Zapisz każdy numer faktury w osobnej kolumnie A
+                # Wyczyść każdy numer faktury usuwając znak "|" z początku
                 for invoice_number in invoice_numbers:
-                    writer.writerow([invoice_number])
+                    cleaned_invoice_number = self.clean_invoice_name(invoice_number)
+                    writer.writerow([cleaned_invoice_number])
             
             return csv_file_path
         except Exception as e:
