@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
-from gui.tab_invoice_search import InvoiceSearchTab  # zakładka do wyszukiwania NIP
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -25,10 +24,6 @@ class MainWindow(tk.Tk):
         # Zakładka: Konfiguracja poczty
         exchange_tab = ExchangeConfigTab(notebook)
         notebook.add(exchange_tab, text="Konfiguracja poczty")
-
-        # Zakładka: Wyszukiwanie NIP
-        invoice_tab = InvoiceSearchTab(notebook)
-        notebook.add(invoice_tab, text="Wyszukiwanie NIP")
 
 if __name__ == "__main__":
     app = MainWindow()

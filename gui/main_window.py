@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
-from gui.tab_invoice_search import InvoiceSearchTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
 
@@ -23,9 +22,6 @@ class MainWindow(tk.Tk):
 
         exchange_tab = ExchangeConfigTab(notebook)
         notebook.add(exchange_tab, text="Konfiguracja poczty")
-
-        invoice_tab = InvoiceSearchTab(notebook)
-        notebook.add(invoice_tab, text="Wyszukiwanie NIP")
 
         zakupy_tab = ZakupiTab(notebook)
         notebook.add(zakupy_tab, text="Zakupy")
