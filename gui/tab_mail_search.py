@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from exchangelib import Credentials, Account, Configuration, DELEGATE, Q
 from exchangelib.folders import Inbox
 from exchangelib.properties import Mailbox
@@ -207,7 +207,7 @@ class MailSearchTab(ttk.Frame):
             # Date period filter
             period = self.selected_period.get()
             if period != "wszystkie":
-                end_date = datetime.now()
+                end_date = datetime.now(timezone.utc)
                 
                 if period == "1month":
                     start_date = end_date - timedelta(days=30)
