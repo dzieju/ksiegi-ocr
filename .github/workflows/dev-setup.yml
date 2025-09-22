@@ -1,0 +1,36 @@
+name: Setup Development Environment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies (apt)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-dev libxslt1-dev python3-tk
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Upgrade pip and install Python requirements
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Set environment variables
+        run: echo "MY_ENV_VAR=wartosc_testowa" >> $GITHUB_ENV
+
+      - name: Show environment info (diagnostic)
+        run: |
+          python --version
+          pip freeze
+          echo "MY_ENV_VAR=$MY_ENV_VAR"
