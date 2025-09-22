@@ -1,18 +1,22 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-import threading
+from tkinter import ttk, messagebox
 import queue
-from tools import backup, logger, update_checker, email_report, i18n, darkmode
+from tools import logger, i18n, darkmode
+from gui.system_components.backup_handler import BackupHandler
+from gui.system_components.system_operations import SystemOperations
+
 
 class SystemTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
         # Threading support variables
-        self.operation_cancelled = False
-        self.operation_thread = None
         self.result_queue = queue.Queue()
         self.progress_queue = queue.Queue()
+
+        # Initialize handlers
+        self.backup_handler = BackupHandler(self._add_result)
+        self.system_ops = SystemOperations(self._add_result)
 
         self.create_widgets()
         
@@ -53,60 +57,19 @@ class SystemTab(ttk.Frame):
         restart_btn.grid(row=6, column=0, padx=10, pady=10, sticky="w")
 
     def create_backup(self):
-        path = filedialog.asksaveasfilename(defaultextension=".zip", filetypes=[("Backup", "*.zip")])
-        if path:
+        """Create backup using threaded handler"""
+        if self.backup_handler.create_backup_threaded():
             self.status_label.config(text="Tworzenie backup...", foreground="blue")
             self.backup_btn.config(state="disabled")
-            
-            self.operation_thread = threading.Thread(
-                target=self._threaded_create_backup,
-                args=(path,),
-                daemon=True
-            )
-            self.operation_thread.start()
-    
-    def _threaded_create_backup(self, path):
-        """Create backup in background thread"""
-        try:
-            backup.create_backup(path)
-            self.result_queue.put({
-                'type': 'backup_success',
-                'message': "Backup utworzony!"
-            })
-        except Exception as e:
-            self.result_queue.put({
-                'type': 'backup_error',
-                'error': str(e)
-            })
 
     def restore_backup(self):
-        path = filedialog.askopenfilename(filetypes=[("Backup", "*.zip")])
-        if path:
+        """Restore backup using threaded handler"""
+        if self.backup_handler.restore_backup_threaded():
             self.status_label.config(text="Przywracanie backup...", foreground="blue")
             self.restore_btn.config(state="disabled")
-            
-            self.operation_thread = threading.Thread(
-                target=self._threaded_restore_backup,
-                args=(path,),
-                daemon=True
-            )
-            self.operation_thread.start()
-    
-    def _threaded_restore_backup(self, path):
-        """Restore backup in background thread"""
-        try:
-            backup.restore_backup(path)
-            self.result_queue.put({
-                'type': 'restore_success',
-                'message': "Backup przywrócony!"
-            })
-        except Exception as e:
-            self.result_queue.put({
-                'type': 'restore_error',
-                'error': str(e)
-            })
 
     def show_logs(self):
+        """Show logs in new window"""
         logs = logger.read_logs()
         win = tk.Toplevel(self)
         win.title("Logi/historia")
@@ -115,104 +78,33 @@ class SystemTab(ttk.Frame):
         txt.pack(expand=True, fill="both")
 
     def check_update(self):
+        """Check for updates using threaded handler"""
         self.status_label.config(text="Sprawdzanie aktualizacji...", foreground="blue")
         self.update_btn.config(state="disabled")
-        
-        self.operation_thread = threading.Thread(
-            target=self._threaded_check_update,
-            daemon=True
-        )
-        self.operation_thread.start()
-    
-    def _threaded_check_update(self):
-        """Check for updates in background thread"""
-        try:
-            result = update_checker.check_for_update()
-            self.result_queue.put({
-                'type': 'update_result',
-                'message': result
-            })
-        except Exception as e:
-            self.result_queue.put({
-                'type': 'update_error',
-                'error': str(e)
-            })
+        self.system_ops.check_update_threaded()
 
     def send_report(self):
+        """Send report using threaded handler"""
         self.status_label.config(text="Wysyłanie raportu...", foreground="blue")
         self.report_btn.config(state="disabled")
-        
-        self.operation_thread = threading.Thread(
-            target=self._threaded_send_report,
-            daemon=True
-        )
-        self.operation_thread.start()
-    
-    def _threaded_send_report(self):
-        """Send report in background thread"""
-        try:
-            email_report.send_report()
-            self.result_queue.put({
-                'type': 'report_success',
-                'message': "Raport wysłany!"
-            })
-        except Exception as e:
-            self.result_queue.put({
-                'type': 'report_error',
-                'error': str(e)
-            })
+        self.system_ops.send_report_threaded()
 
     def restart_app(self):
+        """Restart application"""
         import os, sys
         os.execl(sys.executable, sys.executable, *sys.argv)
     
+    def _add_result(self, result):
+        """Add result to queue"""
+        self.result_queue.put(result)
+    
     def _process_result_queue(self):
-        """Process results from worker thread"""
+        """Process results from worker threads"""
         try:
             while True:
                 try:
                     result = self.result_queue.get_nowait()
-                    
-                    if result['type'] == 'backup_success':
-                        messagebox.showinfo("Backup", result['message'])
-                        self.status_label.config(text="Backup utworzony", foreground="green")
-                        self.backup_btn.config(state="normal")
-                        
-                    elif result['type'] == 'backup_error':
-                        messagebox.showerror("Błąd backupu", result['error'])
-                        self.status_label.config(text="Błąd backup", foreground="red")
-                        self.backup_btn.config(state="normal")
-                        
-                    elif result['type'] == 'restore_success':
-                        messagebox.showinfo("Backup", result['message'])
-                        self.status_label.config(text="Backup przywrócony", foreground="green")
-                        self.restore_btn.config(state="normal")
-                        
-                    elif result['type'] == 'restore_error':
-                        messagebox.showerror("Błąd backupu", result['error'])
-                        self.status_label.config(text="Błąd przywracania", foreground="red")
-                        self.restore_btn.config(state="normal")
-                        
-                    elif result['type'] == 'update_result':
-                        messagebox.showinfo("Aktualizacje", result['message'])
-                        self.status_label.config(text="Sprawdzono aktualizacje", foreground="green")
-                        self.update_btn.config(state="normal")
-                        
-                    elif result['type'] == 'update_error':
-                        messagebox.showerror("Błąd aktualizacji", result['error'])
-                        self.status_label.config(text="Błąd aktualizacji", foreground="red")
-                        self.update_btn.config(state="normal")
-                        
-                    elif result['type'] == 'report_success':
-                        messagebox.showinfo("Raport", result['message'])
-                        self.status_label.config(text="Raport wysłany", foreground="green")
-                        self.report_btn.config(state="normal")
-                        
-                    elif result['type'] == 'report_error':
-                        messagebox.showerror("Błąd raportu", result['error'])
-                        self.status_label.config(text="Błąd raportu", foreground="red")
-                        self.report_btn.config(state="normal")
-                        
+                    self._handle_result(result)
                 except queue.Empty:
                     break
         except Exception as e:
@@ -220,6 +112,50 @@ class SystemTab(ttk.Frame):
         
         # Schedule next check
         self.after(100, self._process_result_queue)
+    
+    def _handle_result(self, result):
+        """Handle individual result"""
+        result_type = result['type']
+        
+        if result_type == 'backup_success':
+            messagebox.showinfo("Backup", result['message'])
+            self.status_label.config(text="Backup utworzony", foreground="green")
+            self.backup_btn.config(state="normal")
+            
+        elif result_type == 'backup_error':
+            messagebox.showerror("Błąd backupu", result['error'])
+            self.status_label.config(text="Błąd backup", foreground="red")
+            self.backup_btn.config(state="normal")
+            
+        elif result_type == 'restore_success':
+            messagebox.showinfo("Backup", result['message'])
+            self.status_label.config(text="Backup przywrócony", foreground="green")
+            self.restore_btn.config(state="normal")
+            
+        elif result_type == 'restore_error':
+            messagebox.showerror("Błąd backupu", result['error'])
+            self.status_label.config(text="Błąd przywracania", foreground="red")
+            self.restore_btn.config(state="normal")
+            
+        elif result_type == 'update_result':
+            messagebox.showinfo("Aktualizacje", result['message'])
+            self.status_label.config(text="Sprawdzono aktualizacje", foreground="green")
+            self.update_btn.config(state="normal")
+            
+        elif result_type == 'update_error':
+            messagebox.showerror("Błąd aktualizacji", result['error'])
+            self.status_label.config(text="Błąd aktualizacji", foreground="red")
+            self.update_btn.config(state="normal")
+            
+        elif result_type == 'report_success':
+            messagebox.showinfo("Raport", result['message'])
+            self.status_label.config(text="Raport wysłany", foreground="green")
+            self.report_btn.config(state="normal")
+            
+        elif result_type == 'report_error':
+            messagebox.showerror("Błąd raportu", result['error'])
+            self.status_label.config(text="Błąd raportu", foreground="red")
+            self.report_btn.config(state="normal")
     
     def _process_progress_queue(self):
         """Process progress updates from worker thread"""
@@ -238,6 +174,8 @@ class SystemTab(ttk.Frame):
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
-        if self.operation_thread and self.operation_thread.is_alive():
-            self.operation_cancelled = True
+        if self.backup_handler.operation_thread and self.backup_handler.operation_thread.is_alive():
+            self.backup_handler.cancel_operation()
+        if self.system_ops.operation_thread and self.system_ops.operation_thread.is_alive():
+            self.system_ops.cancel_operation()
         super().destroy()
