@@ -3,7 +3,6 @@ from tkinter import ttk
 from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
 from gui.tab_invoice_search import InvoiceSearchTab
-from gui.tab_ksiegi import KsiegiTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
 
@@ -27,9 +26,6 @@ class MainWindow(tk.Tk):
 
         invoice_tab = InvoiceSearchTab(notebook)
         notebook.add(invoice_tab, text="Wyszukiwanie NIP")
-
-        ksiegi_tab = KsiegiTab(notebook)
-        notebook.add(ksiegi_tab, text="Księgi")
 
         zakupy_tab = ZakupiTab(notebook)
         notebook.add(zakupy_tab, text="Zakupy")
