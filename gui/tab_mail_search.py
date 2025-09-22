@@ -187,13 +187,8 @@ class MailSearchTab(ttk.Frame):
             
             # Process results
             results = []
-            processed_count = 0
-            max_results = 100  # Limit results to prevent UI freeze
-            
+            # --- USUNIĘTO LIMIT ---
             for message in messages:
-                if processed_count >= max_results:
-                    break
-                    
                 try:
                     # Check attachment filters if needed
                     if self.attachments_required_var.get() or self.attachment_name_var.get().strip() or self.attachment_extension_var.get().strip():
@@ -210,14 +205,13 @@ class MailSearchTab(ttk.Frame):
                         'attachment_count': len(message.attachments) if message.attachments else 0
                     }
                     results.append(result_info)
-                    processed_count += 1
                     
                 except Exception as e:
                     # Skip messages that cause errors
                     continue
             
-            # Display results
-            self.display_results(results, processed_count >= max_results)
+            # Display results (bez parametru more_available)
+            self.display_results(results)
             self.status_label.config(text=f"Znaleziono {len(results)} wiadomości")
             
         except Exception as e:
@@ -256,7 +250,7 @@ class MailSearchTab(ttk.Frame):
         
         return False
     
-    def display_results(self, results, more_available=False):
+    def display_results(self, results):
         """Display search results in the text area"""
         if not results:
             self.results_area.insert(tk.END, "Nie znaleziono żadnych wiadomości spełniających kryteria.\n")
@@ -278,5 +272,4 @@ class MailSearchTab(ttk.Frame):
             line = f"{date_str:<20} | {sender:<30} | {subject:<50} | {status:<12} | {attachments:<10}"
             self.results_area.insert(tk.END, line + "\n")
         
-        if more_available:
-            self.results_area.insert(tk.END, f"\n*** Wyświetlono pierwszych 100 wyników. Zawęź kryteria wyszukiwania aby zobaczyć więcej. ***\n")
+        # Usunięto komunikat o limicie wyników
