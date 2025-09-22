@@ -4,6 +4,7 @@ from gui.tab_exchange_config import ExchangeConfigTab
 from gui.tab_mail_search import MailSearchTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
+from gui.tabs.faktury_tab import FakturyTab
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -25,6 +26,9 @@ class MainWindow(tk.Tk):
 
         zakupy_tab = ZakupiTab(notebook)
         notebook.add(zakupy_tab, text="Zakupy")
+
+        faktury_tab = FakturyTab(notebook)
+        notebook.add(faktury_tab, text="Faktury")
 
         # Dodanie rozbudowanej zakładki System
         system_tab = SystemTab(notebook)
