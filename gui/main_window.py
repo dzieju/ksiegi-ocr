@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
@@ -16,9 +15,6 @@ class MainWindow(tk.Tk):
 
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
-
-        pdf_tab = PDFReaderTab(notebook)
-        notebook.add(pdf_tab, text="Odczyt PDF")
 
         exchange_tab = ExchangeConfigTab(notebook)
         notebook.add(exchange_tab, text="Konfiguracja poczty")

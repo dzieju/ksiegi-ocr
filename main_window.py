@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from gui.tab_pdf_reader import PDFReaderTab
 from gui.tab_exchange_config import ExchangeConfigTab
 from gui.tab_mail_search import MailSearchTab
 
@@ -17,10 +16,6 @@ class MainWindow(tk.Tk):
         # Notebook (zakładki)
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
-
-        # Zakładka: Odczyt PDF
-        pdf_tab = PDFReaderTab(notebook)
-        notebook.add(pdf_tab, text="Odczyt PDF")
 
         # Zakładka: Konfiguracja poczty
         exchange_tab = ExchangeConfigTab(notebook)
