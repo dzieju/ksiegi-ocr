@@ -1,16 +1,5 @@
 name: Setup Development Environment
 
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - master
-      - main
-  pull_request:
-    branches:
-      - master
-      - main
-
 jobs:
   setup:
     runs-on: ubuntu-latest
