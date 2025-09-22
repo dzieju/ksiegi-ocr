@@ -10,11 +10,11 @@ import time
 import re
 import csv
 
-# Configuration paths (same as in tab_ksiegi.py)
+# Configuration paths
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-# Crop coordinates for invoice numbers column (same as in tab_ksiegi.py)
+# Crop coordinates for invoice numbers column
 CROP_LEFT, CROP_RIGHT = 499, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
 
@@ -148,11 +148,11 @@ class ZakupiTab(ttk.Frame):
 
     def save_invoice_numbers_to_csv(self, invoice_numbers):
         """
-        Zapisuje rozpoznane numery faktur do pliku ksiegi.csv w folderze /odczyty
+        Zapisuje rozpoznane numery faktur do pliku zakupy.csv w folderze /odczyty
         """
         try:
             # Ścieżka do pliku CSV względem katalogu głównego projektu
-            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "odczyty", "ksiegi.csv")
+            csv_file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "odczyty", "zakupy.csv")
             
             # Upewnij się, że katalog istnieje
             os.makedirs(os.path.dirname(csv_file_path), exist_ok=True)
@@ -218,7 +218,7 @@ class ZakupiTab(ttk.Frame):
                         self.text_area.insert(tk.END, f"{cleaned_line}\n")
                     elif result['type'] == 'csv_export_success':
                         # Show CSV export success messagebox
-                        messagebox.showinfo("Eksport zakończony", f"Wyeksportowano {result['invoice_count']} numerów do odczyty/ksiegi.csv")
+                        messagebox.showinfo("Eksport zakończony", f"Wyeksportowano {result['invoice_count']} numerów do odczyty/zakupy.csv")
                     elif result['type'] == 'csv_export_error':
                         # Show CSV export error
                         messagebox.showerror("Błąd eksportu CSV", f"Błąd podczas zapisywania CSV: {result['error']}")
@@ -452,7 +452,7 @@ class ZakupiTab(ttk.Frame):
             self.status_label.config(text="Plik wybrany", foreground="green")
             
     def odczytaj_numery_faktur_old(self):
-        """OCR funkcja odczytu numerów faktur z kolumny - oparta na run_column_ocr z tab_ksiegi.py
+        """OCR funkcja odczytu numerów faktur z kolumny
         
         This is the old synchronous version, kept for reference.
         The new threaded version is implemented above.
