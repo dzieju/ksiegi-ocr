@@ -742,6 +742,10 @@ class EmailSearchEngine:
         """Check if message meets attachment criteria"""
         if criteria.get('attachments_required') and not message.has_attachments:
             return False
+        
+        # Check for "only without attachments" filter
+        if criteria.get('no_attachments_only') and message.has_attachments:
+            return False
             
         attachment_name_filter = criteria.get('attachment_name', '').lower()
         attachment_ext_filter = criteria.get('attachment_extension', '').lower()
