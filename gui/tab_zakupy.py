@@ -1,6 +1,5 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from tkinter.scrolledtext import ScrolledText
+import customtkinter as ctk
+from tkinter import filedialog, messagebox
 import os
 import pytesseract
 from pdf2image import convert_from_path
@@ -10,6 +9,8 @@ import time
 import re
 import csv
 from tools.ocr_engines import ocr_manager
+from gui.modern_theme import ModernTheme
+from gui.tooltip_utils import add_tooltip, TOOLTIPS
 
 # Configuration paths
 POPPLER_PATH = r"C:\poppler\Library\bin"
@@ -25,12 +26,12 @@ OCR_LOG_FILE = "ocr_log.txt"
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 
-class ZakupiTab(ttk.Frame):
+class ZakupiTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, **ModernTheme.get_frame_style('section'))
         
         # Initialize file path variable
-        self.file_path_var = tk.StringVar()
+        self.file_path_var = ctk.StringVar()
         
         # Threading support variables
         self.processing_cancelled = False
@@ -182,23 +183,27 @@ class ZakupiTab(ttk.Frame):
                 log_content = f.read()
             
             # Create new window
-            log_window = tk.Toplevel(self)
+            log_window = ctk.CTkToplevel(self)
             log_window.title("Podgląd loga OCR")
-            log_window.geometry("800x600")
+            log_window.geometry("800x700")
             log_window.transient(self)
             log_window.grab_set()
             
-            # Create text widget with scrollbar (consistent with main report width)
-            text_widget = ScrolledText(log_window, wrap="word", width=57, height=35)
-            text_widget.pack(fill="both", expand=True, padx=10, pady=10)
+            # Create text widget (consistent with main report width)
+            text_widget = ctk.CTkTextbox(log_window, **ModernTheme.get_textbox_style())
+            text_widget.pack(fill="both", expand=True, padx=ModernTheme.SPACING['medium'], pady=ModernTheme.SPACING['medium'])
             
             # Insert log content
             text_widget.insert("1.0", log_content)
-            text_widget.config(state="disabled")  # Make read-only
             
             # Add close button
-            close_btn = ttk.Button(log_window, text="Zamknij", command=log_window.destroy)
-            close_btn.pack(pady=5)
+            close_btn = ctk.CTkButton(
+                log_window, 
+                text="Zamknij", 
+                command=log_window.destroy,
+                **ModernTheme.get_button_style('secondary')
+            )
+            close_btn.pack(pady=ModernTheme.SPACING['small'])
             
         except Exception as e:
             messagebox.showerror("Błąd", f"Nie można otworzyć loga: {str(e)}")
@@ -218,7 +223,7 @@ class ZakupiTab(ttk.Frame):
                         # Add only the recognized invoice name to text area (single column)
                         # Clean the invoice name by removing leading '|' and spaces
                         cleaned_line = self.clean_invoice_name(result['line'])
-                        self.text_area.insert(tk.END, f"{cleaned_line}\n")
+                        self.text_area.insert("end", f"{cleaned_line}\n")
                     elif result['type'] == 'csv_export_success':
                         # Show CSV export success messagebox
                         messagebox.showinfo("Eksport zakończony", f"Wyeksportowano {result['invoice_count']} numerów do odczyty/zakupy.csv")
@@ -227,24 +232,24 @@ class ZakupiTab(ttk.Frame):
                         messagebox.showerror("Błąd eksportu CSV", f"Błąd podczas zapisywania CSV: {result['error']}")
                     elif result['type'] == 'processing_complete':
                         # Restore button state and show final results
-                        self.process_button.config(text="Odczytaj numery faktur")
+                        self.process_button.configure(text="Odczytaj numery faktur")
                         
                         # Updated summary format: show total lines and detected invoice numbers separately
                         invoice_info = f" (wykryto {result['invoice_count']} numerów faktur)" if result['invoice_count'] > 0 else " (wykryto 0 numerów faktur)"
                         csv_info = " → zapisano do CSV" if result.get('csv_saved', False) else ""
-                        self.status_label.config(
+                        self.status_label.configure(
                             text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}{csv_info}", 
-                            foreground="green"
+                            text_color=ModernTheme.COLORS['success']
                         )
                     elif result['type'] == 'processing_error':
                         # Show error and restore button
-                        self.process_button.config(text="Odczytaj numery faktur")
+                        self.process_button.configure(text="Odczytaj numery faktur")
                         messagebox.showerror("Błąd OCR z kolumny", result['error'])
-                        self.status_label.config(text="Błąd OCR kolumny", foreground="red")
+                        self.status_label.configure(text="Błąd OCR kolumny", text_color=ModernTheme.COLORS['error'])
                     elif result['type'] == 'processing_cancelled':
                         # Processing was cancelled
-                        self.process_button.config(text="Odczytaj numery faktur")
-                        self.status_label.config(text="Przetwarzanie anulowane", foreground="orange")
+                        self.process_button.configure(text="Odczytaj numery faktur")
+                        self.status_label.configure(text="Przetwarzanie anulowane", text_color=ModernTheme.COLORS['warning'])
                 except queue.Empty:
                     break
         except Exception as e:
@@ -259,7 +264,7 @@ class ZakupiTab(ttk.Frame):
             while True:
                 try:
                     progress = self.progress_queue.get_nowait()
-                    self.status_label.config(text=progress, foreground="blue")
+                    self.status_label.configure(text=progress, text_color=ModernTheme.COLORS['warning'])
                 except queue.Empty:
                     break
         except Exception as e:
@@ -278,8 +283,8 @@ class ZakupiTab(ttk.Frame):
     def cancel_processing(self):
         """Cancel ongoing OCR processing"""
         self.processing_cancelled = True
-        self.status_label.config(text="Anulowanie...", foreground="orange")
-        self.process_button.config(text="Odczytaj numery faktur")
+        self.status_label.configure(text="Anulowanie...", text_color=ModernTheme.COLORS['warning'])
+        self.process_button.configure(text="Odczytaj numery faktur")
 
     def start_processing(self):
         """Start the threaded OCR processing"""
@@ -294,14 +299,14 @@ class ZakupiTab(ttk.Frame):
             return
 
         # Clear previous results
-        self.text_area.delete("1.0", tk.END)
+        self.text_area.delete("1.0", "end")
         
         # Reset cancellation flag
         self.processing_cancelled = False
         
         # Update UI
-        self.process_button.config(text="Anuluj przetwarzanie")
-        self.status_label.config(text="Rozpoczynam przetwarzanie...", foreground="blue")
+        self.process_button.configure(text="Anuluj przetwarzanie")
+        self.status_label.configure(text="Rozpoczynam przetwarzanie...", text_color=ModernTheme.COLORS['warning'])
 
         # Start processing in background thread
         self.processing_thread = threading.Thread(
@@ -458,35 +463,106 @@ class ZakupiTab(ttk.Frame):
                 })
         
     def create_widgets(self):
-        # Title label
-        title_label = ttk.Label(
-            self, 
-            text="Zakładka Zakupy - Odczyt numerów faktur", 
-            font=("Arial", 12),
-            foreground="blue"
+        """Create modern CustomTkinter widgets for the purchases tab"""
+        
+        # Title section
+        title_label = ctk.CTkLabel(
+            self,
+            text="🛒 Odczyt Numerów Faktur",
+            **ModernTheme.get_label_style('heading')
         )
-        title_label.grid(row=0, column=0, columnspan=3, pady=10)
+        title_label.pack(pady=(0, ModernTheme.SPACING['large']), anchor="w")
+
+        # File selection section
+        file_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
+        file_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
         
-        # PDF file selection
-        ttk.Label(self, text="Plik PDF:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self, textvariable=self.file_path_var, width=60).grid(row=1, column=1, padx=5, pady=5)
-        ttk.Button(self, text="Wybierz plik", command=self.wybierz_plik_pdf).grid(row=1, column=2, padx=5, pady=5)
+        file_title = ctk.CTkLabel(
+            file_frame,
+            text="📄 Wybór pliku PDF",
+            **ModernTheme.get_label_style('subheading')
+        )
+        file_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+
+        # File input row
+        file_input_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
+        file_input_frame.pack(fill="x", padx=ModernTheme.SPACING['medium'], pady=(0, ModernTheme.SPACING['medium']))
+
+        self.file_path_entry = ctk.CTkEntry(
+            file_input_frame,
+            textvariable=self.file_path_var,
+            placeholder_text="Wybierz plik PDF z fakturami...",
+            **ModernTheme.get_entry_style()
+        )
+        self.file_path_entry.pack(side="left", fill="x", expand=True, padx=(0, ModernTheme.SPACING['small']))
+
+        select_file_btn = ctk.CTkButton(
+            file_input_frame,
+            text="Wybierz plik",
+            command=self.wybierz_plik_pdf,
+            **ModernTheme.get_button_style('secondary')
+        )
+        select_file_btn.pack(side="right")
+        add_tooltip(select_file_btn, TOOLTIPS['pdf_select'])
+
+        # Processing section
+        process_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
+        process_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
         
-        # Invoice reading button
-        self.process_button = ttk.Button(self, text="Odczytaj numery faktur", command=self.toggle_processing)
-        self.process_button.grid(row=2, column=1, pady=20)
+        process_title = ctk.CTkLabel(
+            process_frame,
+            text="⚡ Przetwarzanie OCR",
+            **ModernTheme.get_label_style('subheading')
+        )
+        process_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+
+        # Process buttons row
+        process_buttons_frame = ctk.CTkFrame(process_frame, fg_color="transparent")
+        process_buttons_frame.pack(fill="x", padx=ModernTheme.SPACING['medium'], pady=(0, ModernTheme.SPACING['small']))
+
+        self.process_button = ctk.CTkButton(
+            process_buttons_frame,
+            text="Odczytaj numery faktur",
+            command=self.toggle_processing,
+            **ModernTheme.get_button_style('primary')
+        )
+        self.process_button.pack(side="left", padx=(0, ModernTheme.SPACING['small']))
+        add_tooltip(self.process_button, TOOLTIPS['ocr_process'])
+
+        self.log_preview_button = ctk.CTkButton(
+            process_buttons_frame,
+            text="Podgląd logów OCR",
+            command=self.show_ocr_log_preview,
+            **ModernTheme.get_button_style('secondary')
+        )
+        self.log_preview_button.pack(side="left")
+        add_tooltip(self.log_preview_button, TOOLTIPS['ocr_preview'])
+
+        # Status
+        self.status_label = ctk.CTkLabel(
+            process_frame,
+            text="Brak wybranego pliku",
+            **ModernTheme.get_label_style('secondary')
+        )
+        self.status_label.pack(pady=(0, ModernTheme.SPACING['medium']), anchor="w", padx=ModernTheme.SPACING['medium'])
+
+        # Results section
+        results_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
+        results_frame.pack(fill="both", expand=True)
         
-        # Log preview button
-        self.log_preview_button = ttk.Button(self, text="Podgląd loga w nowym oknie", command=self.show_ocr_log_preview)
-        self.log_preview_button.grid(row=2, column=2, padx=10, pady=20)
-        
-        # Status label
-        self.status_label = ttk.Label(self, text="Brak wybranego pliku", foreground="blue")
-        self.status_label.grid(row=3, column=1, pady=5)
-        
-        # Text area for OCR results - fixed width of ~57 chars (~12 cm for monospace fonts)
-        self.text_area = ScrolledText(self, wrap="word", width=57, height=25)
-        self.text_area.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+        results_title = ctk.CTkLabel(
+            results_frame,
+            text="📊 Wyniki OCR",
+            **ModernTheme.get_label_style('subheading')
+        )
+        results_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+
+        # Text area for OCR results
+        self.text_area = ctk.CTkTextbox(
+            results_frame,
+            **ModernTheme.get_textbox_style()
+        )
+        self.text_area.pack(fill="both", expand=True, padx=ModernTheme.SPACING['medium'], pady=(0, ModernTheme.SPACING['medium']))
         
     def wybierz_plik_pdf(self):
         """Funkcja do wyboru pliku PDF"""
@@ -496,7 +572,7 @@ class ZakupiTab(ttk.Frame):
         )
         if filepath:
             self.file_path_var.set(filepath)
-            self.status_label.config(text="Plik wybrany", foreground="green")
+            self.status_label.configure(text="Plik wybrany", text_color=ModernTheme.COLORS['success'])
             
     def odczytaj_numery_faktur_old(self):
         """OCR funkcja odczytu numerów faktur z kolumny
@@ -526,17 +602,17 @@ class ZakupiTab(ttk.Frame):
                 all_lines.extend([(page_num, l) for l in lines])
 
             # Wyświetl tylko rozpoznane numery faktur (pojedyncza kolumna)
-            self.text_area.insert(tk.END, "----- Rozpoznane numery faktur -----\n")
+            self.text_area.insert("end", "----- Rozpoznane numery faktur -----\n")
             invoice_count = 0
             for i, (page_num, line) in enumerate(all_lines, 1):
                 if self.contains_invoice_number(line):
                     invoice_count += 1
                     # Clean the invoice name by removing leading '|' and spaces
                     cleaned_line = self.clean_invoice_name(line)
-                    self.text_area.insert(tk.END, f"{cleaned_line}\n")
+                    self.text_area.insert("end", f"{cleaned_line}\n")
 
-            self.status_label.config(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron (wykryto {invoice_count} numerów faktur)", foreground="green")
+            self.status_label.configure(text=f"OCR z kolumny gotowy, {len(all_lines)} linii z {len(images)} stron (wykryto {invoice_count} numerów faktur)", text_color=ModernTheme.COLORS['success'])
 
         except Exception as e:
             messagebox.showerror("Błąd OCR z kolumny", str(e))
-            self.status_label.config(text="Błąd OCR kolumny", foreground="red")
+            self.status_label.configure(text="Błąd OCR kolumny", text_color=ModernTheme.COLORS['error'])

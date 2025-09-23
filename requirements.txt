@@ -6,3 +6,4 @@ pdf2image
 pillow
 pytesseract
 opencv-python
+customtkinter
