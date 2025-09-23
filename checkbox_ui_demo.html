@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mail Search UI - Checkbox-based Folder Exclusion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .ui-container {
+            background: white;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            color: blue;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            min-height: 30px;
+        }
+        .label {
+            width: 200px;
+            text-align: right;
+            padding-right: 10px;
+            font-size: 12px;
+        }
+        .input {
+            width: 300px;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .button {
+            padding: 4px 12px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: #f0f0f0;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .button:hover {
+            background: #e0e0e0;
+        }
+        .button.primary {
+            background: #0078d4;
+            color: white;
+            border-color: #0078d4;
+        }
+        .checkbox-frame {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #fafafa;
+        }
+        .checkbox-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+        }
+        .checkbox-item input {
+            margin-right: 6px;
+        }
+        .status {
+            margin-left: 20px;
+            font-size: 12px;
+            color: green;
+        }
+        .improvements {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 5px;
+            border-left: 4px solid #4caf50;
+        }
+        .improvements h3 {
+            color: #2e7d32;
+            margin-top: 0;
+        }
+        .improvements ul {
+            margin: 10px 0;
+        }
+        .improvements li {
+            margin: 5px 0;
+        }
+        .demo-note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-note">
+        <strong>📋 Demo:</strong> This shows the new checkbox-based folder exclusion UI for the mail search functionality. 
+        Checkboxes replace the previous text field for better user experience.
+    </div>
+
+    <div class="ui-container">
+        <div class="title">Przeszukiwanie Poczty</div>
+        
+        <div class="form-row">
+            <div class="label">Folder przeszukiwania (z podfolderami):</div>
+            <input type="text" class="input" value="Skrzynka odbiorcza" readonly>
+            <button class="button">Wykryj foldery</button>
+        </div>
+
+        <div class="checkbox-frame">
+            <div class="checkbox-title">Wyklucz te foldery:</div>
+            <div class="checkbox-grid">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="archiwum">
+                    <label for="archiwum">Archiwum</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="kompensaty" checked>
+                    <label for="kompensaty">Kompensaty Quadra</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="deleted">
+                    <label for="deleted">Deleted Items</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="newsletter">
+                    <label for="newsletter">Newsletter</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="spam" checked>
+                    <label for="spam">Spam</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="junk" checked>
+                    <label for="junk">Junk Email</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="old-spam">
+                    <label for="old-spam">Old Spam</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="2024">
+                    <label for="2024">2024</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="2023">
+                    <label for="2023">2023</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="label">Co ma szukać w temacie maila:</div>
+            <input type="text" class="input" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <div class="label">Nadawca maila:</div>
+            <input type="text" class="input" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <div class="label"></div>
+            <div>
+                <label><input type="checkbox"> Tylko nieprzeczytane</label>
+                <label style="margin-left: 20px;"><input type="checkbox"> Tylko z załącznikami</label>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="label">Nazwa załącznika (zawiera):</div>
+            <input type="text" class="input" placeholder="">
+        </div>
+
+        <div class="form-row">
+            <div class="label">Rozszerzenie załącznika:</div>
+            <input type="text" class="input" placeholder="">
+        </div>
+
+        <div class="form-row" style="margin-top: 20px; justify-content: center;">
+            <button class="button primary">Rozpocznij wyszukiwanie</button>
+            <div class="status">Wykryto 9 folderów</div>
+        </div>
+    </div>
+
+    <div class="improvements">
+        <h3>🎯 Key Improvements</h3>
+        <ul>
+            <li><strong>Visual Checkboxes:</strong> Replace comma-separated text field with intuitive checkboxes</li>
+            <li><strong>Dynamic Discovery:</strong> "Wykryj foldery" button discovers available folders from Exchange</li>
+            <li><strong>Multi-column Layout:</strong> Efficient display of many folders in organized grid</li>
+            <li><strong>Real-time Feedback:</strong> Status updates show folder discovery progress</li>
+            <li><strong>Backend Compatible:</strong> Maintains existing search logic and exclusion functionality</li>
+            <li><strong>Thread-safe:</strong> Non-blocking folder discovery in background thread</li>
+        </ul>
+        
+        <h3>🔄 Workflow</h3>
+        <ol>
+            <li>User enters folder path (e.g., "Skrzynka odbiorcza")</li>
+            <li>User clicks "Wykryj foldery" to discover available subfolders</li>
+            <li>System shows checkboxes for all discovered folders</li>
+            <li>User selects folders to exclude from search</li>
+            <li>System converts checkbox selections to backend format</li>
+            <li>Search proceeds with excluded folders filtered out</li>
+        </ol>
+
+        <h3>🧪 Testing Status</h3>
+        <ul>
+            <li>✅ Folder discovery logic tested</li>
+            <li>✅ Checkbox conversion logic tested</li>
+            <li>✅ Backend integration verified</li>
+            <li>✅ Multi-level folder exclusion working</li>
+            <li>✅ Thread-safe implementation confirmed</li>
+        </ul>
+    </div>
+
+    <script>
+        // Demo functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const status = document.querySelector('.status');
+            
+            function updateStatus() {
+                const checked = Array.from(checkboxes).filter(cb => cb.checked && cb.id);
+                const names = checked.map(cb => cb.nextElementSibling.textContent);
+                if (names.length > 0) {
+                    status.textContent = `Wykryto 9 folderów, ${names.length} wykluczonych: ${names.join(', ')}`;
+                    status.style.color = 'orange';
+                } else {
+                    status.textContent = 'Wykryto 9 folderów';
+                    status.style.color = 'green';
+                }
+            }
+            
+            checkboxes.forEach(cb => {
+                if (cb.id) cb.addEventListener('change', updateStatus);
+            });
+            
+            updateStatus();
+        });
+    </script>
+</body>
+</html>
