@@ -179,11 +179,35 @@ class EmailSearchEngine:
                 log(f"Filtr {i}: {filter_obj}")
             
             # Check for and warn about any invalid field attempts
+            log("=== WALIDACJA KRYTERIÓW WYSZUKIWANIA ===")
             for key in criteria.keys():
                 if key.startswith('_'):
                     log(f"OSTRZEŻENIE: Wykryto potencjalne nieprawidłowe pole w kryteriach: '{key}'")
                     if key == '_search_folder':
                         log("OSTRZEŻENIE: '_search_folder' nie jest prawidłowym polem Message i nie może być używane w filtrach!")
+                    if key == '_folder_reference':
+                        log("OSTRZEŻENIE: '_folder_reference' nie jest prawidłowym polem Message i nie może być używane w filtrach!")
+                        log("POPRAWKA: Foldery są określane przez folder_path, nie przez atrybuty wiadomości")
+                elif key not in ['folder_path', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
+                                'attachment_name', 'attachment_extension', 'selected_period'] and key not in self._valid_fields:
+                    log(f"OSTRZEŻENIE: Pole '{key}' może nie być prawidłowe. Dostępne pola Message: {sorted(list(self._valid_fields)[:10])}...")
+            
+            # Log which criteria will be used for filtering
+            valid_criteria_count = 0
+            if criteria.get('subject_search'):
+                log(f"✓ Używam filtru tematu: '{criteria['subject_search']}'")
+                valid_criteria_count += 1
+            if criteria.get('sender'):
+                log(f"✓ Używam filtru nadawcy: '{criteria['sender']}'")
+                valid_criteria_count += 1
+            if criteria.get('unread_only'):
+                log("✓ Używam filtru nieprzeczytanych wiadomości")
+                valid_criteria_count += 1
+            if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
+                log(f"✓ Używam filtru okresu: '{criteria['selected_period']}'")
+                valid_criteria_count += 1
+                
+            log(f"Łącznie prawidłowych kryteriów filtrowania: {valid_criteria_count}")
             
             # Combine filters
             if query_filters:
@@ -244,18 +268,18 @@ class EmailSearchEngine:
                     
                     # If we still have no messages, try alternative QuerySet conversion
                     if not messages_list:
-                        log(f"Brak wiadomości - próba alternatywnej metody iteratora")
+                        log(f"Brak wiadomości - próba alternatywnej metody konwersji")
                         try:
                             if combined_query:
                                 messages = search_folder.filter(combined_query)
                             else:
                                 messages = search_folder.all()
                             
-                            # Try iterator approach
-                            messages_list = [msg for msg in messages.iterator()][:100]  # Limit during iteration
-                            log(f"Iterator: znaleziono {len(messages_list)} wiadomości (limit 100)")
-                        except Exception as iterator_error:
-                            log(f"BŁĄD iteratora: {str(iterator_error)}")
+                            # Use normal iteration instead of .iterator()
+                            messages_list = [msg for msg in messages][:100]  # Limit during iteration
+                            log(f"Alternatywna metoda: znaleziono {len(messages_list)} wiadomości (limit 100)")
+                        except Exception as iteration_error:
+                            log(f"BŁĄD alternatywnej metody: {str(iteration_error)}")
                             pass  # Continue with empty list
                     
                     # Apply per-folder limit
@@ -264,9 +288,16 @@ class EmailSearchEngine:
                     if original_count > 100:
                         log(f"Ograniczono z {original_count} do {len(folder_messages)} wiadomości (limit na folder)")
                     
+                    log(f"Folder '{folder_name}' - szczegóły wiadomości:")
+                    log(f"  - Znalezione wiadomości: {original_count}")
+                    log(f"  - Po limicie folderu: {len(folder_messages)}")
+                    log(f"  - Strategia pobierania: {'z filtrami' if query_success else 'wszystkie (fallback)'}")
+                    
                     # Add folder information to each message (use safe attribute name)
+                    # NOTE: _folder_reference is ONLY for internal reference, NOT for filtering!
+                    # Filters should only use fields from Message.FIELDS (subject, sender, etc.)
                     for message in folder_messages:
-                        message._folder_reference = search_folder  # Store folder reference (renamed from _search_folder)
+                        message._folder_reference = search_folder  # Store folder reference for display purposes only
                     
                     all_messages.extend(folder_messages)
                     
@@ -330,6 +361,16 @@ class EmailSearchEngine:
             
             log("=== ETAPY FILTROWANIA ===")
             log(f"Wiadomości przed filtrowaniem: {len(total_messages)}")
+            log(f"Kryteria filtrowania:")
+            log(f"  - Filtr tematu: {'TAK (' + subject_search + ')' if subject_search else 'NIE'}")
+            log(f"  - Filtry załączników: {'TAK' if has_attachment_filter else 'NIE'}")
+            if has_attachment_filter:
+                if criteria.get('attachments_required'):
+                    log(f"    - Wymagane załączniki: TAK")
+                if criteria.get('attachment_name'):
+                    log(f"    - Nazwa załącznika zawiera: '{criteria['attachment_name']}'")
+                if criteria.get('attachment_extension'):
+                    log(f"    - Rozszerzenie załącznika: '{criteria['attachment_extension']}'")
             
             # Track filtering statistics
             subject_filtered_out = 0
@@ -373,6 +414,27 @@ class EmailSearchEngine:
                 log(f"  - Odrzucone przez filtry załączników: {attachment_filtered_out}")
             if processing_errors > 0:
                 log(f"  - Błędy przetwarzania: {processing_errors}")
+            
+            # FALLBACK: If filtering returned 0 results and we have a subject search, 
+            # fetch all messages and filter manually by subject
+            if len(filtered_messages) == 0 and subject_search and len(total_messages) > 0:
+                log("=== FALLBACK: RĘCZNE FILTROWANIE PO TEMACIE ===")
+                log(f"Filtracja zwróciła 0 wyników, próba ręcznego filtrowania {len(total_messages)} wiadomości po temacie: '{criteria['subject_search']}'")
+                
+                fallback_messages = []
+                for message in total_messages:
+                    try:
+                        message_subject = (message.subject or '').lower()
+                        if subject_search in message_subject:
+                            fallback_messages.append(message)
+                    except Exception as e:
+                        log(f"Błąd ręcznego filtrowania wiadomości: {str(e)}")
+                        continue
+                
+                log(f"Ręczne filtrowanie po temacie: znaleziono {len(fallback_messages)} wiadomości")
+                if len(fallback_messages) > 0:
+                    filtered_messages = fallback_messages
+                    log("Używam wyników z ręcznego filtrowania fallback")
             
             # Apply pagination to filtered messages
             paginated_messages = filtered_messages[start_idx:end_idx]
