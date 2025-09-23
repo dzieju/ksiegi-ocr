@@ -264,42 +264,6 @@ class SystemTab(ctk.CTkScrollableFrame):
             **ModernTheme.get_button_style('success')
         )
         save_ocr_btn.pack(side="left")
-        
-        # OCR Configuration Section
-        ocr_label = ttk.Label(self, text="Konfiguracja OCR:", font=("Arial", 10, "bold"))
-        ocr_label.grid(row=7, column=0, columnspan=3, padx=10, pady=(20, 5), sticky="w")
-        
-        # OCR Engine selection
-        ttk.Label(self, text="Silnik OCR:").grid(row=8, column=0, padx=10, pady=5, sticky="w")
-        ocr_engine_combo = ttk.Combobox(self, textvariable=self.ocr_engine_var, width=15, state="readonly")
-        ocr_engine_combo['values'] = ("tesseract", "easyocr", "paddleocr")
-        ocr_engine_combo.grid(row=8, column=1, padx=10, pady=5, sticky="w")
-        ocr_engine_combo.bind('<<ComboboxSelected>>', self._on_engine_change)
-        
-        # GPU/CPU selection
-        ttk.Label(self, text="Tryb GPU:").grid(row=9, column=0, padx=10, pady=5, sticky="w")
-        gpu_checkbox = ttk.Checkbutton(self, text="Użyj GPU (jeśli dostępny)", variable=self.gpu_enabled_var, command=self._on_gpu_change)
-        gpu_checkbox.grid(row=9, column=1, padx=10, pady=5, sticky="w")
-        
-        # Multiprocessing
-        ttk.Label(self, text="Wieloprocesowość:").grid(row=10, column=0, padx=10, pady=5, sticky="w")
-        mp_checkbox = ttk.Checkbutton(self, text="Włącz wieloprocesowość OCR", variable=self.multiprocessing_var, command=self._on_multiprocessing_change)
-        mp_checkbox.grid(row=10, column=1, padx=10, pady=5, sticky="w")
-        
-        # Max workers
-        ttk.Label(self, text="Maks. procesów:").grid(row=11, column=0, padx=10, pady=5, sticky="w")
-        workers_frame = ttk.Frame(self)
-        workers_frame.grid(row=11, column=1, padx=10, pady=5, sticky="w")
-        
-        self.workers_entry = ttk.Entry(workers_frame, textvariable=self.max_workers_var, width=10)
-        self.workers_entry.pack(side="left")
-        self.workers_entry.bind('<KeyRelease>', self._on_workers_change)
-        
-        ttk.Label(workers_frame, text=f"(Auto = {multiprocessing.cpu_count()})").pack(side="left", padx=(5, 0))
-        
-        # Save OCR config button
-        save_ocr_btn = ttk.Button(self, text="Zapisz konfigurację OCR", command=self._save_ocr_config)
-        save_ocr_btn.grid(row=12, column=0, padx=10, pady=10, sticky="w")
 
     def create_backup(self):
         """Create backup using threaded handler"""
@@ -429,9 +393,9 @@ class SystemTab(ctk.CTkScrollableFrame):
         if engine == "tesseract":
             # Tesseract is CPU-only
             self.gpu_enabled_var.set(False)
-            self.status_label.config(text=f"Zmieniono silnik OCR na: {engine} (tylko CPU)", foreground="blue")
+            self.status_label.configure(text=f"Zmieniono silnik OCR na: {engine} (tylko CPU)", text_color=ModernTheme.COLORS['primary'])
         else:
-            self.status_label.config(text=f"Zmieniono silnik OCR na: {engine}", foreground="blue")
+            self.status_label.configure(text=f"Zmieniono silnik OCR na: {engine}", text_color=ModernTheme.COLORS['primary'])
     
     def _on_gpu_change(self):
         """Handle GPU usage change"""
@@ -445,14 +409,14 @@ class SystemTab(ctk.CTkScrollableFrame):
             
         ocr_config.set_use_gpu(use_gpu)
         mode = "GPU" if use_gpu else "CPU"
-        self.status_label.config(text=f"Tryb OCR zmieniony na: {mode}", foreground="blue")
+        self.status_label.configure(text=f"Tryb OCR zmieniony na: {mode}", text_color=ModernTheme.COLORS['primary'])
     
     def _on_multiprocessing_change(self):
         """Handle multiprocessing setting change"""
         use_mp = self.multiprocessing_var.get()
         ocr_config.set_multiprocessing(use_mp)
         status = "włączona" if use_mp else "wyłączona"
-        self.status_label.config(text=f"Wieloprocesowość OCR {status}", foreground="blue")
+        self.status_label.configure(text=f"Wieloprocesowość OCR {status}", text_color=ModernTheme.COLORS['primary'])
     
     def _on_workers_change(self, event=None):
         """Handle max workers change"""
@@ -474,10 +438,10 @@ class SystemTab(ctk.CTkScrollableFrame):
     def _save_ocr_config(self):
         """Save OCR configuration to file"""
         if ocr_config.save_config():
-            self.status_label.config(text="Konfiguracja OCR zapisana", foreground="green")
+            self.status_label.configure(text="Konfiguracja OCR zapisana", text_color=ModernTheme.COLORS['success'])
             messagebox.showinfo("Konfiguracja", "Konfiguracja OCR została zapisana. Zmiany będą aktywne przy następnym uruchomieniu OCR.")
         else:
-            self.status_label.config(text="Błąd zapisywania konfiguracji OCR", foreground="red")
+            self.status_label.configure(text="Błąd zapisywania konfiguracji OCR", text_color=ModernTheme.COLORS['error'])
             messagebox.showerror("Błąd", "Nie udało się zapisać konfiguracji OCR.")
     
     def destroy(self):
