@@ -104,29 +104,41 @@ class EmailSearchEngine:
                 try:
                     self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {search_folder.name}")
                     
-                    # First try to get some messages without any filtering to test basic functionality
+                    # Strategy: First try with query if we have one, if that fails or returns empty, try without query
+                    messages_list = []
+                    
                     if combined_query:
-                        print(f"Debug: Applying query filter to folder {search_folder.name}")
-                        messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                        try:
+                            print(f"Debug: Applying query filter to folder {search_folder.name}")
+                            messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                            messages_list = list(messages)
+                            print(f"Debug: Query returned {len(messages_list)} messages from folder {search_folder.name}")
+                        except Exception as query_error:
+                            print(f"Debug: Query failed on folder {search_folder.name}: {query_error}")
+                            print("Debug: Falling back to getting all messages and filtering manually")
+                            messages = search_folder.all().order_by('-datetime_received')
+                            messages_list = list(messages)
+                            print(f"Debug: Fallback returned {len(messages_list)} messages from folder {search_folder.name}")
                     else:
                         print(f"Debug: Getting all messages from folder {search_folder.name}")
                         messages = search_folder.all().order_by('-datetime_received')
-                    
-                    # Convert QuerySet to list and limit messages per folder to maintain performance
-                    # Use list() on the QuerySet directly instead of slicing first
-                    print(f"Debug: Converting messages QuerySet to list for folder {search_folder.name}")
-                    try:
                         messages_list = list(messages)
-                        print(f"Debug: Successfully converted to list, found {len(messages_list)} messages in folder {search_folder.name}")
-                    except Exception as conversion_error:
-                        print(f"Debug: Error converting QuerySet to list: {conversion_error}")
-                        # Try alternative approach - get first few messages to test
+                        print(f"Debug: Found {len(messages_list)} messages in folder {search_folder.name}")
+                    
+                    # If we still have no messages, try alternative QuerySet conversion
+                    if not messages_list:
                         try:
-                            messages_list = [msg for msg in messages.iterator()]
-                            print(f"Debug: Alternative conversion successful, found {len(messages_list)} messages")
-                        except Exception as iter_error:
-                            print(f"Debug: Iterator approach also failed: {iter_error}")
-                            messages_list = []
+                            print(f"Debug: No messages found, trying alternative QuerySet conversion for {search_folder.name}")
+                            if combined_query:
+                                messages = search_folder.filter(combined_query)
+                            else:
+                                messages = search_folder.all()
+                            
+                            # Try iterator approach
+                            messages_list = [msg for msg in messages.iterator()][:100]  # Limit during iteration
+                            print(f"Debug: Alternative approach found {len(messages_list)} messages")
+                        except Exception as alt_error:
+                            print(f"Debug: Alternative approach also failed: {alt_error}")
                     
                     folder_messages = messages_list[:100]  # Limit per folder after converting to list
                     
@@ -172,7 +184,7 @@ class EmailSearchEngine:
                     return
                 
                 try:
-                    # Manual subject filtering as backup (case-insensitive)
+                    # Manual subject filtering (case-insensitive) - this acts as backup when query filtering didn't work properly
                     if subject_search:
                         message_subject = (message.subject or '').lower()
                         if subject_search not in message_subject:
