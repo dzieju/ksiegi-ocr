@@ -53,26 +53,31 @@ class EmailSearchEngine:
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             
-            # Build search query
+            # Build search query - use simple, reliable approaches
             query_filters = []
             
-            # Subject filter
+            # Subject filter - use case-insensitive contains
             if criteria.get('subject_search'):
-                query_filters.append(Q(subject__icontains=criteria['subject_search']))
+                # Use subject__contains which is more widely supported than subject__icontains
+                subject_filter = Q(subject__contains=criteria['subject_search'])
+                query_filters.append(subject_filter)
             
             # Sender filter
             if criteria.get('sender'):
-                query_filters.append(Q(sender=criteria['sender']))
+                sender_filter = Q(sender=criteria['sender'])
+                query_filters.append(sender_filter)
             
             # Unread filter
             if criteria.get('unread_only'):
-                query_filters.append(Q(is_read=False))
+                unread_filter = Q(is_read=False)
+                query_filters.append(unread_filter)
             
             # Date period filter
             if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
                 start_date = self._get_period_start_date(criteria['selected_period'])
                 if start_date:
-                    query_filters.append(Q(datetime_received__gte=start_date))
+                    date_filter = Q(datetime_received__gte=start_date)
+                    query_filters.append(date_filter)
             
             # Combine filters
             if query_filters:
@@ -92,13 +97,35 @@ class EmailSearchEngine:
                 try:
                     self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {search_folder.name}")
                     
+                    # Strategy: First try with query if we have one, if that fails or returns empty, try without query
+                    messages_list = []
+                    
                     if combined_query:
-                        messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                        try:
+                            messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                            messages_list = list(messages)
+                        except Exception:
+                            # Query failed, fallback to getting all messages and filtering manually
+                            messages = search_folder.all().order_by('-datetime_received')
+                            messages_list = list(messages)
                     else:
                         messages = search_folder.all().order_by('-datetime_received')
+                        messages_list = list(messages)
                     
-                    # Limit messages per folder to maintain performance
-                    folder_messages = list(messages[:100])  # Limit per folder
+                    # If we still have no messages, try alternative QuerySet conversion
+                    if not messages_list:
+                        try:
+                            if combined_query:
+                                messages = search_folder.filter(combined_query)
+                            else:
+                                messages = search_folder.all()
+                            
+                            # Try iterator approach
+                            messages_list = [msg for msg in messages.iterator()][:100]  # Limit during iteration
+                        except Exception:
+                            pass  # Continue with empty list
+                    
+                    folder_messages = messages_list[:100]  # Limit per folder after converting to list
                     
                     # Add folder information to each message
                     for message in folder_messages:
@@ -107,7 +134,9 @@ class EmailSearchEngine:
                     all_messages.extend(folder_messages)
                     
                 except Exception as e:
-                    # Skip folders that cause errors (might be inaccessible)
+                    # Log the error but continue with other folders
+                    error_msg = f"Błąd w folderze {search_folder.name}: {str(e)}"
+                    self.progress_callback(error_msg)
                     continue
             
             # Sort all messages by date
@@ -123,21 +152,29 @@ class EmailSearchEngine:
             total_messages = all_messages[:500]
             total_count = len(total_messages)
             
-            # Filter by attachment criteria if needed
+            # Filter by attachment criteria if needed  
             filtered_messages = []
+            subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
+            
             for message in total_messages:
                 if self.search_cancelled:
                     self.result_callback({'type': 'search_cancelled'})
                     return
                 
                 try:
+                    # Manual subject filtering (case-insensitive) - this acts as backup when query filtering didn't work properly
+                    if subject_search:
+                        message_subject = (message.subject or '').lower()
+                        if subject_search not in message_subject:
+                            continue
+                    
                     # Check attachment filters if needed
                     if criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension'):
                         if not self._check_attachment_filters(message, criteria):
                             continue
                     filtered_messages.append(message)
                     
-                except Exception as e:
+                except Exception:
                     # Skip messages that cause errors
                     continue
             

@@ -93,7 +93,8 @@ class ExchangeConnection:
             return []
         
         folders = [base_folder]  # Include the base folder itself
-        folders.extend(self._get_all_subfolders_recursive(base_folder))
+        subfolders = self._get_all_subfolders_recursive(base_folder)
+        folders.extend(subfolders)
         return folders
     
     def _get_all_subfolders_recursive(self, folder):
@@ -105,7 +106,7 @@ class ExchangeConnection:
                 all_subfolders.append(child)
                 # Recursively get subfolders of this child
                 all_subfolders.extend(self._get_all_subfolders_recursive(child))
-        except Exception as e:
+        except Exception:
             # Some folders might not be accessible, continue with others
             pass
         return all_subfolders
