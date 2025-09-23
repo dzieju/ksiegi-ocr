@@ -8,10 +8,13 @@ from tkinter import ttk
 class MailSearchUI:
     """Handles UI creation for mail search tab"""
     
-    def __init__(self, parent, variables, discover_callback):
+    def __init__(self, parent, variables, discover_callback, toggle_callback, save_callback):
         self.parent = parent
         self.vars = variables
         self.discover_callback = discover_callback
+        self.toggle_callback = toggle_callback
+        self.save_callback = save_callback
+        self.toggle_button = None  # Will hold reference to toggle button
         
     def create_search_criteria_widgets(self):
         """Create search criteria input widgets"""
@@ -105,13 +108,29 @@ class MailSearchUI:
         return results_frame
     
     def create_folder_exclusion_checkboxes(self, folders, exclusion_vars):
-        """Create checkboxes for folder exclusion"""
+        """Create checkboxes for folder exclusion with toggle and save buttons"""
         if not folders:
             return None
             
+        # Create main container frame
+        container_frame = ttk.Frame(self.parent)
+        container_frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        
+        # Create button frame for toggle and save buttons
+        button_frame = ttk.Frame(container_frame)
+        button_frame.grid(row=0, column=0, columnspan=3, pady=(0, 5), sticky="ew")
+        
+        # Create toggle button
+        self.toggle_button = ttk.Button(button_frame, text="Ukryj", command=self.toggle_callback)
+        self.toggle_button.pack(side="left", padx=5)
+        
+        # Create save button  
+        save_button = ttk.Button(button_frame, text="Zapisz ustawienia", command=self.save_callback)
+        save_button.pack(side="left", padx=5)
+        
         # Create frame for checkboxes
-        frame = ttk.LabelFrame(self.parent, text="Wyklucz te foldery:", padding=5)
-        frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        checkbox_frame = ttk.LabelFrame(container_frame, text="Wyklucz te foldery:", padding=5)
+        checkbox_frame.grid(row=1, column=0, columnspan=3, sticky="ew")
         
         # Create checkboxes in multiple columns if there are many folders
         max_columns = 3
@@ -125,7 +144,7 @@ class MailSearchUI:
             column = i // folders_per_column
             
             checkbox = ttk.Checkbutton(
-                frame, 
+                checkbox_frame, 
                 text=folder_name, 
                 variable=var
             )
@@ -133,6 +152,13 @@ class MailSearchUI:
         
         # Configure grid weights for the frame
         for col in range(max_columns):
-            frame.columnconfigure(col, weight=1)
+            checkbox_frame.columnconfigure(col, weight=1)
         
-        return frame
+        container_frame.columnconfigure(0, weight=1)
+        
+        return container_frame
+    
+    def update_toggle_button_text(self, is_visible):
+        """Update toggle button text based on visibility state"""
+        if self.toggle_button:
+            self.toggle_button.config(text="Ukryj" if is_visible else "Wyświetl")
