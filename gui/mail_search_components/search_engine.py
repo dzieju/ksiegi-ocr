@@ -53,10 +53,19 @@ class EmailSearchEngine:
         
         if field_name not in self._valid_fields:
             log(f"OSTRZEŻENIE: Pole '{field_name}' nie istnieje w Message.FIELDS!")
-            log(f"Dostępne pola: {sorted(self._valid_fields)}")
+            log(f"Dostępne pola Message obejmują: {', '.join(sorted(list(self._valid_fields)[:10]))}...")
+            if len(self._valid_fields) > 10:
+                log(f"Oraz {len(self._valid_fields) - 10} dodatkowych pól. Pełna lista w logach inicjalizacji.")
+            
+            # Suggest alternatives for common mistakes
+            if field_name == 'folder_path':
+                log("PORADA: folder_path to kryterium UI, nie pole Message. Użyj subject/sender/datetime_received dla filtrowania.")
+            elif field_name.startswith('_'):
+                log("PORADA: Pola rozpoczynające się od '_' nie są prawidłowymi polami Message.")
+            
             return False
         
-        log(f"Pole '{field_name}' zweryfikowane jako prawidłowe")
+        log(f"✓ Pole '{field_name}' zweryfikowane jako prawidłowe pole Message")
         return True
     
     def _create_safe_filter(self, field_name, field_value, lookup_type='exact'):
@@ -180,17 +189,42 @@ class EmailSearchEngine:
             
             # Check for and warn about any invalid field attempts
             log("=== WALIDACJA KRYTERIÓW WYSZUKIWANIA ===")
-            for key in criteria.keys():
+            invalid_field_warnings = []
+            valid_field_count = 0
+            
+            for key, value in criteria.items():
                 if key.startswith('_'):
-                    log(f"OSTRZEŻENIE: Wykryto potencjalne nieprawidłowe pole w kryteriach: '{key}'")
+                    invalid_field_warnings.append(f"OSTRZEŻENIE: Wykryto nieprawidłowe pole prywatne w kryteriach: '{key}'")
                     if key == '_search_folder':
-                        log("OSTRZEŻENIE: '_search_folder' nie jest prawidłowym polem Message i nie może być używane w filtrach!")
-                    if key == '_folder_reference':
-                        log("OSTRZEŻENIE: '_folder_reference' nie jest prawidłowym polem Message i nie może być używane w filtrach!")
-                        log("POPRAWKA: Foldery są określane przez folder_path, nie przez atrybuty wiadomości")
-                elif key not in ['folder_path', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
-                                'attachment_name', 'attachment_extension', 'selected_period'] and key not in self._valid_fields:
-                    log(f"OSTRZEŻENIE: Pole '{key}' może nie być prawidłowe. Dostępne pola Message: {sorted(list(self._valid_fields)[:10])}...")
+                        invalid_field_warnings.append("  └── '_search_folder' nie jest prawidłowym polem Message. Użyj 'folder_path' zamiast tego.")
+                    elif key == '_folder_reference':
+                        invalid_field_warnings.append("  └── '_folder_reference' nie jest prawidłowym polem Message. Foldery są określane przez folder_path.")
+                    else:
+                        invalid_field_warnings.append(f"  └── Pola rozpoczynające się od '_' nie powinny być używane w filtrach wiadomości.")
+                elif key in ['folder_path', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
+                           'attachment_name', 'attachment_extension', 'selected_period']:
+                    # These are valid UI/search criteria (not Message fields)
+                    valid_field_count += 1
+                elif key in self._valid_fields:
+                    # These are valid Message fields
+                    valid_field_count += 1
+                    log(f"✓ Pole '{key}' zweryfikowane jako prawidłowe pole Message")
+                else:
+                    # This might be an invalid field
+                    invalid_field_warnings.append(f"OSTRZEŻENIE: Pole '{key}' nie zostało znalezione w Message.FIELDS!")
+                    invalid_field_warnings.append(f"  └── Dostępne pola Message: {', '.join(sorted(list(self._valid_fields)[:15]))}...")
+                    if len(self._valid_fields) > 15:
+                        invalid_field_warnings.append(f"  └── I {len(self._valid_fields) - 15} więcej pól...")
+            
+            # Log all validation warnings
+            if invalid_field_warnings:
+                log(f"Znaleziono {len(invalid_field_warnings)} ostrzeżeń walidacyjnych:")
+                for warning in invalid_field_warnings:
+                    log(warning)
+            else:
+                log("✓ Wszystkie pola w kryteriach wyszukiwania są prawidłowe")
+            
+            log(f"Podsumowanie walidacji: {valid_field_count} prawidłowych pól, {len(invalid_field_warnings)} ostrzeżeń")
             
             # Log which criteria will be used for filtering
             valid_criteria_count = 0
@@ -223,6 +257,7 @@ class EmailSearchEngine:
             log("=== PRZESZUKIWANIE FOLDERÓW ===")
             all_messages = []
             folder_results = {}  # Track results per folder
+            message_to_folder_map = {}  # Map message IDs to their folder paths (avoid modifying message objects)
             
             for idx, search_folder in enumerate(folders_to_search):
                 if self.search_cancelled:
@@ -293,11 +328,13 @@ class EmailSearchEngine:
                     log(f"  - Po limicie folderu: {len(folder_messages)}")
                     log(f"  - Strategia pobierania: {'z filtrami' if query_success else 'wszystkie (fallback)'}")
                     
-                    # Add folder information to each message (use safe attribute name)
-                    # NOTE: _folder_reference is ONLY for internal reference, NOT for filtering!
-                    # Filters should only use fields from Message.FIELDS (subject, sender, etc.)
+                    # Map each message to its folder path (DO NOT modify message objects)
+                    # This avoids adding non-standard fields like _folder_reference to Message objects
+                    folder_path_for_display = self._get_folder_path(search_folder)
                     for message in folder_messages:
-                        message._folder_reference = search_folder  # Store folder reference for display purposes only
+                        # Use message ID or object reference as key to map to folder path
+                        message_key = getattr(message, 'id', id(message))
+                        message_to_folder_map[message_key] = folder_path_for_display
                     
                     all_messages.extend(folder_messages)
                     
@@ -462,8 +499,9 @@ class EmailSearchEngine:
                         else:
                             sender_display = str(message.sender)
                     
-                    # Get folder path for this specific message
-                    message_folder_path = self._get_folder_path(getattr(message, '_folder_reference', None))
+                    # Get folder path for this specific message from our mapping
+                    message_key = getattr(message, 'id', id(message))
+                    message_folder_path = message_to_folder_map.get(message_key, 'Skrzynka odbiorcza')
                     
                     result_info = {
                         'datetime_received': message.datetime_received,
