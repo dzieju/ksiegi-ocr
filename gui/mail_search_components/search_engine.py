@@ -126,12 +126,15 @@ class EmailSearchEngine:
             
             # Get folder path for recursive search
             folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+            excluded_folders = criteria.get('excluded_folders', '')
             log(f"Ścieżka bazowego folderu: '{folder_path}'")
+            if excluded_folders:
+                log(f"Foldery do wykluczenia: '{excluded_folders}'")
             
             self.progress_callback("Zbieranie folderów do przeszukiwania...")
             
             # Get all folders to search (base folder + all subfolders)
-            folders_to_search = connection.get_folder_with_subfolders(account, folder_path)
+            folders_to_search = connection.get_folder_with_subfolders(account, folder_path, excluded_folders)
             
             if not folders_to_search:
                 log("BŁĄD: Nie znaleziono folderów do przeszukiwania")
@@ -204,7 +207,7 @@ class EmailSearchEngine:
                         invalid_field_warnings.append("  └── '_folder_reference' nie jest prawidłowym polem Message. Foldery są określane przez folder_path.")
                     else:
                         invalid_field_warnings.append(f"  └── Pola rozpoczynające się od '_' nie powinny być używane w filtrach wiadomości.")
-                elif key in ['folder_path', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
+                elif key in ['folder_path', 'excluded_folders', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
                            'attachment_name', 'attachment_extension', 'selected_period']:
                     # These are valid UI/search criteria (not Message fields)
                     valid_field_count += 1
