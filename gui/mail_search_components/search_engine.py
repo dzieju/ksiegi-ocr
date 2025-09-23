@@ -52,35 +52,56 @@ class EmailSearchEngine:
                 raise Exception("Nie znaleziono folderów do przeszukiwania")
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
+            print(f"Debug: Found {len(folders_to_search)} folders to search")
             
             # Build search query
             query_filters = []
             
-            # Subject filter
+            # Subject filter - test both icontains and contains to see which works
             if criteria.get('subject_search'):
-                query_filters.append(Q(subject__icontains=criteria['subject_search']))
+                try:
+                    # Try the original approach first
+                    subject_filter = Q(subject__icontains=criteria['subject_search'])
+                    query_filters.append(subject_filter)
+                    print(f"Debug: Added subject filter for: {criteria['subject_search']}")
+                except Exception as e:
+                    print(f"Debug: Error with subject__icontains, trying subject__contains: {e}")
+                    try:
+                        subject_filter = Q(subject__contains=criteria['subject_search'])
+                        query_filters.append(subject_filter)
+                        print(f"Debug: Added subject filter (contains) for: {criteria['subject_search']}")
+                    except Exception as e2:
+                        print(f"Debug: Error with subject filters: {e2}")
             
             # Sender filter
             if criteria.get('sender'):
-                query_filters.append(Q(sender=criteria['sender']))
+                sender_filter = Q(sender=criteria['sender'])
+                query_filters.append(sender_filter)
+                print(f"Debug: Added sender filter for: {criteria['sender']}")
             
             # Unread filter
             if criteria.get('unread_only'):
-                query_filters.append(Q(is_read=False))
+                unread_filter = Q(is_read=False)
+                query_filters.append(unread_filter)
+                print("Debug: Added unread filter")
             
             # Date period filter
             if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
                 start_date = self._get_period_start_date(criteria['selected_period'])
                 if start_date:
-                    query_filters.append(Q(datetime_received__gte=start_date))
+                    date_filter = Q(datetime_received__gte=start_date)
+                    query_filters.append(date_filter)
+                    print(f"Debug: Added date filter from: {start_date}")
             
             # Combine filters
             if query_filters:
                 combined_query = query_filters[0]
                 for query_filter in query_filters[1:]:
                     combined_query &= query_filter
+                print(f"Debug: Created combined query with {len(query_filters)} filters")
             else:
                 combined_query = None
+                print("Debug: No filters applied, will search all messages")
             
             # Search across all folders
             all_messages = []
@@ -94,20 +115,29 @@ class EmailSearchEngine:
                     
                     if combined_query:
                         messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                        print(f"Debug: Filtering folder {search_folder.name} with query")
                     else:
                         messages = search_folder.all().order_by('-datetime_received')
+                        print(f"Debug: Getting all messages from folder {search_folder.name}")
                     
-                    # Limit messages per folder to maintain performance
-                    folder_messages = list(messages[:100])  # Limit per folder
+                    # Convert QuerySet to list and limit messages per folder to maintain performance
+                    # Use list() on the QuerySet directly instead of slicing first
+                    messages_list = list(messages)
+                    print(f"Debug: Found {len(messages_list)} messages in folder {search_folder.name}")
+                    folder_messages = messages_list[:100]  # Limit per folder after converting to list
                     
                     # Add folder information to each message
                     for message in folder_messages:
                         message._search_folder = search_folder  # Store folder reference
                     
                     all_messages.extend(folder_messages)
+                    print(f"Debug: Added {len(folder_messages)} messages from folder {search_folder.name}, total so far: {len(all_messages)}")
                     
                 except Exception as e:
-                    # Skip folders that cause errors (might be inaccessible)
+                    # Log the error but continue with other folders
+                    error_msg = f"Błąd w folderze {search_folder.name}: {str(e)}"
+                    self.progress_callback(error_msg)
+                    print(f"Debug: {error_msg}")
                     continue
             
             # Sort all messages by date

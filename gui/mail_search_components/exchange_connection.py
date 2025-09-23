@@ -90,10 +90,14 @@ class ExchangeConnection:
         """Get folder and all its subfolders recursively"""
         base_folder = self.get_folder_by_path(account, folder_path)
         if not base_folder:
+            print(f"Warning: get_folder_by_path returned None for path: {folder_path}")
             return []
         
+        print(f"Debug: Base folder found: {base_folder.name if hasattr(base_folder, 'name') else 'unknown'}")
         folders = [base_folder]  # Include the base folder itself
-        folders.extend(self._get_all_subfolders_recursive(base_folder))
+        subfolders = self._get_all_subfolders_recursive(base_folder)
+        folders.extend(subfolders)
+        print(f"Debug: Total folders to search: {len(folders)}")
         return folders
     
     def _get_all_subfolders_recursive(self, folder):
@@ -106,6 +110,7 @@ class ExchangeConnection:
                 # Recursively get subfolders of this child
                 all_subfolders.extend(self._get_all_subfolders_recursive(child))
         except Exception as e:
-            # Some folders might not be accessible, continue with others
+            # Some folders might not be accessible, log the error but continue with others
+            print(f"Warning: Cannot access subfolders of {folder.name if hasattr(folder, 'name') else 'unknown folder'}: {str(e)}")
             pass
         return all_subfolders
