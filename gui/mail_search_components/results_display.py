@@ -14,7 +14,7 @@ class ResultsDisplay:
         self.parent_frame = parent_frame
         self.results_data = []
         self.current_page = 0
-        self.per_page = 20
+        self.per_page = 500
         self.total_pages = 0
         self.total_count = 0
         
@@ -91,9 +91,9 @@ class ResultsDisplay:
         
         # Results per page
         ttk.Label(self.pagination_frame, text="Wyników na stronę:").pack(side="left", padx=(20, 5))
-        self.per_page_var = tk.StringVar(value="20")
+        self.per_page_var = tk.StringVar(value="500")
         self.per_page_combo = ttk.Combobox(self.pagination_frame, textvariable=self.per_page_var, 
-                                          values=["10", "20", "50", "100"], width=5, state="readonly")
+                                          values=["500", "1000", "10000"], width=6, state="readonly")
         self.per_page_combo.pack(side="left", padx=5)
         self.per_page_combo.bind("<<ComboboxSelected>>", self.per_page_changed)
         
@@ -107,7 +107,7 @@ class ResultsDisplay:
         # Initially disable buttons
         self.update_button_states()
     
-    def display_results(self, results, page=0, per_page=20, total_count=0, total_pages=0):
+    def display_results(self, results, page=0, per_page=500, total_count=0, total_pages=0):
         """Display search results in the tree"""
         self.results_data = results
         self.current_page = page
