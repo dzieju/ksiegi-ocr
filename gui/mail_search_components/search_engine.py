@@ -3,6 +3,7 @@ Email search engine for mail search functionality
 """
 import threading
 import queue
+import os
 from datetime import datetime, timedelta, timezone
 from exchangelib import Q, Message
 from tools.logger import log
@@ -31,6 +32,11 @@ class EmailSearchEngine:
         self.search_cancelled = False
         self.search_thread = None
         self.pdf_processor = PDFProcessor()
+        
+        # PDF auto-save support
+        self.auto_save_pdfs = False
+        self.pdf_save_directory = None
+        self.saved_pdf_count = 0
         
         # Cache valid Message field names for validation
         self._valid_fields = self._get_valid_message_fields()
@@ -422,11 +428,29 @@ class EmailSearchEngine:
             has_attachment_filter = criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension')
             has_pdf_search = pdf_search_text is not None and len(pdf_search_text) > 0
             
+            # Setup PDF auto-save if PDF search is enabled
+            if has_pdf_search:
+                self.auto_save_pdfs = True
+                self.pdf_save_directory = os.path.join(os.getcwd(), "odczyty", "Faktury")
+                self.saved_pdf_count = 0
+                
+                # Create output directory if it doesn't exist
+                try:
+                    os.makedirs(self.pdf_save_directory, exist_ok=True)
+                    log(f"Przygotowano folder do automatycznego zapisu PDFów: {self.pdf_save_directory}")
+                except Exception as e:
+                    log(f"BŁĄD: Nie można utworzyć folderu {self.pdf_save_directory}: {e}")
+                    self.progress_callback(f"BŁĄD: Nie można utworzyć folderu dla PDFów: {e}")
+                    self.auto_save_pdfs = False
+            else:
+                self.auto_save_pdfs = False
+                
             log("=== ETAPY FILTROWANIA ===")
             log(f"Wiadomości przed filtrowaniem: {len(total_messages)}")
             log(f"Kryteria filtrowania:")
             log(f"  - Filtr tematu: {'TAK (' + subject_search + ')' if subject_search else 'NIE'}")
             log(f"  - Wyszukiwanie w PDF: {'TAK (' + pdf_search_text + ')' if has_pdf_search else 'NIE'}")
+            log(f"  - Automatyczny zapis PDFów: {'TAK' if self.auto_save_pdfs else 'NIE'}")
             log(f"  - Filtry załączników: {'TAK' if has_attachment_filter else 'NIE'}")
             if has_attachment_filter:
                 if criteria.get('attachments_required'):
@@ -585,6 +609,18 @@ class EmailSearchEngine:
             log(f"Wiadomości po limitach i filtrach: {len(filtered_messages)}")
             log(f"Wiadomości na tej stronie: {len(results)}")
             log(f"Strona {page + 1} z {(len(filtered_messages) + per_page - 1) // per_page}")
+            
+            # Report PDF auto-save summary if enabled
+            if self.auto_save_pdfs and has_pdf_search:
+                if self.saved_pdf_count > 0:
+                    summary_msg = f"Automatycznie zapisano {self.saved_pdf_count} plików PDF do: {self.pdf_save_directory}"
+                    log(summary_msg)
+                    self.progress_callback(summary_msg)
+                else:
+                    summary_msg = f"Nie znaleziono plików PDF zawierających '{pdf_search_text}'"
+                    log(summary_msg)
+                    self.progress_callback(summary_msg)
+            
             log("=== KONIEC WYSZUKIWANIA ===")
             
             self.result_callback({
@@ -733,6 +769,31 @@ class EmailSearchEngine:
                     'method': result.get('method', 'unknown'),
                     'matches': result.get('matches', [])
                 })
+                
+                # Auto-save PDF if enabled
+                if self.auto_save_pdfs and self.pdf_save_directory:
+                    try:
+                        # Create safe filename (remove/replace problematic characters)
+                        safe_filename = "".join(c for c in attachment_name if c.isalnum() or c in (' ', '.', '_', '-', '(', ')'))
+                        if not safe_filename:
+                            safe_filename = f"attachment_{self.saved_pdf_count + 1}.pdf"
+                        
+                        output_path = os.path.join(self.pdf_save_directory, safe_filename)
+                        
+                        # Write PDF content to file (overwrite if exists to avoid duplicates)
+                        with open(output_path, 'wb') as f:
+                            f.write(attachment.content)
+                        
+                        self.saved_pdf_count += 1
+                        
+                        # Log successful save
+                        subject = (message.subject[:50] + "...") if message.subject and len(message.subject) > 50 else (message.subject or "Bez tematu")
+                        log(f"Auto-zapisano PDF: {safe_filename} (z wiadomości: {subject})")
+                        self.progress_callback(f"Zapisano: {safe_filename}")
+                        
+                    except Exception as e:
+                        log(f"BŁĄD auto-zapisu PDF {attachment_name}: {e}")
+                        # Don't stop processing, just log the error
         
         if found_attachment_names:
             return {

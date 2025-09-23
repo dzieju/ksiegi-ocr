@@ -45,7 +45,6 @@ class MailSearchTab(ttk.Frame):
         # Threading support
         self.result_queue = queue.Queue()
         self.progress_queue = queue.Queue()
-        self.pdf_save_thread = None
         
         # Initialize components
         self.connection = ExchangeConnection()
@@ -62,7 +61,7 @@ class MailSearchTab(ttk.Frame):
         
     def create_widgets(self):
         """Create all widgets using UI builder"""
-        self.save_pdf_button = self.ui_builder.create_search_criteria_widgets(self.save_matching_pdfs)
+        self.ui_builder.create_search_criteria_widgets()
         self.ui_builder.create_date_period_widgets()
         
         self.search_button, self.status_label = self.ui_builder.create_control_widgets(self.toggle_search)
@@ -297,161 +296,6 @@ class MailSearchTab(ttk.Frame):
                 toggle_button.config(text="Ukryj")
                 self.exclusion_section_visible = True
 
-    def save_matching_pdfs(self):
-        """Save all PDF attachments that contain the search text to /odczyty/Faktury folder"""
-        pdf_search_text = self.vars['pdf_search_text'].get().strip()
-        
-        if not pdf_search_text:
-            messagebox.showwarning("Brak tekstu wyszukiwania", "Proszę wprowadzić tekst do wyszukiwania w pliku PDF.")
-            return
-        
-        # Check if there's already a PDF save operation running
-        if hasattr(self, 'pdf_save_thread') and self.pdf_save_thread and self.pdf_save_thread.is_alive():
-            # Cancel the ongoing operation
-            self.search_engine.cancel_search()
-            self.status_label.config(text="Anulowanie zapisywania PDFów...", foreground="orange")
-            self.save_pdf_button.config(text="Zapisz PDFy")
-            return
-        
-        # Create output directory
-        output_dir = os.path.join(os.getcwd(), "odczyty", "Faktury")
-        try:
-            os.makedirs(output_dir, exist_ok=True)
-        except Exception as e:
-            messagebox.showerror("Błąd tworzenia folderu", f"Nie można utworzyć folderu {output_dir}: {e}")
-            return
-        
-        # Update status and change button to cancel mode
-        self.status_label.config(text="Wyszukiwanie i zapisywanie PDFów...", foreground="blue")
-        self.save_pdf_button.config(text="Anuluj")
-        
-        # Reset search cancelled flag
-        self.search_engine.search_cancelled = False
-        
-        # Run PDF search and save in background thread
-        self.pdf_save_thread = threading.Thread(target=self._threaded_pdf_save, args=(pdf_search_text, output_dir), daemon=True)
-        self.pdf_save_thread.start()
-    
-    def _threaded_pdf_save(self, search_text, output_dir):
-        """Search for and save matching PDFs in background thread"""
-        try:
-            # Get search criteria
-            criteria = {key: var.get() if hasattr(var, 'get') else var for key, var in self.vars.items()}
-            
-            # Connect to Exchange
-            account = self.connection.get_account()
-            if not account:
-                self._add_progress("Błąd: Nie można nawiązać połączenia z Exchange")
-                return
-            
-            # Get folders to search using the same method as the search engine
-            folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
-            excluded_folders = criteria.get('excluded_folders', '')
-            
-            folders_to_search = self.connection.get_folder_with_subfolders(account, folder_path, excluded_folders)
-            if not folders_to_search:
-                self._add_progress("Błąd: Nie znaleziono folderów do przeszukania")
-                return
-            
-            saved_count = 0
-            processed_count = 0
-            total_messages = 0
-            
-            # Count total messages first
-            self._add_progress("Liczenie wiadomości do przeszukania...")
-            for folder in folders_to_search:
-                try:
-                    messages = folder.all()
-                    folder_count = len(list(messages))
-                    total_messages += folder_count
-                except:
-                    continue
-            
-            self._add_progress(f"Przeszukiwanie {total_messages} wiadomości w {len(folders_to_search)} folderach w poszukiwaniu PDFów z tekstem '{search_text}'...")
-            
-            # Process each folder
-            for folder_idx, folder in enumerate(folders_to_search):
-                if self.search_engine.search_cancelled:
-                    break
-                
-                folder_name = self.search_engine._get_folder_path(folder)
-                self._add_progress(f"Przeszukiwanie folderu {folder_idx + 1}/{len(folders_to_search)}: {folder_name}")
-                
-                try:
-                    messages = folder.all()
-                    
-                    for message in messages:
-                        if self.search_engine.search_cancelled:
-                            break
-                        
-                        processed_count += 1
-                        if processed_count % 100 == 0:
-                            self._add_progress(f"Przetworzono {processed_count}/{total_messages} wiadomości, zapisano {saved_count} PDFów")
-                        
-                        # Check if message has PDF attachments
-                        if not hasattr(message, 'attachments') or not message.attachments:
-                            continue
-                        
-                        # Process each attachment
-                        for attachment in message.attachments:
-                            if self.search_engine.search_cancelled:
-                                break
-                            
-                            # Check if attachment is PDF
-                            attachment_name = getattr(attachment, 'name', '') or ''
-                            if not attachment_name.lower().endswith('.pdf'):
-                                continue
-                            
-                            # Search for text in PDF
-                            result = self.search_engine.pdf_processor.search_in_pdf_attachment(
-                                attachment, search_text, attachment_name
-                            )
-                            
-                            if result.get('found'):
-                                # Save the PDF
-                                try:
-                                    # Create safe filename (remove/replace problematic characters)
-                                    safe_filename = "".join(c for c in attachment_name if c.isalnum() or c in (' ', '.', '_', '-', '(', ')'))
-                                    if not safe_filename:
-                                        safe_filename = f"attachment_{saved_count + 1}.pdf"
-                                    
-                                    output_path = os.path.join(output_dir, safe_filename)
-                                    
-                                    # Write PDF content to file (overwrite if exists)
-                                    with open(output_path, 'wb') as f:
-                                        f.write(attachment.content)
-                                    
-                                    saved_count += 1
-                                    subject = message.subject[:50] + "..." if len(message.subject) > 50 else message.subject
-                                    self._add_progress(f"Zapisano: {safe_filename} (z: {subject})")
-                                    
-                                except Exception as e:
-                                    self._add_progress(f"Błąd zapisywania {attachment_name}: {e}")
-                
-                except Exception as e:
-                    self._add_progress(f"Błąd przetwarzania folderu {folder_name}: {e}")
-            
-            # Final status update
-            if self.search_engine.search_cancelled:
-                self._add_progress("Operacja anulowana przez użytkownika")
-            else:
-                self._add_progress(f"Zakończono! Zapisano {saved_count} PDFów do folderu: {output_dir}")
-                if saved_count > 0:
-                    messagebox.showinfo("Zapisano PDFy", 
-                                      f"Zapisano {saved_count} plików PDF zawierających '{search_text}' do folderu:\n{output_dir}")
-                else:
-                    messagebox.showinfo("Brak wyników", 
-                                      f"Nie znaleziono plików PDF zawierających '{search_text}'")
-            
-        except Exception as e:
-            error_msg = f"Błąd podczas zapisywania PDFów: {e}"
-            self._add_progress(error_msg)
-            self.after_idle(lambda: messagebox.showerror("Błąd", error_msg))
-        
-        finally:
-            # Re-enable button and reset text
-            self.after_idle(lambda: self.save_pdf_button.config(text="Zapisz PDFy"))
-
     def search_emails(self):
         """Legacy compatibility method"""
         self.start_search()
@@ -459,7 +303,5 @@ class MailSearchTab(ttk.Frame):
     def destroy(self):
         """Cleanup on destroy"""
         if self.search_engine.search_thread and self.search_engine.search_thread.is_alive():
-            self.search_engine.cancel_search()
-        if self.pdf_save_thread and self.pdf_save_thread.is_alive():
             self.search_engine.cancel_search()
         super().destroy()
