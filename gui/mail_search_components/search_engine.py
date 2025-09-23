@@ -89,7 +89,7 @@ class EmailSearchEngine:
             log(f"BŁĄD tworzenia filtru Q({field_name}={field_value}): {str(e)}")
             return None
     
-    def search_emails_threaded(self, connection, search_criteria, page=0, per_page=20):
+    def search_emails_threaded(self, connection, search_criteria, page=0, per_page=500):
         """Start threaded email search"""
         self.search_cancelled = False
         
@@ -104,7 +104,7 @@ class EmailSearchEngine:
         """Cancel ongoing search"""
         self.search_cancelled = True
     
-    def _threaded_search(self, connection, criteria, page=0, per_page=20):
+    def _threaded_search(self, connection, criteria, page=0, per_page=500):
         """Main search logic running in background thread"""
         try:
             # Log search start

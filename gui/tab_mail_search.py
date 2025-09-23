@@ -27,7 +27,7 @@ class MailSearchTab(ttk.Frame):
         
         # Pagination state
         self.current_page = 0
-        self.per_page = 20
+        self.per_page = 500
         
         # Threading support
         self.result_queue = queue.Queue()
@@ -132,7 +132,7 @@ class MailSearchTab(ttk.Frame):
             self.results_display.display_results(
                 result['results'], 
                 result.get('page', 0), 
-                result.get('per_page', 20),
+                result.get('per_page', 500),
                 result.get('total_count', result['count']),
                 result.get('total_pages', 1)
             )
