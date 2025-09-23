@@ -202,8 +202,8 @@ class ResultsDisplay:
             safe_id = "".join(c for c in str(message_id) if c.isalnum() or c in (' ', '.', '_', '-'))[:50]
             temp_file = os.path.join(self.temp_dir, f"email_{safe_id}.eml")
             
-            # Write EML file
-            with open(temp_file, 'w', encoding='utf-8') as f:
+            # Write EML file - use binary mode to handle attachments properly
+            with open(temp_file, 'w', encoding='utf-8', newline='\r\n') as f:
                 f.write(eml_content)
             
             # Verify file was created
@@ -221,14 +221,21 @@ class ResultsDisplay:
             messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości: {str(e)}")
     
     def _create_eml_content(self, message, result):
-        """Create proper EML format content for email"""
+        """Create proper EML format content for email with attachments"""
+        import base64
+        import uuid
+        from email.utils import formatdate
+        
+        # Generate boundary for multipart content
+        boundary = f"----=_Part_{uuid.uuid4().hex}"
+        
         # Start with basic headers
         eml_lines = []
         
         # Required headers
         eml_lines.append(f"From: {result['sender']}")
         eml_lines.append(f"Subject: {result['subject']}")
-        eml_lines.append(f"Date: {result['datetime_received']}")
+        eml_lines.append(f"Date: {formatdate(localtime=True)}")
         
         # Additional headers if available
         if hasattr(message, 'to_recipients') and message.to_recipients:
@@ -255,18 +262,80 @@ class ResultsDisplay:
         if hasattr(message, 'message_id') and message.message_id:
             eml_lines.append(f"Message-ID: {message.message_id}")
         
-        # Content type
-        eml_lines.append("Content-Type: text/plain; charset=utf-8")
-        eml_lines.append("Content-Transfer-Encoding: 8bit")
+        # Check if we have attachments
+        has_attachments = result.get('has_attachments', False) and result.get('attachments')
         
-        # Empty line separating headers from body
-        eml_lines.append("")
-        
-        # Body content
-        if hasattr(message, 'text_body') and message.text_body:
-            eml_lines.append(message.text_body)
+        if has_attachments:
+            # Multipart message with attachments
+            eml_lines.append("MIME-Version: 1.0")
+            eml_lines.append(f"Content-Type: multipart/mixed; boundary=\"{boundary}\"")
+            eml_lines.append("")
+            eml_lines.append("This is a multi-part message in MIME format.")
+            eml_lines.append("")
+            
+            # Add text body part
+            eml_lines.append(f"--{boundary}")
+            eml_lines.append("Content-Type: text/plain; charset=utf-8")
+            eml_lines.append("Content-Transfer-Encoding: 8bit")
+            eml_lines.append("")
+            
+            if hasattr(message, 'text_body') and message.text_body:
+                eml_lines.append(message.text_body)
+            else:
+                eml_lines.append('Brak zawartości tekstowej')
+            eml_lines.append("")
+            
+            # Add each attachment
+            for attachment in result.get('attachments', []):
+                try:
+                    if hasattr(attachment, 'name') and hasattr(attachment, 'content'):
+                        eml_lines.append(f"--{boundary}")
+                        
+                        # Determine content type
+                        filename = attachment.name or "attachment.bin"
+                        if filename.lower().endswith(('.jpg', '.jpeg')):
+                            content_type = "image/jpeg"
+                        elif filename.lower().endswith('.png'):
+                            content_type = "image/png"
+                        elif filename.lower().endswith('.pdf'):
+                            content_type = "application/pdf"
+                        elif filename.lower().endswith(('.doc', '.docx')):
+                            content_type = "application/msword"
+                        elif filename.lower().endswith(('.xls', '.xlsx')):
+                            content_type = "application/vnd.ms-excel"
+                        else:
+                            content_type = "application/octet-stream"
+                        
+                        eml_lines.append(f"Content-Type: {content_type}; name=\"{filename}\"")
+                        eml_lines.append("Content-Transfer-Encoding: base64")
+                        eml_lines.append(f"Content-Disposition: attachment; filename=\"{filename}\"")
+                        eml_lines.append("")
+                        
+                        # Encode attachment content as base64
+                        encoded_content = base64.b64encode(attachment.content).decode('ascii')
+                        # Split into 76-character lines as per RFC
+                        for i in range(0, len(encoded_content), 76):
+                            eml_lines.append(encoded_content[i:i+76])
+                        eml_lines.append("")
+                        
+                except Exception as e:
+                    # Skip problematic attachments
+                    continue
+            
+            # Close multipart
+            eml_lines.append(f"--{boundary}--")
+            
         else:
-            eml_lines.append('Brak zawartości tekstowej')
+            # Simple message without attachments
+            eml_lines.append("Content-Type: text/plain; charset=utf-8")
+            eml_lines.append("Content-Transfer-Encoding: 8bit")
+            eml_lines.append("")
+            
+            # Body content
+            if hasattr(message, 'text_body') and message.text_body:
+                eml_lines.append(message.text_body)
+            else:
+                eml_lines.append('Brak zawartości tekstowej')
         
         return '\n'.join(eml_lines)
     

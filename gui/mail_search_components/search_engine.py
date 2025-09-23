@@ -35,8 +35,8 @@ class EmailSearchEngine:
     def _threaded_search(self, connection, folder, criteria, page=0, per_page=20):
         """Main search logic running in background thread"""
         try:
-            # Get folder path from criteria or detect it from folder object
-            folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+            # Get actual folder path from folder object
+            folder_path = self._get_folder_path(folder)
             
             # Build search query
             query_filters = []
@@ -173,6 +173,54 @@ class EmailSearchEngine:
                 return None
         except Exception:
             return None
+
+    def _get_folder_path(self, folder):
+        """Get the full folder path from folder object"""
+        try:
+            if not folder:
+                return 'Skrzynka odbiorcza'
+            
+            # Build path by traversing up the folder hierarchy
+            path_parts = []
+            current_folder = folder
+            is_inbox_child = False
+            
+            while current_folder and hasattr(current_folder, 'name'):
+                folder_name = current_folder.name
+                
+                # Check if this is an inbox folder
+                if folder_name.lower() in ['inbox', 'skrzynka odbiorcza']:
+                    # If this is the target folder itself, return inbox name
+                    if current_folder == folder:
+                        return 'Skrzynka odbiorcza'
+                    else:
+                        # This is a parent inbox, mark as inbox child
+                        is_inbox_child = True
+                        break
+                
+                path_parts.insert(0, folder_name)
+                
+                # Move to parent folder
+                if hasattr(current_folder, 'parent') and current_folder.parent:
+                    current_folder = current_folder.parent
+                else:
+                    break
+            
+            if not path_parts:
+                return 'Skrzynka odbiorcza'
+            
+            # Create the full path
+            if is_inbox_child:
+                return '/Odebrane/' + '/'.join(path_parts)
+            else:
+                return '/' + '/'.join(path_parts)
+                
+        except Exception as e:
+            # Fallback to folder name or generic name
+            try:
+                return folder.name if hasattr(folder, 'name') else 'Skrzynka odbiorcza'
+            except:
+                return 'Skrzynka odbiorcza'
     
     def _check_attachment_filters(self, message, criteria):
         """Check if message meets attachment criteria"""
