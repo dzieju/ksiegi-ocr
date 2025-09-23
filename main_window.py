@@ -17,13 +17,13 @@ class MainWindow(tk.Tk):
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
 
+        # Zakładka: Przeszukiwanie Poczty (pierwsza)
+        mail_search_tab = MailSearchTab(notebook)
+        notebook.add(mail_search_tab, text="Przeszukiwanie Poczty")
+
         # Zakładka: Konfiguracja poczty
         exchange_tab = ExchangeConfigTab(notebook)
         notebook.add(exchange_tab, text="Konfiguracja poczty")
-
-        # Zakładka: Przeszukiwanie Poczty
-        mail_search_tab = MailSearchTab(notebook)
-        notebook.add(mail_search_tab, text="Przeszukiwanie Poczty")
 
 if __name__ == "__main__":
     app = MainWindow()

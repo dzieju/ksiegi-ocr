@@ -181,6 +181,15 @@ class EmailSearchEngine:
                 else:
                     log(f"POMINIĘTO nieprawidłowy filtr tematu")
             
+            # Body filter - use case-insensitive contains
+            if criteria.get('body_search'):
+                body_filter = self._create_safe_filter('body', criteria['body_search'], 'icontains')
+                if body_filter:
+                    query_filters.append(body_filter)
+                    log(f"Dodano filtr treści (case-insensitive): '{criteria['body_search']}'")
+                else:
+                    log(f"POMINIĘTO nieprawidłowy filtr treści")
+            
             # Sender filter
             if criteria.get('sender'):
                 sender_filter = self._create_safe_filter('sender', criteria['sender'], 'icontains')
@@ -229,7 +238,7 @@ class EmailSearchEngine:
                         invalid_field_warnings.append("  └── '_folder_reference' nie jest prawidłowym polem Message. Foldery są określane przez folder_path.")
                     else:
                         invalid_field_warnings.append(f"  └── Pola rozpoczynające się od '_' nie powinny być używane w filtrach wiadomości.")
-                elif key in ['folder_path', 'excluded_folders', 'subject_search', 'pdf_search_text', 'sender', 'unread_only', 'attachments_required', 
+                elif key in ['folder_path', 'excluded_folders', 'subject_search', 'body_search', 'pdf_search_text', 'sender', 'unread_only', 'attachments_required', 
                            'attachment_name', 'attachment_extension', 'selected_period']:
                     # These are valid UI/search criteria (not Message fields)
                     valid_field_count += 1
@@ -258,6 +267,9 @@ class EmailSearchEngine:
             valid_criteria_count = 0
             if criteria.get('subject_search'):
                 log(f"✓ Używam filtru tematu: '{criteria['subject_search']}'")
+                valid_criteria_count += 1
+            if criteria.get('body_search'):
+                log(f"✓ Używam filtru treści: '{criteria['body_search']}'")
                 valid_criteria_count += 1
             if criteria.get('sender'):
                 log(f"✓ Używam filtru nadawcy: '{criteria['sender']}'")
@@ -425,6 +437,7 @@ class EmailSearchEngine:
             # Filter by attachment criteria if needed  
             filtered_messages = []
             subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
+            body_search = criteria.get('body_search', '').lower() if criteria.get('body_search') else None
             pdf_search_text = criteria.get('pdf_search_text', '').strip() if criteria.get('pdf_search_text') else None
             has_attachment_filter = criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension')
             has_pdf_search = pdf_search_text is not None and len(pdf_search_text) > 0
@@ -450,6 +463,7 @@ class EmailSearchEngine:
             log(f"Wiadomości przed filtrowaniem: {len(total_messages)}")
             log(f"Kryteria filtrowania:")
             log(f"  - Filtr tematu: {'TAK (' + subject_search + ')' if subject_search else 'NIE'}")
+            log(f"  - Filtr treści: {'TAK (' + body_search + ')' if body_search else 'NIE'}")
             log(f"  - Wyszukiwanie w PDF: {'TAK (' + pdf_search_text + ')' if has_pdf_search else 'NIE'}")
             log(f"  - Automatyczny zapis PDFów: {'TAK' if self.auto_save_pdfs else 'NIE'}")
             log(f"  - Filtry załączników: {'TAK' if has_attachment_filter else 'NIE'}")
@@ -463,6 +477,7 @@ class EmailSearchEngine:
             
             # Track filtering statistics
             subject_filtered_out = 0
+            body_filtered_out = 0
             attachment_filtered_out = 0
             pdf_search_filtered_out = 0
             processing_errors = 0
@@ -479,6 +494,13 @@ class EmailSearchEngine:
                         message_subject = (message.subject or '').lower()
                         if subject_search not in message_subject:
                             subject_filtered_out += 1
+                            continue
+                    
+                    # Manual body filtering (case-insensitive)
+                    if body_search:
+                        message_body = (message.body or '').lower()
+                        if body_search not in message_body:
+                            body_filtered_out += 1
                             continue
                     
                     # Check attachment filters if needed
@@ -518,6 +540,8 @@ class EmailSearchEngine:
             log(f"  - Wiadomości po filtrach: {len(filtered_messages)}")
             if subject_search:
                 log(f"  - Odrzucone przez filtr tematu: {subject_filtered_out}")
+            if body_search:
+                log(f"  - Odrzucone przez filtr treści: {body_filtered_out}")
             if has_attachment_filter:
                 log(f"  - Odrzucone przez filtry załączników: {attachment_filtered_out}")
             if has_pdf_search:
