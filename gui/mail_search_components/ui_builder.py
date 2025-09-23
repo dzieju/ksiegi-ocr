@@ -113,7 +113,7 @@ class MailSearchUI:
         
         return results_frame
     
-    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars, hide_callback=None, uncheck_all_callback=None, is_visible=True):
+    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars, hide_callback=None, uncheck_all_callback=None, check_all_callback=None, is_visible=True):
         """Create checkboxes for folder exclusion with hide/show functionality"""
         if not folders:
             return None, None
@@ -141,11 +141,17 @@ class MailSearchUI:
         save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
         save_button.grid(row=0, column=2, sticky="e", padx=(5, 0))
         
+        # Check all button
+        check_all_button = ttk.Button(header_frame, text="Zaznacz wszystko", width=15)
+        if check_all_callback:
+            check_all_button.config(command=check_all_callback)
+        check_all_button.grid(row=0, column=3, sticky="e", padx=(5, 0))
+        
         # Uncheck all button
         uncheck_all_button = ttk.Button(header_frame, text="Odznacz wszystkie", width=15)
         if uncheck_all_callback:
             uncheck_all_button.config(command=uncheck_all_callback)
-        uncheck_all_button.grid(row=0, column=3, sticky="e", padx=(5, 0))
+        uncheck_all_button.grid(row=0, column=4, sticky="e", padx=(5, 0))
         
         # Configure header grid
         header_frame.grid_columnconfigure(0, weight=1)
@@ -183,4 +189,4 @@ class MailSearchUI:
         # Configure main container grid
         container_frame.grid_columnconfigure(0, weight=1)
         
-        return container_frame, (toggle_button, save_button, uncheck_all_button, checkboxes_frame)
+        return container_frame, (toggle_button, save_button, check_all_button, uncheck_all_button, checkboxes_frame)
