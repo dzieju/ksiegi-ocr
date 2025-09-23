@@ -92,6 +92,8 @@ class MailSearchTab(ttk.Frame):
     
     def _add_progress(self, message):
         """Add progress to queue"""
+        # Also print to console for debugging
+        print(f"[MAIL SEARCH] {message}")
         self.progress_queue.put(message)
     
     def _add_result(self, result):

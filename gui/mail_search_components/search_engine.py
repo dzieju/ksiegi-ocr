@@ -6,6 +6,7 @@ import queue
 from datetime import datetime, timedelta, timezone
 from tkinter import messagebox
 from exchangelib import Q
+from tools.logger import log
 
 
 class EmailSearchEngine:
@@ -35,13 +36,23 @@ class EmailSearchEngine:
     def _threaded_search(self, connection, criteria, page=0, per_page=20):
         """Main search logic running in background thread"""
         try:
+            # Log search start
+            search_params = {k: v for k, v in criteria.items() if k != 'password'}  # Exclude sensitive data
+            log(f"=== ROZPOCZĘCIE WYSZUKIWANIA EMAIL ===")
+            log(f"Parametry wyszukiwania: {search_params}")
+            log(f"Paginacja: strona {page}, na stronie {per_page}")
+            
             # Get account for folder operations
             account = connection.get_account()
             if not account:
+                log("BŁĄD: Nie można nawiązać połączenia z serwerem poczty")
                 raise Exception("Nie można nawiązać połączenia z serwerem poczty")
+            
+            log(f"Połączono z kontem: {account.primary_smtp_address}")
             
             # Get folder path for recursive search
             folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+            log(f"Ścieżka bazowego folderu: '{folder_path}'")
             
             self.progress_callback("Zbieranie folderów do przeszukiwania...")
             
@@ -49,28 +60,36 @@ class EmailSearchEngine:
             folders_to_search = connection.get_folder_with_subfolders(account, folder_path)
             
             if not folders_to_search:
+                log("BŁĄD: Nie znaleziono folderów do przeszukiwania")
                 raise Exception("Nie znaleziono folderów do przeszukiwania")
+            
+            log(f"Znaleziono {len(folders_to_search)} folderów do przeszukiwania:")
+            for i, folder in enumerate(folders_to_search, 1):
+                log(f"  {i}. {folder.name}")
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             
             # Build search query - use simple, reliable approaches
+            log("=== BUDOWANIE ZAPYTANIA WYSZUKIWANIA ===")
             query_filters = []
             
             # Subject filter - use case-insensitive contains
             if criteria.get('subject_search'):
-                # Use subject__contains which is more widely supported than subject__icontains
                 subject_filter = Q(subject__contains=criteria['subject_search'])
                 query_filters.append(subject_filter)
+                log(f"Dodano filtr tematu: '{criteria['subject_search']}'")
             
             # Sender filter
             if criteria.get('sender'):
                 sender_filter = Q(sender=criteria['sender'])
                 query_filters.append(sender_filter)
+                log(f"Dodano filtr nadawcy: '{criteria['sender']}'")
             
             # Unread filter
             if criteria.get('unread_only'):
                 unread_filter = Q(is_read=False)
                 query_filters.append(unread_filter)
+                log("Dodano filtr nieprzeczytanych wiadomości")
             
             # Date period filter
             if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
@@ -78,42 +97,68 @@ class EmailSearchEngine:
                 if start_date:
                     date_filter = Q(datetime_received__gte=start_date)
                     query_filters.append(date_filter)
+                    log(f"Dodano filtr daty: od {start_date} (okres: {criteria['selected_period']})")
             
             # Combine filters
             if query_filters:
                 combined_query = query_filters[0]
                 for query_filter in query_filters[1:]:
                     combined_query &= query_filter
+                log(f"Utworzono złożone zapytanie z {len(query_filters)} filtrów")
             else:
                 combined_query = None
+                log("Brak filtrów - pobieranie wszystkich wiadomości")
             
             # Search across all folders
+            log("=== PRZESZUKIWANIE FOLDERÓW ===")
             all_messages = []
+            folder_results = {}  # Track results per folder
+            
             for idx, search_folder in enumerate(folders_to_search):
                 if self.search_cancelled:
+                    log("Wyszukiwanie anulowane przez użytkownika")
                     self.result_callback({'type': 'search_cancelled'})
                     return
                 
+                folder_name = search_folder.name
+                log(f"--- Folder {idx + 1}/{len(folders_to_search)}: '{folder_name}' ---")
+                
                 try:
-                    self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {search_folder.name}")
+                    self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {folder_name}")
                     
                     # Strategy: First try with query if we have one, if that fails or returns empty, try without query
                     messages_list = []
+                    query_success = False
                     
                     if combined_query:
                         try:
+                            log(f"Próba zapytania z filtrami dla folderu '{folder_name}'")
                             messages = search_folder.filter(combined_query).order_by('-datetime_received')
                             messages_list = list(messages)
-                        except Exception:
+                            query_success = True
+                            log(f"Zapytanie z filtrami: znaleziono {len(messages_list)} wiadomości")
+                        except Exception as query_error:
+                            log(f"BŁĄD zapytania z filtrami: {str(query_error)}")
                             # Query failed, fallback to getting all messages and filtering manually
+                            try:
+                                log(f"Fallback: pobieranie wszystkich wiadomości z folderu '{folder_name}'")
+                                messages = search_folder.all().order_by('-datetime_received')
+                                messages_list = list(messages)
+                                log(f"Fallback: pobrано {len(messages_list)} wszystkich wiadomości")
+                            except Exception as fallback_error:
+                                log(f"BŁĄD fallback: {str(fallback_error)}")
+                    else:
+                        try:
+                            log(f"Pobieranie wszystkich wiadomości z folderu '{folder_name}' (brak filtrów)")
                             messages = search_folder.all().order_by('-datetime_received')
                             messages_list = list(messages)
-                    else:
-                        messages = search_folder.all().order_by('-datetime_received')
-                        messages_list = list(messages)
+                            log(f"Pobrano {len(messages_list)} wszystkich wiadomości")
+                        except Exception as all_error:
+                            log(f"BŁĄD pobierania wszystkich: {str(all_error)}")
                     
                     # If we still have no messages, try alternative QuerySet conversion
                     if not messages_list:
+                        log(f"Brak wiadomości - próba alternatywnej metody iteratora")
                         try:
                             if combined_query:
                                 messages = search_folder.filter(combined_query)
@@ -122,10 +167,16 @@ class EmailSearchEngine:
                             
                             # Try iterator approach
                             messages_list = [msg for msg in messages.iterator()][:100]  # Limit during iteration
-                        except Exception:
+                            log(f"Iterator: znaleziono {len(messages_list)} wiadomości (limit 100)")
+                        except Exception as iterator_error:
+                            log(f"BŁĄD iteratora: {str(iterator_error)}")
                             pass  # Continue with empty list
                     
+                    # Apply per-folder limit
+                    original_count = len(messages_list)
                     folder_messages = messages_list[:100]  # Limit per folder after converting to list
+                    if original_count > 100:
+                        log(f"Ograniczono z {original_count} do {len(folder_messages)} wiadomości (limit na folder)")
                     
                     # Add folder information to each message
                     for message in folder_messages:
@@ -133,31 +184,75 @@ class EmailSearchEngine:
                     
                     all_messages.extend(folder_messages)
                     
+                    # Store folder results for summary
+                    folder_results[folder_name] = {
+                        'original_count': original_count,
+                        'limited_count': len(folder_messages),
+                        'query_success': query_success
+                    }
+                    
+                    log(f"Folder '{folder_name}': {len(folder_messages)} wiadomości dodano do wyników")
+                    
                 except Exception as e:
                     # Log the error but continue with other folders
-                    error_msg = f"Błąd w folderze {search_folder.name}: {str(e)}"
+                    error_msg = f"Błąd w folderze {folder_name}: {str(e)}"
+                    log(f"BŁĄD FOLDERU '{folder_name}': {str(e)}")
+                    folder_results[folder_name] = {'error': str(e)}
                     self.progress_callback(error_msg)
                     continue
+            
+            # Log folder search summary
+            log("=== PODSUMOWANIE PRZESZUKIWANIA FOLDERÓW ===")
+            total_messages_found = len(all_messages)
+            log(f"Łącznie znaleziono {total_messages_found} wiadomości ze wszystkich folderów")
+            
+            for folder_name, result in folder_results.items():
+                if 'error' in result:
+                    log(f"  {folder_name}: BŁĄD - {result['error']}")
+                else:
+                    status = "z filtrami" if result['query_success'] else "wszystkie (fallback)"
+                    if result['original_count'] != result['limited_count']:
+                        log(f"  {folder_name}: {result['limited_count']} wiadomości ({status}, ograniczone z {result['original_count']})")
+                    else:
+                        log(f"  {folder_name}: {result['limited_count']} wiadomości ({status})")
             
             # Sort all messages by date
             all_messages.sort(key=lambda m: m.datetime_received if m.datetime_received else datetime.min.replace(tzinfo=timezone.utc), reverse=True)
             
+            log("=== PRZETWARZANIE I FILTROWANIE WIADOMOŚCI ===")
             self.progress_callback("Przetwarzanie wiadomości...")
             
             # Calculate pagination
             start_idx = page * per_page
             end_idx = start_idx + per_page
+            log(f"Paginacja: indeksy {start_idx}-{end_idx}")
             
             # Limit total messages for performance (500 total across all folders)
+            original_total = len(all_messages)
             total_messages = all_messages[:500]
             total_count = len(total_messages)
+            
+            if original_total > 500:
+                log(f"Ograniczono wiadomości z {original_total} do {total_count} (limit wydajności)")
+            else:
+                log(f"Przetwarzanie {total_count} wiadomości (bez ograniczeń)")
             
             # Filter by attachment criteria if needed  
             filtered_messages = []
             subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
+            has_attachment_filter = criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension')
+            
+            log("=== ETAPY FILTROWANIA ===")
+            log(f"Wiadomości przed filtrowaniem: {len(total_messages)}")
+            
+            # Track filtering statistics
+            subject_filtered_out = 0
+            attachment_filtered_out = 0
+            processing_errors = 0
             
             for message in total_messages:
                 if self.search_cancelled:
+                    log("Filtrowanie anulowane przez użytkownika")
                     self.result_callback({'type': 'search_cancelled'})
                     return
                 
@@ -166,27 +261,47 @@ class EmailSearchEngine:
                     if subject_search:
                         message_subject = (message.subject or '').lower()
                         if subject_search not in message_subject:
+                            subject_filtered_out += 1
                             continue
                     
                     # Check attachment filters if needed
-                    if criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension'):
+                    if has_attachment_filter:
                         if not self._check_attachment_filters(message, criteria):
+                            attachment_filtered_out += 1
                             continue
+                            
                     filtered_messages.append(message)
                     
-                except Exception:
+                except Exception as filter_error:
                     # Skip messages that cause errors
+                    processing_errors += 1
+                    log(f"Błąd przetwarzania wiadomości: {str(filter_error)}")
                     continue
+            
+            # Log filtering results
+            log(f"Wyniki filtrowania:")
+            log(f"  - Wiadomości po filtrach: {len(filtered_messages)}")
+            if subject_search:
+                log(f"  - Odrzucone przez filtr tematu: {subject_filtered_out}")
+            if has_attachment_filter:
+                log(f"  - Odrzucone przez filtry załączników: {attachment_filtered_out}")
+            if processing_errors > 0:
+                log(f"  - Błędy przetwarzania: {processing_errors}")
             
             # Apply pagination to filtered messages
             paginated_messages = filtered_messages[start_idx:end_idx]
+            log(f"Wiadomości po paginacji: {len(paginated_messages)}")
             
             results = []
+            result_processing_errors = 0
+            
+            log("=== TWORZENIE WYNIKÓW ===")
             for i, message in enumerate(paginated_messages):
                 if self.search_cancelled:
+                    log("Tworzenie wyników anulowane przez użytkownika")
                     self.result_callback({'type': 'search_cancelled'})
                     return
-                
+
                 if i % 5 == 0:  # Update progress every 5 messages
                     self.progress_callback(f"Przetworzono {i + start_idx} wiadomości...")
                 
@@ -218,7 +333,21 @@ class EmailSearchEngine:
                     
                 except Exception as e:
                     # Skip messages that cause errors
+                    result_processing_errors += 1
+                    log(f"Błąd przetwarzania wyniku {i}: {str(e)}")
                     continue
+            
+            if result_processing_errors > 0:
+                log(f"Błędy przetwarzania wyników: {result_processing_errors}")
+            
+            # Log final summary
+            log("=== PODSUMOWANIE WYSZUKIWANIA ===")
+            log(f"Całkowita liczba folderów przeszukanych: {len(folders_to_search)}")
+            log(f"Wiadomości znalezione ogółem: {total_messages_found}")
+            log(f"Wiadomości po limitach i filtrach: {len(filtered_messages)}")
+            log(f"Wiadomości na tej stronie: {len(results)}")
+            log(f"Strona {page + 1} z {(len(filtered_messages) + per_page - 1) // per_page}")
+            log("=== KONIEC WYSZUKIWANIA ===")
             
             self.result_callback({
                 'type': 'search_complete',
@@ -231,6 +360,7 @@ class EmailSearchEngine:
             })
             
         except Exception as e:
+            log(f"BŁĄD KRYTYCZNY wyszukiwania: {str(e)}")
             self.result_callback({
                 'type': 'search_error',
                 'error': str(e)
