@@ -13,7 +13,7 @@ class MailSearchUI:
         self.vars = variables
         self.discover_callback = discover_callback
         
-    def create_search_criteria_widgets(self):
+    def create_search_criteria_widgets(self, save_pdf_callback=None):
         """Create search criteria input widgets"""
         # Title label
         title_label = ttk.Label(
@@ -42,6 +42,12 @@ class MailSearchUI:
         ttk.Label(self.parent, text="Wyszukaj w pliku PDF:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['pdf_search_text'], width=40).grid(row=4, column=1, padx=5, pady=5)
         
+        # Add PDF save button next to the PDF search field
+        save_pdf_button = ttk.Button(self.parent, text="Zapisz PDFy", width=12)
+        save_pdf_button.grid(row=4, column=2, padx=5, pady=5)
+        if save_pdf_callback:
+            save_pdf_button.config(command=save_pdf_callback)
+        
         ttk.Label(self.parent, text="Nadawca maila:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=5, column=1, padx=5, pady=5)
         
@@ -55,6 +61,8 @@ class MailSearchUI:
         
         ttk.Label(self.parent, text="Rozszerzenie załącznika:").grid(row=8, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['attachment_extension'], width=40).grid(row=8, column=1, padx=5, pady=5)
+    
+        return save_pdf_button
     
     def create_date_period_widgets(self):
         """Create date period selection widgets"""
