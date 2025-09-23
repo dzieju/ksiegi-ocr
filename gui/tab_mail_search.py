@@ -2,11 +2,15 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import queue
 import threading
+import json
+import os
 
 from gui.mail_search_components.exchange_connection import ExchangeConnection
 from gui.mail_search_components.search_engine import EmailSearchEngine
 from gui.mail_search_components.results_display import ResultsDisplay
 from gui.mail_search_components.ui_builder import MailSearchUI
+
+MAIL_SEARCH_CONFIG_FILE = "mail_search_config.json"
 
 
 class MailSearchTab(ttk.Frame):
@@ -30,6 +34,8 @@ class MailSearchTab(ttk.Frame):
         self.available_folders = []
         self.folder_exclusion_vars = {}  # Will hold BooleanVar for each discovered folder
         self.folder_checkboxes_frame = None
+        self.folder_section_widgets = None  # Will hold toggle button, save button and checkboxes frame
+        self.exclusion_section_visible = True  # Track visibility state
         
         # Pagination state
         self.current_page = 0
@@ -45,6 +51,9 @@ class MailSearchTab(ttk.Frame):
         self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders)
         
         self.create_widgets()
+        
+        # Load saved settings
+        self.load_mail_search_config()
         
         # Start processing queues
         self._process_queues()
@@ -103,7 +112,20 @@ class MailSearchTab(ttk.Frame):
         
         # Create new checkboxes frame if we have folders
         if folders:
-            self.folder_checkboxes_frame = self.ui_builder.create_folder_exclusion_checkboxes(folders, self.folder_exclusion_vars)
+            self.folder_checkboxes_frame, self.folder_section_widgets = self.ui_builder.create_folder_exclusion_checkboxes(
+                folders, 
+                self.folder_exclusion_vars, 
+                hide_callback=self.toggle_folder_exclusion_section,
+                is_visible=self.exclusion_section_visible
+            )
+            
+            # Set up save button callback
+            if self.folder_section_widgets:
+                toggle_button, save_button, checkboxes_frame = self.folder_section_widgets
+                save_button.config(command=self.save_mail_search_config)
+                
+            # Load saved excluded folders
+            self._load_saved_exclusions()
         
         self._add_progress(f"Wykryto {len(folders)} folderów")
     
@@ -208,6 +230,70 @@ class MailSearchTab(ttk.Frame):
         self.current_page = 0  # Reset to first page
         self.status_label.config(text="Ładowanie wyników...", foreground="blue")
         threading.Thread(target=self._perform_search, daemon=True).start()
+
+    def _load_saved_exclusions(self):
+        """Load saved folder exclusions and apply them to checkboxes"""
+        try:
+            if os.path.exists(MAIL_SEARCH_CONFIG_FILE):
+                with open(MAIL_SEARCH_CONFIG_FILE, "r", encoding='utf-8') as f:
+                    config = json.load(f)
+                    excluded_folders = config.get("excluded_folders", [])
+                    
+                    # Apply saved exclusions to checkboxes
+                    for folder_name in excluded_folders:
+                        if folder_name in self.folder_exclusion_vars:
+                            self.folder_exclusion_vars[folder_name].set(True)
+        except Exception as e:
+            print(f"Błąd ładowania wykluczeń folderów: {e}")
+
+    def load_mail_search_config(self):
+        """Load mail search configuration from config file"""
+        try:
+            if os.path.exists(MAIL_SEARCH_CONFIG_FILE):
+                with open(MAIL_SEARCH_CONFIG_FILE, "r", encoding='utf-8') as f:
+                    config = json.load(f)
+                    self.exclusion_section_visible = config.get("exclusion_section_visible", True)
+                    # Excluded folders will be loaded when folders are discovered
+        except Exception as e:
+            print(f"Błąd ładowania konfiguracji wyszukiwania: {e}")
+
+    def save_mail_search_config(self):
+        """Save mail search configuration to config file"""
+        try:
+            # Get currently excluded folders
+            excluded_folders = []
+            for folder_name, var in self.folder_exclusion_vars.items():
+                if var.get():
+                    excluded_folders.append(folder_name)
+            
+            config = {
+                "excluded_folders": excluded_folders,
+                "exclusion_section_visible": self.exclusion_section_visible
+            }
+            
+            with open(MAIL_SEARCH_CONFIG_FILE, "w", encoding='utf-8') as f:
+                json.dump(config, f, ensure_ascii=False, indent=2)
+            
+            messagebox.showinfo("Zapisano", "Ustawienia zostały zapisane.")
+            
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Błąd zapisywania ustawień: {e}")
+
+    def toggle_folder_exclusion_section(self, toggle_button):
+        """Toggle visibility of folder exclusion section"""
+        if self.folder_section_widgets:
+            toggle_button_widget, save_button, checkboxes_frame = self.folder_section_widgets
+            
+            if self.exclusion_section_visible:
+                # Hide the checkboxes
+                checkboxes_frame.grid_remove()
+                toggle_button.config(text="Pokaż")
+                self.exclusion_section_visible = False
+            else:
+                # Show the checkboxes
+                checkboxes_frame.grid()
+                toggle_button.config(text="Ukryj")
+                self.exclusion_section_visible = True
 
     def search_emails(self):
         """Legacy compatibility method"""

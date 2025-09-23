@@ -104,14 +104,44 @@ class MailSearchUI:
         
         return results_frame
     
-    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars):
-        """Create checkboxes for folder exclusion"""
+    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars, hide_callback=None, is_visible=True):
+        """Create checkboxes for folder exclusion with hide/show functionality"""
         if not folders:
-            return None
+            return None, None
             
+        # Create main container frame
+        container_frame = ttk.Frame(self.parent)
+        container_frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        
+        # Create header frame with title and hide/show button
+        header_frame = ttk.Frame(container_frame)
+        header_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 5))
+        
+        # Title label
+        title_label = ttk.Label(header_frame, text="Wyklucz te foldery:", font=("Arial", 10, "bold"))
+        title_label.grid(row=0, column=0, sticky="w")
+        
+        # Hide/Show button
+        toggle_text = "Ukryj" if is_visible else "Pokaż"
+        toggle_button = ttk.Button(header_frame, text=toggle_text, width=8)
+        if hide_callback:
+            toggle_button.config(command=lambda: hide_callback(toggle_button))
+        toggle_button.grid(row=0, column=1, sticky="e", padx=(10, 0))
+        
+        # Save settings button
+        save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
+        save_button.grid(row=0, column=2, sticky="e", padx=(5, 0))
+        
+        # Configure header grid
+        header_frame.grid_columnconfigure(0, weight=1)
+        
         # Create frame for checkboxes
-        frame = ttk.LabelFrame(self.parent, text="Wyklucz te foldery:", padding=5)
-        frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        checkboxes_frame = ttk.Frame(container_frame, relief="sunken", borderwidth=1)
+        checkboxes_frame.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        
+        # Initially hide or show based on is_visible parameter
+        if not is_visible:
+            checkboxes_frame.grid_remove()
         
         # Create checkboxes in multiple columns if there are many folders
         max_columns = 3
@@ -125,14 +155,17 @@ class MailSearchUI:
             column = i // folders_per_column
             
             checkbox = ttk.Checkbutton(
-                frame, 
+                checkboxes_frame, 
                 text=folder_name, 
                 variable=var
             )
             checkbox.grid(row=row, column=column, sticky="w", padx=5, pady=2)
         
-        # Configure grid weights for the frame
+        # Configure grid weights for the checkboxes frame
         for col in range(max_columns):
-            frame.columnconfigure(col, weight=1)
+            checkboxes_frame.columnconfigure(col, weight=1)
+            
+        # Configure main container grid
+        container_frame.grid_columnconfigure(0, weight=1)
         
-        return frame
+        return container_frame, (toggle_button, save_button, checkboxes_frame)

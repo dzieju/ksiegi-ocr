@@ -1,0 +1,8 @@
+{
+  "excluded_folders": [
+    "Newsletter",
+    "Spam",
+    "Junk Email"
+  ],
+  "exclusion_section_visible": true
+}
