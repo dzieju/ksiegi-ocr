@@ -17,13 +17,13 @@ class EmailSearchEngine:
         self.search_cancelled = False
         self.search_thread = None
     
-    def search_emails_threaded(self, connection, folder, search_criteria):
+    def search_emails_threaded(self, connection, folder, search_criteria, page=0, per_page=20):
         """Start threaded email search"""
         self.search_cancelled = False
         
         self.search_thread = threading.Thread(
             target=self._threaded_search,
-            args=(connection, folder, search_criteria),
+            args=(connection, folder, search_criteria, page, per_page),
             daemon=True
         )
         self.search_thread.start()
@@ -32,15 +32,15 @@ class EmailSearchEngine:
         """Cancel ongoing search"""
         self.search_cancelled = True
     
-    def _threaded_search(self, connection, folder, criteria):
+    def _threaded_search(self, connection, folder, criteria, page=0, per_page=20):
         """Main search logic running in background thread"""
         try:
             # Build search query
             query_filters = []
             
             # Subject filter
-            if criteria.get('subject'):
-                query_filters.append(Q(subject__icontains=criteria['subject']))
+            if criteria.get('subject_search'):
+                query_filters.append(Q(subject__icontains=criteria['subject_search']))
             
             # Sender filter
             if criteria.get('sender'):
@@ -51,8 +51,8 @@ class EmailSearchEngine:
                 query_filters.append(Q(is_read=False))
             
             # Date period filter
-            if criteria.get('date_period') and criteria['date_period'] != 'wszystkie':
-                start_date = self._get_period_start_date(criteria['date_period'])
+            if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
+                start_date = self._get_period_start_date(criteria['selected_period'])
                 if start_date:
                     query_filters.append(Q(datetime_received__gte=start_date))
             
@@ -68,28 +68,55 @@ class EmailSearchEngine:
             
             self.progress_callback("Przetwarzanie wiadomości...")
             
-            results = []
-            for i, message in enumerate(messages[:100]):  # Limit to 100 results for performance
+            # Calculate pagination
+            start_idx = page * per_page
+            end_idx = start_idx + per_page
+            
+            # Get total count (limited to avoid performance issues)
+            total_messages = list(messages[:500])  # Limit total to 500 for performance
+            total_count = len(total_messages)
+            
+            # Filter by attachment criteria if needed
+            filtered_messages = []
+            for message in total_messages:
                 if self.search_cancelled:
                     self.result_callback({'type': 'search_cancelled'})
                     return
-                
-                if i % 10 == 0:  # Update progress every 10 messages
-                    self.progress_callback(f"Przetworzono {i} wiadomości...")
                 
                 try:
                     # Check attachment filters if needed
                     if criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension'):
                         if not self._check_attachment_filters(message, criteria):
                             continue
+                    filtered_messages.append(message)
                     
+                except Exception as e:
+                    # Skip messages that cause errors
+                    continue
+            
+            # Apply pagination to filtered messages
+            paginated_messages = filtered_messages[start_idx:end_idx]
+            
+            results = []
+            for i, message in enumerate(paginated_messages):
+                if self.search_cancelled:
+                    self.result_callback({'type': 'search_cancelled'})
+                    return
+                
+                if i % 5 == 0:  # Update progress every 5 messages
+                    self.progress_callback(f"Przetworzono {i + start_idx} wiadomości...")
+                
+                try:
                     result_info = {
                         'datetime_received': message.datetime_received,
                         'sender': str(message.sender) if message.sender else 'Nieznany',
                         'subject': message.subject if message.subject else 'Brak tematu',
                         'is_read': message.is_read if hasattr(message, 'is_read') else True,
                         'has_attachments': message.has_attachments if hasattr(message, 'has_attachments') else False,
-                        'attachment_count': len(message.attachments) if message.attachments else 0
+                        'attachment_count': len(message.attachments) if message.attachments else 0,
+                        'message_id': message.id if hasattr(message, 'id') else None,
+                        'message_obj': message,  # Store full message object for opening
+                        'attachments': list(message.attachments) if message.attachments else []
                     }
                     results.append(result_info)
                     
@@ -100,7 +127,11 @@ class EmailSearchEngine:
             self.result_callback({
                 'type': 'search_complete',
                 'results': results,
-                'count': len(results)
+                'count': len(results),
+                'total_count': len(filtered_messages),
+                'page': page,
+                'per_page': per_page,
+                'total_pages': (len(filtered_messages) + per_page - 1) // per_page
             })
             
         except Exception as e:

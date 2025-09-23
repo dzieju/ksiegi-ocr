@@ -3,7 +3,6 @@ UI widget builder for mail search functionality
 """
 import tkinter as tk
 from tkinter import ttk
-from tkinter.scrolledtext import ScrolledText
 
 
 class MailSearchUI:
@@ -84,7 +83,14 @@ class MailSearchUI:
         return search_button, status_label
     
     def create_results_widget(self):
-        """Create results area widget"""
-        results_area = ScrolledText(self.parent, wrap="word", width=120, height=25)
-        results_area.grid(row=9, column=0, columnspan=3, padx=10, pady=10)
-        return results_area
+        """Create results area widget - now returns a frame for the new ResultsDisplay"""
+        results_frame = ttk.Frame(self.parent)
+        results_frame.grid(row=9, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+        
+        # Configure grid weights for the parent to allow dynamic resizing
+        self.parent.grid_rowconfigure(9, weight=1)  # Results row gets all extra space
+        self.parent.grid_columnconfigure(0, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(2, weight=1)
+        
+        return results_frame
