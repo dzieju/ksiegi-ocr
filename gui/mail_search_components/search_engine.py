@@ -4,6 +4,7 @@ Email search engine for mail search functionality
 import threading
 import queue
 import os
+import time
 from datetime import datetime, timedelta, timezone
 from exchangelib import Q, Message
 from tools.logger import log
@@ -783,6 +784,17 @@ class EmailSearchEngine:
                         # Write PDF content to file (overwrite if exists to avoid duplicates)
                         with open(output_path, 'wb') as f:
                             f.write(attachment.content)
+                        
+                        # Set file modification time to match email date
+                        if message.datetime_received:
+                            try:
+                                # Convert datetime to timestamp for os.utime
+                                email_timestamp = message.datetime_received.timestamp()
+                                # Set both access time and modification time to email date
+                                os.utime(output_path, (email_timestamp, email_timestamp))
+                                log(f"Ustawiono datę modyfikacji pliku {safe_filename} na: {message.datetime_received}")
+                            except Exception as e:
+                                log(f"OSTRZEŻENIE: Nie można ustawić daty modyfikacji pliku {safe_filename}: {e}")
                         
                         self.saved_pdf_count += 1
                         
