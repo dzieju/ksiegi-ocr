@@ -77,6 +77,9 @@ class EmailSearchEngine:
         try:
             if lookup_type == 'contains':
                 filter_dict = {f"{field_name}__contains": field_value}
+            elif lookup_type == 'icontains':
+                # Case-insensitive contains
+                filter_dict = {f"{field_name}__icontains": field_value}
             elif lookup_type == 'gte':
                 filter_dict = {f"{field_name}__gte": field_value}
             else:
@@ -146,19 +149,19 @@ class EmailSearchEngine:
             
             # Subject filter - use case-insensitive contains
             if criteria.get('subject_search'):
-                subject_filter = self._create_safe_filter('subject', criteria['subject_search'], 'contains')
+                subject_filter = self._create_safe_filter('subject', criteria['subject_search'], 'icontains')
                 if subject_filter:
                     query_filters.append(subject_filter)
-                    log(f"Dodano filtr tematu: '{criteria['subject_search']}'")
+                    log(f"Dodano filtr tematu (case-insensitive): '{criteria['subject_search']}'")
                 else:
                     log(f"POMINIĘTO nieprawidłowy filtr tematu")
             
             # Sender filter
             if criteria.get('sender'):
-                sender_filter = self._create_safe_filter('sender', criteria['sender'])
+                sender_filter = self._create_safe_filter('sender', criteria['sender'], 'icontains')
                 if sender_filter:
                     query_filters.append(sender_filter)
-                    log(f"Dodano filtr nadawcy: '{criteria['sender']}'")
+                    log(f"Dodano filtr nadawcy (case-insensitive): '{criteria['sender']}'")
                 else:
                     log(f"POMINIĘTO nieprawidłowy filtr nadawcy")
             
