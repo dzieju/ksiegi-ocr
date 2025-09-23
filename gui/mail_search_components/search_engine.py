@@ -52,7 +52,6 @@ class EmailSearchEngine:
                 raise Exception("Nie znaleziono folderów do przeszukiwania")
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
-            print(f"Debug: Found {len(folders_to_search)} folders to search")
             
             # Build search query - use simple, reliable approaches
             query_filters = []
@@ -62,19 +61,16 @@ class EmailSearchEngine:
                 # Use subject__contains which is more widely supported than subject__icontains
                 subject_filter = Q(subject__contains=criteria['subject_search'])
                 query_filters.append(subject_filter)
-                print(f"Debug: Added subject filter for: {criteria['subject_search']}")
             
             # Sender filter
             if criteria.get('sender'):
                 sender_filter = Q(sender=criteria['sender'])
                 query_filters.append(sender_filter)
-                print(f"Debug: Added sender filter for: {criteria['sender']}")
             
             # Unread filter
             if criteria.get('unread_only'):
                 unread_filter = Q(is_read=False)
                 query_filters.append(unread_filter)
-                print("Debug: Added unread filter")
             
             # Date period filter
             if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
@@ -82,17 +78,14 @@ class EmailSearchEngine:
                 if start_date:
                     date_filter = Q(datetime_received__gte=start_date)
                     query_filters.append(date_filter)
-                    print(f"Debug: Added date filter from: {start_date}")
             
             # Combine filters
             if query_filters:
                 combined_query = query_filters[0]
                 for query_filter in query_filters[1:]:
                     combined_query &= query_filter
-                print(f"Debug: Created combined query with {len(query_filters)} filters")
             else:
                 combined_query = None
-                print("Debug: No filters applied, will search all messages")
             
             # Search across all folders
             all_messages = []
@@ -109,26 +102,19 @@ class EmailSearchEngine:
                     
                     if combined_query:
                         try:
-                            print(f"Debug: Applying query filter to folder {search_folder.name}")
                             messages = search_folder.filter(combined_query).order_by('-datetime_received')
                             messages_list = list(messages)
-                            print(f"Debug: Query returned {len(messages_list)} messages from folder {search_folder.name}")
-                        except Exception as query_error:
-                            print(f"Debug: Query failed on folder {search_folder.name}: {query_error}")
-                            print("Debug: Falling back to getting all messages and filtering manually")
+                        except Exception:
+                            # Query failed, fallback to getting all messages and filtering manually
                             messages = search_folder.all().order_by('-datetime_received')
                             messages_list = list(messages)
-                            print(f"Debug: Fallback returned {len(messages_list)} messages from folder {search_folder.name}")
                     else:
-                        print(f"Debug: Getting all messages from folder {search_folder.name}")
                         messages = search_folder.all().order_by('-datetime_received')
                         messages_list = list(messages)
-                        print(f"Debug: Found {len(messages_list)} messages in folder {search_folder.name}")
                     
                     # If we still have no messages, try alternative QuerySet conversion
                     if not messages_list:
                         try:
-                            print(f"Debug: No messages found, trying alternative QuerySet conversion for {search_folder.name}")
                             if combined_query:
                                 messages = search_folder.filter(combined_query)
                             else:
@@ -136,9 +122,8 @@ class EmailSearchEngine:
                             
                             # Try iterator approach
                             messages_list = [msg for msg in messages.iterator()][:100]  # Limit during iteration
-                            print(f"Debug: Alternative approach found {len(messages_list)} messages")
-                        except Exception as alt_error:
-                            print(f"Debug: Alternative approach also failed: {alt_error}")
+                        except Exception:
+                            pass  # Continue with empty list
                     
                     folder_messages = messages_list[:100]  # Limit per folder after converting to list
                     
@@ -147,20 +132,15 @@ class EmailSearchEngine:
                         message._search_folder = search_folder  # Store folder reference
                     
                     all_messages.extend(folder_messages)
-                    print(f"Debug: Added {len(folder_messages)} messages from folder {search_folder.name}, total so far: {len(all_messages)}")
                     
                 except Exception as e:
                     # Log the error but continue with other folders
                     error_msg = f"Błąd w folderze {search_folder.name}: {str(e)}"
                     self.progress_callback(error_msg)
-                    print(f"Debug: {error_msg}")
-                    import traceback
-                    print(f"Debug: Full traceback: {traceback.format_exc()}")
                     continue
             
             # Sort all messages by date
             all_messages.sort(key=lambda m: m.datetime_received if m.datetime_received else datetime.min.replace(tzinfo=timezone.utc), reverse=True)
-            print(f"Debug: After sorting, have {len(all_messages)} total messages")
             
             self.progress_callback("Przetwarzanie wiadomości...")
             
@@ -171,12 +151,10 @@ class EmailSearchEngine:
             # Limit total messages for performance (500 total across all folders)
             total_messages = all_messages[:500]
             total_count = len(total_messages)
-            print(f"Debug: Limited to {total_count} messages for processing")
             
             # Filter by attachment criteria if needed  
             filtered_messages = []
             subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
-            print(f"Debug: Starting to filter {len(total_messages)} messages. Subject search: {subject_search}")
             
             for message in total_messages:
                 if self.search_cancelled:
@@ -196,16 +174,12 @@ class EmailSearchEngine:
                             continue
                     filtered_messages.append(message)
                     
-                except Exception as e:
+                except Exception:
                     # Skip messages that cause errors
-                    print(f"Debug: Error processing message: {e}")
                     continue
-            
-            print(f"Debug: After filtering, have {len(filtered_messages)} messages")
             
             # Apply pagination to filtered messages
             paginated_messages = filtered_messages[start_idx:end_idx]
-            print(f"Debug: After pagination, processing {len(paginated_messages)} messages (page {page}, {start_idx}-{end_idx})")
             
             results = []
             for i, message in enumerate(paginated_messages):
@@ -246,7 +220,6 @@ class EmailSearchEngine:
                     # Skip messages that cause errors
                     continue
             
-            print(f"Debug: Returning {len(results)} results out of {len(filtered_messages)} filtered messages")
             self.result_callback({
                 'type': 'search_complete',
                 'results': results,
