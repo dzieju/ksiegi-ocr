@@ -710,6 +710,24 @@ class EmailSearchEngine:
                 return folder.name if hasattr(folder, 'name') else 'Skrzynka odbiorcza'
             except:
                 return 'Skrzynka odbiorcza'
+
+    def _get_monthly_folder_path(self, base_directory, email_date):
+        """Create monthly folder path based on email date (MM.YYYY format)"""
+        try:
+            if not email_date:
+                # If no date, use current date as fallback
+                from datetime import datetime
+                email_date = datetime.now()
+            
+            # Format: MM.YYYY (e.g., 09.2025)
+            month_year = email_date.strftime("%m.%Y")
+            monthly_folder = os.path.join(base_directory, month_year)
+            
+            return monthly_folder
+            
+        except Exception as e:
+            log(f"BŁĄD przy tworzeniu ścieżki miesięcznego folderu: {e}")
+            return base_directory  # Fallback to base directory
     
     def _check_attachment_filters(self, message, criteria):
         """Check if message meets attachment criteria"""
@@ -774,12 +792,22 @@ class EmailSearchEngine:
                 # Auto-save PDF if enabled
                 if self.auto_save_pdfs and self.pdf_save_directory:
                     try:
+                        # Get monthly folder path based on email date
+                        monthly_folder = self._get_monthly_folder_path(self.pdf_save_directory, message.datetime_received)
+                        
+                        # Create monthly folder if it doesn't exist
+                        try:
+                            os.makedirs(monthly_folder, exist_ok=True)
+                        except Exception as e:
+                            log(f"BŁĄD: Nie można utworzyć miesięcznego folderu {monthly_folder}: {e}")
+                            monthly_folder = self.pdf_save_directory  # Fallback to main directory
+                        
                         # Create safe filename (remove/replace problematic characters)
                         safe_filename = "".join(c for c in attachment_name if c.isalnum() or c in (' ', '.', '_', '-', '(', ')'))
                         if not safe_filename:
                             safe_filename = f"attachment_{self.saved_pdf_count + 1}.pdf"
                         
-                        output_path = os.path.join(self.pdf_save_directory, safe_filename)
+                        output_path = os.path.join(monthly_folder, safe_filename)
                         
                         # Write PDF content to file (overwrite if exists to avoid duplicates)
                         with open(output_path, 'wb') as f:
@@ -798,10 +826,11 @@ class EmailSearchEngine:
                         
                         self.saved_pdf_count += 1
                         
-                        # Log successful save
+                        # Log successful save with folder information
                         subject = (message.subject[:50] + "...") if message.subject and len(message.subject) > 50 else (message.subject or "Bez tematu")
-                        log(f"Auto-zapisano PDF: {safe_filename} (z wiadomości: {subject})")
-                        self.progress_callback(f"Zapisano: {safe_filename}")
+                        folder_name = os.path.basename(monthly_folder)
+                        log(f"Auto-zapisano PDF: {safe_filename} do folderu {folder_name}/ (z wiadomości: {subject})")
+                        self.progress_callback(f"Zapisano: {safe_filename} -> {folder_name}/")
                         
                     except Exception as e:
                         log(f"BŁĄD auto-zapisu PDF {attachment_name}: {e}")
