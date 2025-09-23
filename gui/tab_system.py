@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 import queue
 import multiprocessing
 from tools import logger, i18n, darkmode
