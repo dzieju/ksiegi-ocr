@@ -181,6 +181,15 @@ class EmailSearchEngine:
                 else:
                     log(f"POMINIĘTO nieprawidłowy filtr tematu")
             
+            # Body filter - use case-insensitive contains
+            if criteria.get('body_search'):
+                body_filter = self._create_safe_filter('body', criteria['body_search'], 'icontains')
+                if body_filter:
+                    query_filters.append(body_filter)
+                    log(f"Dodano filtr treści (case-insensitive): '{criteria['body_search']}'")
+                else:
+                    log(f"POMINIĘTO nieprawidłowy filtr treści")
+            
             # Sender filter
             if criteria.get('sender'):
                 sender_filter = self._create_safe_filter('sender', criteria['sender'], 'icontains')
