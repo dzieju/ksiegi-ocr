@@ -25,6 +25,10 @@ class MailSearchTab(ttk.Frame):
             'selected_period': tk.StringVar(value="wszystkie")
         }
         
+        # Pagination state
+        self.current_page = 0
+        self.per_page = 20
+        
         # Threading support
         self.result_queue = queue.Queue()
         self.progress_queue = queue.Queue()
@@ -45,10 +49,13 @@ class MailSearchTab(ttk.Frame):
         self.ui_builder.create_date_period_widgets()
         
         self.search_button, self.status_label = self.ui_builder.create_control_widgets(self.toggle_search)
-        self.results_area = self.ui_builder.create_results_widget()
+        self.results_frame = self.ui_builder.create_results_widget()
         
-        # Initialize results display
-        self.results_display = ResultsDisplay(self.results_area)
+        # Initialize results display with the frame
+        self.results_display = ResultsDisplay(self.results_frame)
+        self.results_display.set_page_callback(self.go_to_page)
+        self.results_display.set_per_page_callback(self.change_per_page)
+        self.results_display.bind_selection_change()
         
     def toggle_search(self):
         """Toggle between starting and cancelling search"""
@@ -68,6 +75,9 @@ class MailSearchTab(ttk.Frame):
         self.results_display.clear_results()
         self.search_button.config(text="Anuluj wyszukiwanie")
         self.status_label.config(text="Nawiązywanie połączenia...", foreground="blue")
+        
+        # Reset pagination
+        self.current_page = 0
 
         threading.Thread(target=self._perform_search, daemon=True).start()
     
@@ -85,7 +95,7 @@ class MailSearchTab(ttk.Frame):
                 return
                 
             criteria = {key: var.get() if hasattr(var, 'get') else var for key, var in self.vars.items()}
-            self.search_engine.search_emails_threaded(self.connection, folder, criteria)
+            self.search_engine.search_emails_threaded(self.connection, folder, criteria, self.current_page, self.per_page)
             
         except Exception as e:
             self._add_result({'type': 'search_error', 'error': str(e)})
@@ -127,8 +137,14 @@ class MailSearchTab(ttk.Frame):
     def _handle_result(self, result):
         """Handle search result"""
         if result['type'] == 'search_complete':
-            self.results_display.display_results(result['results'])
-            self.status_label.config(text=f"Znaleziono {result['count']} wiadomości", foreground="green")
+            self.results_display.display_results(
+                result['results'], 
+                result.get('page', 0), 
+                result.get('per_page', 20),
+                result.get('total_count', result['count']),
+                result.get('total_pages', 1)
+            )
+            self.status_label.config(text=f"Znaleziono {result.get('total_count', result['count'])} wiadomości", foreground="green")
             self.search_button.config(text="Rozpocznij wyszukiwanie")
             
         elif result['type'] == 'search_cancelled':
@@ -139,6 +155,19 @@ class MailSearchTab(ttk.Frame):
             messagebox.showerror("Błąd wyszukiwania", f"Błąd: {result['error']}")
             self.status_label.config(text="Błąd wyszukiwania", foreground="red")
             self.search_button.config(text="Rozpocznij wyszukiwanie")
+    
+    def go_to_page(self, page):
+        """Go to specific page"""
+        self.current_page = page
+        self.status_label.config(text="Ładowanie strony...", foreground="blue")
+        threading.Thread(target=self._perform_search, daemon=True).start()
+    
+    def change_per_page(self, per_page):
+        """Change results per page"""
+        self.per_page = per_page
+        self.current_page = 0  # Reset to first page
+        self.status_label.config(text="Ładowanie wyników...", foreground="blue")
+        threading.Thread(target=self._perform_search, daemon=True).start()
 
     def search_emails(self):
         """Legacy compatibility method"""
