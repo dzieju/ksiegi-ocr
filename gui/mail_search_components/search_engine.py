@@ -435,7 +435,7 @@ class EmailSearchEngine:
             filtered_messages = []
             subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
             pdf_search_text = criteria.get('pdf_search_text', '').strip() if criteria.get('pdf_search_text') else None
-            has_attachment_filter = criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension')
+            has_attachment_filter = criteria.get('attachments_required') or criteria.get('no_attachments_only') or criteria.get('attachment_name') or criteria.get('attachment_extension')
             has_pdf_search = pdf_search_text is not None and len(pdf_search_text) > 0
             
             # Setup PDF auto-save if PDF search is enabled
@@ -465,10 +465,17 @@ class EmailSearchEngine:
             if has_attachment_filter:
                 if criteria.get('attachments_required'):
                     log(f"    - Wymagane załączniki: TAK")
+                if criteria.get('no_attachments_only'):
+                    log(f"    - Tylko bez załączników: TAK")
                 if criteria.get('attachment_name'):
                     log(f"    - Nazwa załącznika zawiera: '{criteria['attachment_name']}'")
                 if criteria.get('attachment_extension'):
                     log(f"    - Rozszerzenie załącznika: '{criteria['attachment_extension']}'")
+                    
+                # Check for conflicting attachment filters
+                if criteria.get('attachments_required') and criteria.get('no_attachments_only'):
+                    log(f"  ⚠️  OSTRZEŻENIE: Wybrano jednocześnie 'Tylko z załącznikami' i 'Tylko bez załączników'")
+                    log(f"    Zostanie zastosowany filtr 'Tylko z załącznikami' (ma wyższy priorytet)")
             
             # Track filtering statistics
             subject_filtered_out = 0
@@ -743,8 +750,9 @@ class EmailSearchEngine:
         if criteria.get('attachments_required') and not message.has_attachments:
             return False
         
-        # Check for "only without attachments" filter
-        if criteria.get('no_attachments_only') and message.has_attachments:
+        # Check for "only without attachments" filter only if "attachments_required" is not set
+        # This gives priority to "attachments_required" when both filters are conflicting
+        if not criteria.get('attachments_required') and criteria.get('no_attachments_only') and message.has_attachments:
             return False
             
         attachment_name_filter = criteria.get('attachment_name', '').lower()
