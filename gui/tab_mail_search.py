@@ -1,9 +1,11 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 import queue
 import threading
 import json
 import os
+from gui.modern_theme import ModernTheme
+from gui.tooltip_utils import add_tooltip, TOOLTIPS
 
 from gui.mail_search_components.exchange_connection import ExchangeConnection
 from gui.mail_search_components.search_engine import EmailSearchEngine
@@ -13,21 +15,21 @@ from gui.mail_search_components.ui_builder import MailSearchUI
 MAIL_SEARCH_CONFIG_FILE = "mail_search_config.json"
 
 
-class MailSearchTab(ttk.Frame):
+class MailSearchTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, **ModernTheme.get_frame_style('section'))
         
         # Initialize search variables
         self.vars = {
-            'folder_path': tk.StringVar(value="Skrzynka odbiorcza"),
-            'excluded_folders': tk.StringVar(),
-            'subject_search': tk.StringVar(),
-            'body_search': tk.StringVar(),
-            'pdf_search_text': tk.StringVar(),
-            'sender': tk.StringVar(),
-            'unread_only': tk.BooleanVar(),
-            'attachments_required': tk.BooleanVar(),
-            'no_attachments_only': tk.BooleanVar(),
+            'folder_path': ctk.StringVar(value="Skrzynka odbiorcza"),
+            'excluded_folders': ctk.StringVar(),
+            'subject_search': ctk.StringVar(),
+            'body_search': ctk.StringVar(),
+            'pdf_search_text': ctk.StringVar(),
+            'sender': ctk.StringVar(),
+            'unread_only': ctk.BooleanVar(),
+            'attachments_required': ctk.BooleanVar(),
+            'no_attachments_only': ctk.BooleanVar(),
             'attachment_name': tk.StringVar(),
             'attachment_extension': tk.StringVar(),
             'selected_period': tk.StringVar(value="wszystkie")

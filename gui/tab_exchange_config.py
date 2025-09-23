@@ -1,15 +1,17 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import customtkinter as ctk
+from tkinter import messagebox
 import json
 import threading
 import queue
 from exchangelib import Credentials, Account, Configuration, DELEGATE
+from gui.modern_theme import ModernTheme
+from gui.tooltip_utils import add_tooltip, TOOLTIPS
 
 CONFIG_FILE = "exchange_config.json"
 
-class ExchangeConfigTab(ttk.Frame):
+class ExchangeConfigTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, **ModernTheme.get_frame_style('section'))
 
         # Threading support variables
         self.testing_cancelled = False
@@ -17,17 +19,57 @@ class ExchangeConfigTab(ttk.Frame):
         self.result_queue = queue.Queue()
 
         # Pola wejściowe
-        self.server_var = tk.StringVar()
-        self.email_var = tk.StringVar()
-        self.username_var = tk.StringVar()
-        self.password_var = tk.StringVar()
-        self.domain_var = tk.StringVar()
+        self.server_var = ctk.StringVar()
+        self.email_var = ctk.StringVar()
+        self.username_var = ctk.StringVar()
+        self.password_var = ctk.StringVar()
+        self.domain_var = ctk.StringVar()
 
-        ttk.Label(self, text="Serwer Exchange:").grid(row=0, column=0, sticky="e")
-        ttk.Entry(self, textvariable=self.server_var, width=40).grid(row=0, column=1)
+        self.create_widgets()
+        self.load_config()
+        self._process_result_queue()
 
-        ttk.Label(self, text="Adres e-mail:").grid(row=1, column=0, sticky="e")
-        ttk.Entry(self, textvariable=self.email_var, width=40).grid(row=1, column=1)
+    def create_widgets(self):
+        """Create modern Exchange configuration widgets"""
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            self,
+            text="⚙️ Konfiguracja Serwera Exchange",
+            **ModernTheme.get_label_style('heading')
+        )
+        title_label.pack(pady=(0, ModernTheme.SPACING['large']), anchor="w")
+
+        # Connection settings frame
+        config_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
+        config_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
+        
+        config_title = ctk.CTkLabel(
+            config_frame,
+            text="🌐 Parametry połączenia",
+            **ModernTheme.get_label_style('subheading')
+        )
+        config_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+
+        # Server field
+        server_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
+        server_frame.pack(fill="x", padx=ModernTheme.SPACING['medium'], pady=(0, ModernTheme.SPACING['small']))
+
+        server_label = ctk.CTkLabel(server_frame, text="Serwer Exchange:", **ModernTheme.get_label_style('body'))
+        server_label.pack(side="left", anchor="w")
+
+        server_entry = ctk.CTkEntry(
+            server_frame,
+            textvariable=self.server_var,
+            placeholder_text="np. outlook.office365.com",
+            **ModernTheme.get_entry_style()
+        )
+        server_entry.pack(side="right", fill="x", expand=True, padx=(ModernTheme.SPACING['medium'], 0))
+        add_tooltip(server_entry, TOOLTIPS['exchange_config'])
+
+        # Email field
+        email_frame = ctk.CTkFrame(config_frame, fg_color="transparent")
+        email_frame.pack(fill="x", padx=ModernTheme.SPACING['medium'], pady=(0, ModernTheme.SPACING['medium']))
 
         ttk.Label(self, text="Login użytkownika:").grid(row=2, column=0, sticky="e")
         ttk.Entry(self, textvariable=self.username_var, width=40).grid(row=2, column=1)
