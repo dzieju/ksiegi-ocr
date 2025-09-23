@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import queue
 import threading
 import json
@@ -9,6 +9,7 @@ from gui.mail_search_components.exchange_connection import ExchangeConnection
 from gui.mail_search_components.search_engine import EmailSearchEngine
 from gui.mail_search_components.results_display import ResultsDisplay
 from gui.mail_search_components.ui_builder import MailSearchUI
+from gui.mail_search_components.pdf_search import PDFSearcher
 
 MAIL_SEARCH_CONFIG_FILE = "mail_search_config.json"
 
@@ -22,6 +23,8 @@ class MailSearchTab(ttk.Frame):
             'folder_path': tk.StringVar(value="Skrzynka odbiorcza"),
             'excluded_folders': tk.StringVar(),
             'subject_search': tk.StringVar(),
+            'pdf_file_path': tk.StringVar(),
+            'pdf_search_text': tk.StringVar(),
             'sender': tk.StringVar(),
             'unread_only': tk.BooleanVar(),
             'attachments_required': tk.BooleanVar(),
@@ -48,7 +51,8 @@ class MailSearchTab(ttk.Frame):
         # Initialize components
         self.connection = ExchangeConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders)
+        self.pdf_searcher = PDFSearcher(self._add_pdf_progress, self._add_pdf_result)
+        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.wybierz_plik_pdf)
         
         self.create_widgets()
         
@@ -74,7 +78,8 @@ class MailSearchTab(ttk.Frame):
         
     def toggle_search(self):
         """Toggle between starting and cancelling search"""
-        if self.search_engine.search_thread and self.search_engine.search_thread.is_alive():
+        if (self.search_engine.search_thread and self.search_engine.search_thread.is_alive()) or \
+           hasattr(self, '_pdf_search_active') and self._pdf_search_active:
             self.cancel_search()
         else:
             self.start_search()
@@ -82,8 +87,107 @@ class MailSearchTab(ttk.Frame):
     def cancel_search(self):
         """Cancel ongoing search"""
         self.search_engine.cancel_search()
+        self.pdf_searcher.cancel_search()
+        self._pdf_search_active = False
         self.status_label.config(text="Anulowanie...", foreground="orange")
         self.search_button.config(text="Rozpocznij wyszukiwanie")
+    
+    def start_search(self):
+        """Start search - email, PDF, or both based on user input"""
+        pdf_path = self.vars['pdf_file_path'].get().strip()
+        search_text = self.vars['pdf_search_text'].get().strip()
+        
+        # Determine what type of search to perform
+        has_pdf_search = pdf_path and search_text
+        has_email_criteria = (
+            self.vars['subject_search'].get().strip() or 
+            self.vars['sender'].get().strip() or
+            self.vars['unread_only'].get() or
+            self.vars['attachments_required'].get() or
+            self.vars['attachment_name'].get().strip() or
+            self.vars['attachment_extension'].get().strip()
+        )
+        
+        if not has_pdf_search and not has_email_criteria:
+            messagebox.showwarning("Brak kryteriów", "Proszę określić kryteria wyszukiwania (email lub PDF).")
+            return
+        
+        # Clear previous results
+        self.results_display.clear_results()
+        self.search_button.config(text="Anuluj wyszukiwanie")
+        
+        # Start appropriate search(es)
+        if has_pdf_search and not has_email_criteria:
+            # Only PDF search
+            self.start_pdf_search_only()
+        elif has_email_criteria and not has_pdf_search:
+            # Only email search  
+            self.start_email_search_only()
+        else:
+            # Both searches
+            messagebox.showinfo("Podwójne wyszukiwanie", 
+                              "Rozpoczynanie wyszukiwania zarówno w emailach jak i w pliku PDF...")
+            self.start_combined_search()
+    
+    def start_email_search_only(self):
+        """Start only email search"""
+        self.status_label.config(text="Nawiązywanie połączenia...", foreground="blue")
+        
+        # Reset pagination
+        self.current_page = 0
+        
+        # Update excluded_folders from checkboxes before search
+        self.vars['excluded_folders'].set(self._get_excluded_folders_from_checkboxes())
+
+        threading.Thread(target=self._perform_search, daemon=True).start()
+    
+    def start_pdf_search_only(self):
+        """Start only PDF search"""
+        pdf_path = self.vars['pdf_file_path'].get().strip()
+        search_text = self.vars['pdf_search_text'].get().strip()
+        
+        if not os.path.exists(pdf_path):
+            messagebox.showwarning("Brak pliku", "Wybrany plik PDF nie istnieje.")
+            self.search_button.config(text="Rozpocznij wyszukiwanie")
+            return
+        
+        self.status_label.config(text="Rozpoczynanie wyszukiwania PDF...", foreground="blue")
+        self._pdf_search_active = True
+        
+        # Start PDF search
+        self.pdf_searcher.search_pdf(pdf_path, search_text)
+    
+    def start_combined_search(self):
+        """Start both email and PDF search"""
+        # Start email search first
+        self.status_label.config(text="Wyszukiwanie w emailach...", foreground="blue")
+        
+        # Reset pagination
+        self.current_page = 0
+        
+        # Update excluded_folders from checkboxes before search
+        self.vars['excluded_folders'].set(self._get_excluded_folders_from_checkboxes())
+        
+        # Start email search in thread
+        threading.Thread(target=self._perform_combined_search, daemon=True).start()
+    
+    def _perform_combined_search(self):
+        """Perform combined email and PDF search"""
+        try:
+            # First perform email search
+            criteria = {key: var.get() if hasattr(var, 'get') else var for key, var in self.vars.items()}
+            self.search_engine.search_emails_threaded(self.connection, criteria, self.current_page, self.per_page)
+            
+            # Then start PDF search (it will run in its own thread)
+            pdf_path = self.vars['pdf_file_path'].get().strip()
+            search_text = self.vars['pdf_search_text'].get().strip()
+            
+            if pdf_path and search_text and os.path.exists(pdf_path):
+                self._pdf_search_active = True
+                self.pdf_searcher.search_pdf(pdf_path, search_text)
+            
+        except Exception as e:
+            self._add_result({'type': 'search_error', 'error': str(e)})
     
     def discover_folders(self):
         """Discover available folders for exclusion in background thread"""
@@ -137,20 +241,6 @@ class MailSearchTab(ttk.Frame):
                 excluded.append(folder_name)
         return ','.join(excluded)  # Convert back to comma-separated format for backend compatibility
     
-    def start_search(self):
-        """Start threaded search"""
-        self.results_display.clear_results()
-        self.search_button.config(text="Anuluj wyszukiwanie")
-        self.status_label.config(text="Nawiązywanie połączenia...", foreground="blue")
-        
-        # Reset pagination
-        self.current_page = 0
-        
-        # Update excluded_folders from checkboxes before search
-        self.vars['excluded_folders'].set(self._get_excluded_folders_from_checkboxes())
-
-        threading.Thread(target=self._perform_search, daemon=True).start()
-    
     def _perform_search(self):
         """Perform search in background thread"""
         try:
@@ -168,6 +258,19 @@ class MailSearchTab(ttk.Frame):
     
     def _add_result(self, result):
         """Add result to queue"""
+        self.result_queue.put(result)
+    
+    def _add_pdf_progress(self, message):
+        """Add PDF search progress to queue"""
+        print(f"[PDF SEARCH] {message}")
+        self.progress_queue.put(f"PDF: {message}")
+    
+    def _add_pdf_result(self, pdf_result):
+        """Add PDF search result to queue"""
+        result = {
+            'type': 'pdf_search_result',
+            'pdf_result': pdf_result
+        }
         self.result_queue.put(result)
     
     def _process_queues(self):
@@ -217,6 +320,72 @@ class MailSearchTab(ttk.Frame):
             messagebox.showerror("Błąd wyszukiwania", f"Błąd: {result['error']}")
             self.status_label.config(text="Błąd wyszukiwania", foreground="red")
             self.search_button.config(text="Rozpocznij wyszukiwanie")
+            
+        elif result['type'] == 'pdf_search_result':
+            self._handle_pdf_result(result['pdf_result'])
+    
+    def _handle_pdf_result(self, pdf_result):
+        """Handle PDF search result"""
+        self._pdf_search_active = False
+        
+        if pdf_result.error:
+            messagebox.showerror("Błąd wyszukiwania PDF", pdf_result.error)
+            self.status_label.config(text="Błąd wyszukiwania PDF", foreground="red")
+        else:
+            # Display PDF search results
+            self._display_pdf_results(pdf_result)
+            summary = pdf_result.get_summary()
+            self.status_label.config(text=summary, foreground="green")
+        
+        self.search_button.config(text="Rozpocznij wyszukiwanie")
+    
+    def _display_pdf_results(self, pdf_result):
+        """Display PDF search results in the interface"""
+        if not pdf_result.matches:
+            messagebox.showinfo("Wyniki wyszukiwania PDF", "Nie znaleziono żadnych wystąpień frazy w pliku PDF.")
+            return
+        
+        # Create a simple popup window to show PDF search results
+        result_window = tk.Toplevel(self)
+        result_window.title(f"Wyniki wyszukiwania PDF - {os.path.basename(pdf_result.pdf_path)}")
+        result_window.geometry("800x600")
+        
+        # Title
+        title_label = ttk.Label(
+            result_window, 
+            text=f"Wyszukiwanie: '{pdf_result.query}' w {os.path.basename(pdf_result.pdf_path)}",
+            font=("Arial", 12, "bold")
+        )
+        title_label.pack(pady=10)
+        
+        # Results frame with scrollbar
+        results_frame = ttk.Frame(result_window)
+        results_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Create text widget with scrollbar
+        text_widget = tk.Text(results_frame, wrap="word", font=("Arial", 10))
+        scrollbar = ttk.Scrollbar(results_frame, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Add results to text widget
+        summary = f"Znaleziono {len(pdf_result.matches)} wystąpień na {len(set(match['page'] for match in pdf_result.matches))} stronach:\n\n"
+        text_widget.insert(tk.END, summary)
+        
+        for i, match in enumerate(pdf_result.matches, 1):
+            text_widget.insert(tk.END, f"--- Wystąpienie {i} (Strona {match['page']}) ---\n")
+            text_widget.insert(tk.END, f"{match['text']}\n")
+            if match['context'] and match['context'] != match['text']:
+                text_widget.insert(tk.END, f"\nKontekst:\n{match['context']}\n")
+            text_widget.insert(tk.END, "\n" + "="*60 + "\n\n")
+        
+        text_widget.config(state="disabled")  # Make it read-only
+        
+        # Close button
+        close_button = ttk.Button(result_window, text="Zamknij", command=result_window.destroy)
+        close_button.pack(pady=10)
     
     def go_to_page(self, page):
         """Go to specific page"""
@@ -294,6 +463,19 @@ class MailSearchTab(ttk.Frame):
                 checkboxes_frame.grid()
                 toggle_button.config(text="Ukryj")
                 self.exclusion_section_visible = True
+
+    def wybierz_plik_pdf(self):
+        """Select PDF file for search"""
+        filepath = filedialog.askopenfilename(
+            title="Wybierz plik PDF do przeszukania", 
+            filetypes=[("PDF files", "*.pdf")]
+        )
+        if filepath:
+            self.vars['pdf_file_path'].set(filepath)
+            # Extract filename for display
+            filename = os.path.basename(filepath)
+            # Update the status to show file is selected
+            print(f"Wybrano plik PDF: {filename}")
 
     def search_emails(self):
         """Legacy compatibility method"""
