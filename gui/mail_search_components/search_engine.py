@@ -35,6 +35,9 @@ class EmailSearchEngine:
     def _threaded_search(self, connection, folder, criteria, page=0, per_page=20):
         """Main search logic running in background thread"""
         try:
+            # Get folder path from criteria or detect it from folder object
+            folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+            
             # Build search query
             query_filters = []
             
@@ -123,6 +126,7 @@ class EmailSearchEngine:
                         'has_attachments': message.has_attachments if hasattr(message, 'has_attachments') else False,
                         'attachment_count': len(message.attachments) if message.attachments else 0,
                         'message_id': message.id if hasattr(message, 'id') else None,
+                        'folder_path': folder_path,  # Add folder path information
                         'message_obj': message,  # Store full message object for opening
                         'attachments': list(message.attachments) if message.attachments else []
                     }

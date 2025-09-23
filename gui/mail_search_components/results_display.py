@@ -36,21 +36,23 @@ class ResultsDisplay:
         self.results_frame.grid_rowconfigure(0, weight=1)
         self.results_frame.grid_columnconfigure(0, weight=1)
         
-        # Treeview with scrollbars
-        self.tree = ttk.Treeview(self.results_frame, columns=("Date", "Sender", "Subject", "Status", "Attachments"), show="headings", height=15)
+        # Treeview with scrollbars - Added Folder column before Sender
+        self.tree = ttk.Treeview(self.results_frame, columns=("Date", "Folder", "Sender", "Subject", "Status", "Attachments"), show="headings", height=15)
         
         # Configure column headings and widths
         self.tree.heading("Date", text="Data")
+        self.tree.heading("Folder", text="Folder")
         self.tree.heading("Sender", text="Nadawca")
         self.tree.heading("Subject", text="Temat")
         self.tree.heading("Status", text="Status")
         self.tree.heading("Attachments", text="Załączniki")
         
-        self.tree.column("Date", width=150, minwidth=100)
-        self.tree.column("Sender", width=200, minwidth=150)
-        self.tree.column("Subject", width=300, minwidth=200)
-        self.tree.column("Status", width=100, minwidth=80)
-        self.tree.column("Attachments", width=100, minwidth=80)
+        self.tree.column("Date", width=130, minwidth=100)
+        self.tree.column("Folder", width=180, minwidth=120)
+        self.tree.column("Sender", width=180, minwidth=130)
+        self.tree.column("Subject", width=280, minwidth=180)
+        self.tree.column("Status", width=90, minwidth=70)
+        self.tree.column("Attachments", width=90, minwidth=70)
         
         # Scrollbars
         h_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
@@ -118,8 +120,8 @@ class ResultsDisplay:
             self.tree.delete(item)
         
         if not results:
-            # Insert placeholder item for no results
-            self.tree.insert("", "end", values=("", "", "Nie znaleziono wiadomości spełniających kryteria", "", ""))
+            # Insert placeholder item for no results - Updated for new column structure
+            self.tree.insert("", "end", values=("", "", "", "Nie znaleziono wiadomości spełniających kryteria", "", ""))
             self.update_button_states()
             self.update_pagination_display()
             return
@@ -127,12 +129,13 @@ class ResultsDisplay:
         # Insert results
         for i, result in enumerate(results):
             date_str = result['datetime_received'].strftime('%Y-%m-%d %H:%M') if result['datetime_received'] else 'Brak daty'
-            sender = result['sender'][:40] if len(result['sender']) > 40 else result['sender']
-            subject = result['subject'][:60] if len(result['subject']) > 60 else result['subject']
+            folder_path = result.get('folder_path', 'Skrzynka odbiorcza')  # New folder column
+            sender = result['sender'][:35] if len(result['sender']) > 35 else result['sender']
+            subject = result['subject'][:55] if len(result['subject']) > 55 else result['subject']
             status = "Nieprzeczyt." if not result['is_read'] else "Przeczytane"
             attachments = f"{result['attachment_count']}" if result['has_attachments'] else "Brak"
             
-            self.tree.insert("", "end", values=(date_str, sender, subject, status, attachments))
+            self.tree.insert("", "end", values=(date_str, folder_path, sender, subject, status, attachments))
         
         self.update_button_states()
         self.update_pagination_display()
@@ -187,14 +190,27 @@ class ResultsDisplay:
                 messagebox.showerror("Błąd", "Nie można otworzyć wiadomości - brak danych.")
                 return
             
+            # Ensure temp directory exists
+            os.makedirs(self.temp_dir, exist_ok=True)
+            
             # Create EML format content
             eml_content = self._create_eml_content(message, result)
             
-            # Create EML file
-            temp_file = os.path.join(self.temp_dir, f"email_{result.get('message_id', 'unknown')}.eml")
+            # Create safe filename
+            message_id = result.get('message_id', 'unknown')
+            # Remove any problematic characters from message_id
+            safe_id = "".join(c for c in str(message_id) if c.isalnum() or c in (' ', '.', '_', '-'))[:50]
+            temp_file = os.path.join(self.temp_dir, f"email_{safe_id}.eml")
+            
+            # Write EML file
             with open(temp_file, 'w', encoding='utf-8') as f:
                 f.write(eml_content)
             
+            # Verify file was created
+            if not os.path.exists(temp_file):
+                messagebox.showerror("Błąd", "Nie udało się utworzyć pliku EML.")
+                return
+                
             # Open in default application
             if os.name == 'nt':  # Windows
                 os.startfile(temp_file)
