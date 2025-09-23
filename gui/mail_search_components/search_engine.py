@@ -17,13 +17,13 @@ class EmailSearchEngine:
         self.search_cancelled = False
         self.search_thread = None
     
-    def search_emails_threaded(self, connection, folder, search_criteria, page=0, per_page=20):
+    def search_emails_threaded(self, connection, search_criteria, page=0, per_page=20):
         """Start threaded email search"""
         self.search_cancelled = False
         
         self.search_thread = threading.Thread(
             target=self._threaded_search,
-            args=(connection, folder, search_criteria, page, per_page),
+            args=(connection, search_criteria, page, per_page),
             daemon=True
         )
         self.search_thread.start()
@@ -32,11 +32,26 @@ class EmailSearchEngine:
         """Cancel ongoing search"""
         self.search_cancelled = True
     
-    def _threaded_search(self, connection, folder, criteria, page=0, per_page=20):
+    def _threaded_search(self, connection, criteria, page=0, per_page=20):
         """Main search logic running in background thread"""
         try:
-            # Get actual folder path from folder object
-            folder_path = self._get_folder_path(folder)
+            # Get account for folder operations
+            account = connection.get_account()
+            if not account:
+                raise Exception("Nie można nawiązać połączenia z serwerem poczty")
+            
+            # Get folder path for recursive search
+            folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+            
+            self.progress_callback("Zbieranie folderów do przeszukiwania...")
+            
+            # Get all folders to search (base folder + all subfolders)
+            folders_to_search = connection.get_folder_with_subfolders(account, folder_path)
+            
+            if not folders_to_search:
+                raise Exception("Nie znaleziono folderów do przeszukiwania")
+            
+            self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             
             # Build search query
             query_filters = []
@@ -64,10 +79,39 @@ class EmailSearchEngine:
                 combined_query = query_filters[0]
                 for query_filter in query_filters[1:]:
                     combined_query &= query_filter
-                    
-                messages = folder.filter(combined_query).order_by('-datetime_received')
             else:
-                messages = folder.all().order_by('-datetime_received')
+                combined_query = None
+            
+            # Search across all folders
+            all_messages = []
+            for idx, search_folder in enumerate(folders_to_search):
+                if self.search_cancelled:
+                    self.result_callback({'type': 'search_cancelled'})
+                    return
+                
+                try:
+                    self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {search_folder.name}")
+                    
+                    if combined_query:
+                        messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                    else:
+                        messages = search_folder.all().order_by('-datetime_received')
+                    
+                    # Limit messages per folder to maintain performance
+                    folder_messages = list(messages[:100])  # Limit per folder
+                    
+                    # Add folder information to each message
+                    for message in folder_messages:
+                        message._search_folder = search_folder  # Store folder reference
+                    
+                    all_messages.extend(folder_messages)
+                    
+                except Exception as e:
+                    # Skip folders that cause errors (might be inaccessible)
+                    continue
+            
+            # Sort all messages by date
+            all_messages.sort(key=lambda m: m.datetime_received if m.datetime_received else datetime.min.replace(tzinfo=timezone.utc), reverse=True)
             
             self.progress_callback("Przetwarzanie wiadomości...")
             
@@ -75,8 +119,8 @@ class EmailSearchEngine:
             start_idx = page * per_page
             end_idx = start_idx + per_page
             
-            # Get total count (limited to avoid performance issues)
-            total_messages = list(messages[:500])  # Limit total to 500 for performance
+            # Limit total messages for performance (500 total across all folders)
+            total_messages = all_messages[:500]
             total_count = len(total_messages)
             
             # Filter by attachment criteria if needed
@@ -118,6 +162,9 @@ class EmailSearchEngine:
                         else:
                             sender_display = str(message.sender)
                     
+                    # Get folder path for this specific message
+                    message_folder_path = self._get_folder_path(getattr(message, '_search_folder', None))
+                    
                     result_info = {
                         'datetime_received': message.datetime_received,
                         'sender': sender_display,
@@ -126,7 +173,7 @@ class EmailSearchEngine:
                         'has_attachments': message.has_attachments if hasattr(message, 'has_attachments') else False,
                         'attachment_count': len(message.attachments) if message.attachments else 0,
                         'message_id': message.id if hasattr(message, 'id') else None,
-                        'folder_path': folder_path,  # Add folder path information
+                        'folder_path': message_folder_path,  # Use message-specific folder path
                         'message_obj': message,  # Store full message object for opening
                         'attachments': list(message.attachments) if message.attachments else []
                     }

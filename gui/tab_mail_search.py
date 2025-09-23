@@ -84,18 +84,8 @@ class MailSearchTab(ttk.Frame):
     def _perform_search(self):
         """Perform search in background thread"""
         try:
-            account = self.connection.get_account()
-            if not account:
-                self._add_result({'type': 'search_error', 'error': "Nie można nawiązać połączenia"})
-                return
-                
-            folder = self.connection.get_folder_by_path(account, self.vars['folder_path'].get().strip())
-            if not folder:
-                self._add_result({'type': 'search_error', 'error': "Nie można uzyskać dostępu do folderu"})
-                return
-                
             criteria = {key: var.get() if hasattr(var, 'get') else var for key, var in self.vars.items()}
-            self.search_engine.search_emails_threaded(self.connection, folder, criteria, self.current_page, self.per_page)
+            self.search_engine.search_emails_threaded(self.connection, criteria, self.current_page, self.per_page)
             
         except Exception as e:
             self._add_result({'type': 'search_error', 'error': str(e)})
