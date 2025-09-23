@@ -107,9 +107,17 @@ class EmailSearchEngine:
                     self.progress_callback(f"Przetworzono {i + start_idx} wiadomości...")
                 
                 try:
+                    # Extract clean sender email address from Mailbox object
+                    sender_display = 'Nieznany'
+                    if message.sender:
+                        if hasattr(message.sender, 'email_address') and message.sender.email_address:
+                            sender_display = message.sender.email_address
+                        else:
+                            sender_display = str(message.sender)
+                    
                     result_info = {
                         'datetime_received': message.datetime_received,
-                        'sender': str(message.sender) if message.sender else 'Nieznany',
+                        'sender': sender_display,
                         'subject': message.subject if message.subject else 'Brak tematu',
                         'is_read': message.is_read if hasattr(message, 'is_read') else True,
                         'has_attachments': message.has_attachments if hasattr(message, 'has_attachments') else False,

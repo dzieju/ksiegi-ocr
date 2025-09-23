@@ -4,7 +4,6 @@ Results display handler for mail search functionality
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
-import tempfile
 import threading
 
 
@@ -19,8 +18,8 @@ class ResultsDisplay:
         self.total_pages = 0
         self.total_count = 0
         
-        # Create temp directory for attachments
-        self.temp_dir = os.path.join(tempfile.gettempdir(), 'ksiegi_ocr_attachments')
+        # Create temp directory in the main application folder
+        self.temp_dir = os.path.join(os.getcwd(), 'temp')
         os.makedirs(self.temp_dir, exist_ok=True)
         
         self.create_widgets()
@@ -188,19 +187,13 @@ class ResultsDisplay:
                 messagebox.showerror("Błąd", "Nie można otworzyć wiadomości - brak danych.")
                 return
             
-            # Create a simple text representation to show
-            email_content = f"""
-From: {result['sender']}
-Date: {result['datetime_received']}
-Subject: {result['subject']}
-
-{message.text_body if hasattr(message, 'text_body') and message.text_body else 'Brak zawartości tekstowej'}
-            """
+            # Create EML format content
+            eml_content = self._create_eml_content(message, result)
             
-            # Create a temporary file and open it
-            temp_file = os.path.join(self.temp_dir, f"email_{result.get('message_id', 'unknown')}.txt")
+            # Create EML file
+            temp_file = os.path.join(self.temp_dir, f"email_{result.get('message_id', 'unknown')}.eml")
             with open(temp_file, 'w', encoding='utf-8') as f:
-                f.write(email_content)
+                f.write(eml_content)
             
             # Open in default application
             if os.name == 'nt':  # Windows
@@ -210,6 +203,56 @@ Subject: {result['subject']}
                 
         except Exception as e:
             messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości: {str(e)}")
+    
+    def _create_eml_content(self, message, result):
+        """Create proper EML format content for email"""
+        # Start with basic headers
+        eml_lines = []
+        
+        # Required headers
+        eml_lines.append(f"From: {result['sender']}")
+        eml_lines.append(f"Subject: {result['subject']}")
+        eml_lines.append(f"Date: {result['datetime_received']}")
+        
+        # Additional headers if available
+        if hasattr(message, 'to_recipients') and message.to_recipients:
+            to_emails = []
+            for recipient in message.to_recipients:
+                if hasattr(recipient, 'email_address'):
+                    to_emails.append(recipient.email_address)
+                else:
+                    to_emails.append(str(recipient))
+            if to_emails:
+                eml_lines.append(f"To: {', '.join(to_emails)}")
+        
+        if hasattr(message, 'cc_recipients') and message.cc_recipients:
+            cc_emails = []
+            for recipient in message.cc_recipients:
+                if hasattr(recipient, 'email_address'):
+                    cc_emails.append(recipient.email_address)
+                else:
+                    cc_emails.append(str(recipient))
+            if cc_emails:
+                eml_lines.append(f"Cc: {', '.join(cc_emails)}")
+        
+        # Message ID if available
+        if hasattr(message, 'message_id') and message.message_id:
+            eml_lines.append(f"Message-ID: {message.message_id}")
+        
+        # Content type
+        eml_lines.append("Content-Type: text/plain; charset=utf-8")
+        eml_lines.append("Content-Transfer-Encoding: 8bit")
+        
+        # Empty line separating headers from body
+        eml_lines.append("")
+        
+        # Body content
+        if hasattr(message, 'text_body') and message.text_body:
+            eml_lines.append(message.text_body)
+        else:
+            eml_lines.append('Brak zawartości tekstowej')
+        
+        return '\n'.join(eml_lines)
     
     def download_attachments(self):
         """Download and open attachments for selected email"""
@@ -225,8 +268,11 @@ Subject: {result['subject']}
         try:
             # Clear temp directory of old attachments
             for file in os.listdir(self.temp_dir):
-                if file.startswith('attachment_'):
-                    os.remove(os.path.join(self.temp_dir, file))
+                if file.startswith('attachment_') or file.endswith('.eml'):
+                    try:
+                        os.remove(os.path.join(self.temp_dir, file))
+                    except:
+                        pass  # Ignore if file can't be removed
             
             attachments = result.get('attachments', [])
             if not attachments:
@@ -234,13 +280,27 @@ Subject: {result['subject']}
                 return
             
             downloaded_files = []
+            used_filenames = set()  # Track used filenames to avoid conflicts
+            
             for i, attachment in enumerate(attachments):
                 try:
                     if hasattr(attachment, 'name') and hasattr(attachment, 'content'):
-                        # Create safe filename
-                        filename = attachment.name or f"attachment_{i}.bin"
-                        safe_filename = "".join(c for c in filename if c.isalnum() or c in (' ', '.', '_', '-'))
-                        filepath = os.path.join(self.temp_dir, f"attachment_{safe_filename}")
+                        # Use original filename, preserve extension
+                        original_filename = attachment.name or f"attachment_{i}.bin"
+                        
+                        # Create safe filename while preserving original name and extension
+                        safe_filename = "".join(c for c in original_filename if c.isalnum() or c in (' ', '.', '_', '-', '(', ')'))
+                        
+                        # Handle duplicate filenames
+                        if safe_filename in used_filenames:
+                            name, ext = os.path.splitext(safe_filename)
+                            counter = 1
+                            while f"{name}_{counter}{ext}" in used_filenames:
+                                counter += 1
+                            safe_filename = f"{name}_{counter}{ext}"
+                        
+                        used_filenames.add(safe_filename)
+                        filepath = os.path.join(self.temp_dir, safe_filename)
                         
                         # Write attachment content
                         with open(filepath, 'wb') as f:
