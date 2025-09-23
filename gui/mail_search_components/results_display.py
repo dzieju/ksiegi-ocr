@@ -37,7 +37,7 @@ class ResultsDisplay:
         self.results_frame.grid_columnconfigure(0, weight=1)
         
         # Treeview with scrollbars - Added Folder column before Sender
-        self.tree = ttk.Treeview(self.results_frame, columns=("Date", "Folder", "Sender", "Subject", "Status", "Attachments"), show="headings", height=15)
+        self.tree = ttk.Treeview(self.results_frame, columns=("Date", "Folder", "Sender", "Subject", "Status", "Attachments", "PDFMatch"), show="headings", height=15)
         
         # Configure column headings and widths
         self.tree.heading("Date", text="Data")
@@ -46,13 +46,15 @@ class ResultsDisplay:
         self.tree.heading("Subject", text="Temat")
         self.tree.heading("Status", text="Status")
         self.tree.heading("Attachments", text="Załączniki")
+        self.tree.heading("PDFMatch", text="Znaleziono w PDF")
         
-        self.tree.column("Date", width=130, minwidth=100)
-        self.tree.column("Folder", width=180, minwidth=120)
-        self.tree.column("Sender", width=180, minwidth=130)
-        self.tree.column("Subject", width=280, minwidth=180)
-        self.tree.column("Status", width=90, minwidth=70)
-        self.tree.column("Attachments", width=90, minwidth=70)
+        self.tree.column("Date", width=120, minwidth=100)
+        self.tree.column("Folder", width=150, minwidth=120)
+        self.tree.column("Sender", width=150, minwidth=130)
+        self.tree.column("Subject", width=200, minwidth=150)
+        self.tree.column("Status", width=80, minwidth=70)
+        self.tree.column("Attachments", width=80, minwidth=70)
+        self.tree.column("PDFMatch", width=150, minwidth=100)
         
         # Scrollbars
         h_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
@@ -121,7 +123,7 @@ class ResultsDisplay:
         
         if not results:
             # Insert placeholder item for no results - Updated for new column structure
-            self.tree.insert("", "end", values=("", "", "", "Nie znaleziono wiadomości spełniających kryteria", "", ""))
+            self.tree.insert("", "end", values=("", "", "", "Nie znaleziono wiadomości spełniających kryteria", "", "", ""))
             self.update_button_states()
             self.update_pagination_display()
             return
@@ -135,7 +137,18 @@ class ResultsDisplay:
             status = "Nieprzeczyt." if not result['is_read'] else "Przeczytane"
             attachments = f"{result['attachment_count']}" if result['has_attachments'] else "Brak"
             
-            self.tree.insert("", "end", values=(date_str, folder_path, sender, subject, status, attachments))
+            # PDF match information
+            pdf_match_info = result.get('pdf_match_info')
+            pdf_match_text = ""
+            if pdf_match_info and pdf_match_info.get('found'):
+                pdf_attachments = pdf_match_info.get('attachments', [])
+                if pdf_attachments:
+                    pdf_names = [att['name'] for att in pdf_attachments]
+                    pdf_match_text = f"Tak ({len(pdf_names)} PDF)"
+                else:
+                    pdf_match_text = "Tak"
+            
+            self.tree.insert("", "end", values=(date_str, folder_path, sender, subject, status, attachments, pdf_match_text))
         
         self.update_button_states()
         self.update_pagination_display()

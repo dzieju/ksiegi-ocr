@@ -22,6 +22,7 @@ class MailSearchTab(ttk.Frame):
             'folder_path': tk.StringVar(value="Skrzynka odbiorcza"),
             'excluded_folders': tk.StringVar(),
             'subject_search': tk.StringVar(),
+            'pdf_search_text': tk.StringVar(),
             'sender': tk.StringVar(),
             'unread_only': tk.BooleanVar(),
             'attachments_required': tk.BooleanVar(),

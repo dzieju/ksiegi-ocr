@@ -4,9 +4,22 @@ Email search engine for mail search functionality
 import threading
 import queue
 from datetime import datetime, timedelta, timezone
-from tkinter import messagebox
 from exchangelib import Q, Message
 from tools.logger import log
+from .pdf_processor import PDFProcessor
+
+# Handle optional tkinter import
+try:
+    from tkinter import messagebox
+    HAVE_TKINTER = True
+except ImportError:
+    HAVE_TKINTER = False
+    # Create dummy messagebox for environments without tkinter
+    class DummyMessagebox:
+        @staticmethod
+        def showerror(title, message):
+            log(f"Error: {title} - {message}")
+    messagebox = DummyMessagebox()
 
 
 class EmailSearchEngine:
@@ -17,6 +30,7 @@ class EmailSearchEngine:
         self.result_callback = result_callback
         self.search_cancelled = False
         self.search_thread = None
+        self.pdf_processor = PDFProcessor()
         
         # Cache valid Message field names for validation
         self._valid_fields = self._get_valid_message_fields()
@@ -106,6 +120,7 @@ class EmailSearchEngine:
     def cancel_search(self):
         """Cancel ongoing search"""
         self.search_cancelled = True
+        self.pdf_processor.cancel_search()
     
     def _threaded_search(self, connection, criteria, page=0, per_page=500):
         """Main search logic running in background thread"""
@@ -207,7 +222,7 @@ class EmailSearchEngine:
                         invalid_field_warnings.append("  └── '_folder_reference' nie jest prawidłowym polem Message. Foldery są określane przez folder_path.")
                     else:
                         invalid_field_warnings.append(f"  └── Pola rozpoczynające się od '_' nie powinny być używane w filtrach wiadomości.")
-                elif key in ['folder_path', 'excluded_folders', 'subject_search', 'sender', 'unread_only', 'attachments_required', 
+                elif key in ['folder_path', 'excluded_folders', 'subject_search', 'pdf_search_text', 'sender', 'unread_only', 'attachments_required', 
                            'attachment_name', 'attachment_extension', 'selected_period']:
                     # These are valid UI/search criteria (not Message fields)
                     valid_field_count += 1
@@ -239,6 +254,9 @@ class EmailSearchEngine:
                 valid_criteria_count += 1
             if criteria.get('sender'):
                 log(f"✓ Używam filtru nadawcy: '{criteria['sender']}'")
+                valid_criteria_count += 1
+            if criteria.get('pdf_search_text'):
+                log(f"✓ Używam wyszukiwania w PDF: '{criteria['pdf_search_text']}'")
                 valid_criteria_count += 1
             if criteria.get('unread_only'):
                 log("✓ Używam filtru nieprzeczytanych wiadomości")
@@ -400,12 +418,15 @@ class EmailSearchEngine:
             # Filter by attachment criteria if needed  
             filtered_messages = []
             subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
+            pdf_search_text = criteria.get('pdf_search_text', '').strip() if criteria.get('pdf_search_text') else None
             has_attachment_filter = criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension')
+            has_pdf_search = pdf_search_text is not None and len(pdf_search_text) > 0
             
             log("=== ETAPY FILTROWANIA ===")
             log(f"Wiadomości przed filtrowaniem: {len(total_messages)}")
             log(f"Kryteria filtrowania:")
             log(f"  - Filtr tematu: {'TAK (' + subject_search + ')' if subject_search else 'NIE'}")
+            log(f"  - Wyszukiwanie w PDF: {'TAK (' + pdf_search_text + ')' if has_pdf_search else 'NIE'}")
             log(f"  - Filtry załączników: {'TAK' if has_attachment_filter else 'NIE'}")
             if has_attachment_filter:
                 if criteria.get('attachments_required'):
@@ -418,6 +439,7 @@ class EmailSearchEngine:
             # Track filtering statistics
             subject_filtered_out = 0
             attachment_filtered_out = 0
+            pdf_search_filtered_out = 0
             processing_errors = 0
             
             for message in total_messages:
@@ -439,8 +461,26 @@ class EmailSearchEngine:
                         if not self._check_attachment_filters(message, criteria):
                             attachment_filtered_out += 1
                             continue
+                    
+                    # Check PDF content search if needed
+                    pdf_match_info = None
+                    if has_pdf_search:
+                        pdf_match_result = self._check_pdf_content(message, pdf_search_text)
+                        if not pdf_match_result['found']:
+                            pdf_search_filtered_out += 1
+                            continue
+                        else:
+                            pdf_match_info = pdf_match_result  # Store for results display
                             
                     filtered_messages.append(message)
+                    
+                    # Store PDF match info if found (for later use in results)
+                    if pdf_match_info:
+                        # Use message ID or object reference as key to store PDF match info
+                        message_key = getattr(message, 'id', id(message))
+                        if not hasattr(self, '_pdf_matches'):
+                            self._pdf_matches = {}
+                        self._pdf_matches[message_key] = pdf_match_info
                     
                 except Exception as filter_error:
                     # Skip messages that cause errors
@@ -455,6 +495,8 @@ class EmailSearchEngine:
                 log(f"  - Odrzucone przez filtr tematu: {subject_filtered_out}")
             if has_attachment_filter:
                 log(f"  - Odrzucone przez filtry załączników: {attachment_filtered_out}")
+            if has_pdf_search:
+                log(f"  - Odrzucone przez wyszukiwanie w PDF: {pdf_search_filtered_out}")
             if processing_errors > 0:
                 log(f"  - Błędy przetwarzania: {processing_errors}")
             
@@ -509,6 +551,9 @@ class EmailSearchEngine:
                     message_key = getattr(message, 'id', id(message))
                     message_folder_path = message_to_folder_map.get(message_key, 'Skrzynka odbiorcza')
                     
+                    # Get PDF match info if available
+                    pdf_match_info = getattr(self, '_pdf_matches', {}).get(message_key, None)
+                    
                     result_info = {
                         'datetime_received': message.datetime_received,
                         'sender': sender_display,
@@ -519,7 +564,8 @@ class EmailSearchEngine:
                         'message_id': message.id if hasattr(message, 'id') else None,
                         'folder_path': message_folder_path,  # Use message-specific folder path
                         'message_obj': message,  # Store full message object for opening
-                        'attachments': list(message.attachments) if message.attachments else []
+                        'attachments': list(message.attachments) if message.attachments else [],
+                        'pdf_match_info': pdf_match_info  # Add PDF match information
                     }
                     results.append(result_info)
                     
@@ -659,3 +705,40 @@ class EmailSearchEngine:
                 return True
         
         return False
+    
+    def _check_pdf_content(self, message, search_text):
+        """Check if message has PDF attachments containing the search text"""
+        if not message.attachments or not search_text:
+            return {'found': False, 'matches': [], 'method': 'no_attachments_or_text'}
+        
+        found_matches = []
+        found_attachment_names = []
+        
+        for attachment in message.attachments:
+            if self.search_cancelled:
+                return {'found': False, 'matches': [], 'method': 'cancelled'}
+            
+            # Check if attachment is a PDF
+            attachment_name = getattr(attachment, 'name', '') or ''
+            if not attachment_name.lower().endswith('.pdf'):
+                continue
+            
+            # Search in this PDF attachment
+            result = self.pdf_processor.search_in_pdf_attachment(attachment, search_text, attachment_name)
+            
+            if result['found']:
+                found_matches.extend(result.get('matches', []))
+                found_attachment_names.append({
+                    'name': attachment_name,
+                    'method': result.get('method', 'unknown'),
+                    'matches': result.get('matches', [])
+                })
+        
+        if found_attachment_names:
+            return {
+                'found': True,
+                'attachments': found_attachment_names,
+                'all_matches': found_matches
+            }
+        
+        return {'found': False, 'matches': [], 'method': 'not_found_in_pdfs'}
