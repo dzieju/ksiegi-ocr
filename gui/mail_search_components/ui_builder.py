@@ -51,6 +51,7 @@ class MailSearchUI:
         # Checkboxes
         ttk.Checkbutton(self.parent, text="Tylko nieprzeczytane", variable=self.vars['unread_only']).grid(row=7, column=0, sticky="w", padx=5, pady=5)
         ttk.Checkbutton(self.parent, text="Tylko z załącznikami", variable=self.vars['attachments_required']).grid(row=7, column=1, sticky="w", padx=5, pady=5)
+        ttk.Checkbutton(self.parent, text="Tylko bez załączników", variable=self.vars['no_attachments_only']).grid(row=7, column=2, sticky="w", padx=5, pady=5)
         
         # Attachment filters
         ttk.Label(self.parent, text="Nazwa załącznika (zawiera):").grid(row=8, column=0, sticky="e", padx=5, pady=5)
@@ -112,7 +113,7 @@ class MailSearchUI:
         
         return results_frame
     
-    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars, hide_callback=None, is_visible=True):
+    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars, hide_callback=None, uncheck_all_callback=None, is_visible=True):
         """Create checkboxes for folder exclusion with hide/show functionality"""
         if not folders:
             return None, None
@@ -139,6 +140,12 @@ class MailSearchUI:
         # Save settings button
         save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
         save_button.grid(row=0, column=2, sticky="e", padx=(5, 0))
+        
+        # Uncheck all button
+        uncheck_all_button = ttk.Button(header_frame, text="Odznacz wszystkie", width=15)
+        if uncheck_all_callback:
+            uncheck_all_button.config(command=uncheck_all_callback)
+        uncheck_all_button.grid(row=0, column=3, sticky="e", padx=(5, 0))
         
         # Configure header grid
         header_frame.grid_columnconfigure(0, weight=1)
@@ -176,4 +183,4 @@ class MailSearchUI:
         # Configure main container grid
         container_frame.grid_columnconfigure(0, weight=1)
         
-        return container_frame, (toggle_button, save_button, checkboxes_frame)
+        return container_frame, (toggle_button, save_button, uncheck_all_button, checkboxes_frame)

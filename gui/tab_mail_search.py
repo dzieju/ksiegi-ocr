@@ -27,6 +27,7 @@ class MailSearchTab(ttk.Frame):
             'sender': tk.StringVar(),
             'unread_only': tk.BooleanVar(),
             'attachments_required': tk.BooleanVar(),
+            'no_attachments_only': tk.BooleanVar(),
             'attachment_name': tk.StringVar(),
             'attachment_extension': tk.StringVar(),
             'selected_period': tk.StringVar(value="wszystkie")
@@ -118,12 +119,13 @@ class MailSearchTab(ttk.Frame):
                 folders, 
                 self.folder_exclusion_vars, 
                 hide_callback=self.toggle_folder_exclusion_section,
+                uncheck_all_callback=self.uncheck_all_exclusions,
                 is_visible=self.exclusion_section_visible
             )
             
             # Set up save button callback
             if self.folder_section_widgets:
-                toggle_button, save_button, checkboxes_frame = self.folder_section_widgets
+                toggle_button, save_button, uncheck_all_button, checkboxes_frame = self.folder_section_widgets
                 save_button.config(command=self.save_mail_search_config)
                 
             # Load saved excluded folders
@@ -280,11 +282,19 @@ class MailSearchTab(ttk.Frame):
             
         except Exception as e:
             messagebox.showerror("Błąd", f"Błąd zapisywania ustawień: {e}")
+    
+    def uncheck_all_exclusions(self):
+        """Uncheck all folder exclusion checkboxes"""
+        try:
+            for folder_name, var in self.folder_exclusion_vars.items():
+                var.set(False)
+        except Exception as e:
+            print(f"Błąd odznaczania wykluczeń: {e}")
 
     def toggle_folder_exclusion_section(self, toggle_button):
         """Toggle visibility of folder exclusion section"""
         if self.folder_section_widgets:
-            toggle_button_widget, save_button, checkboxes_frame = self.folder_section_widgets
+            toggle_button_widget, save_button, uncheck_all_button, checkboxes_frame = self.folder_section_widgets
             
             if self.exclusion_section_visible:
                 # Hide the checkboxes
