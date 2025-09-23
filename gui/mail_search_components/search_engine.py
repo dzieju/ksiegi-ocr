@@ -54,24 +54,15 @@ class EmailSearchEngine:
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             print(f"Debug: Found {len(folders_to_search)} folders to search")
             
-            # Build search query
+            # Build search query - use simple, reliable approaches
             query_filters = []
             
-            # Subject filter - test both icontains and contains to see which works
+            # Subject filter - use case-insensitive contains
             if criteria.get('subject_search'):
-                try:
-                    # Try the original approach first
-                    subject_filter = Q(subject__icontains=criteria['subject_search'])
-                    query_filters.append(subject_filter)
-                    print(f"Debug: Added subject filter for: {criteria['subject_search']}")
-                except Exception as e:
-                    print(f"Debug: Error with subject__icontains, trying subject__contains: {e}")
-                    try:
-                        subject_filter = Q(subject__contains=criteria['subject_search'])
-                        query_filters.append(subject_filter)
-                        print(f"Debug: Added subject filter (contains) for: {criteria['subject_search']}")
-                    except Exception as e2:
-                        print(f"Debug: Error with subject filters: {e2}")
+                # Use subject__contains which is more widely supported than subject__icontains
+                subject_filter = Q(subject__contains=criteria['subject_search'])
+                query_filters.append(subject_filter)
+                print(f"Debug: Added subject filter for: {criteria['subject_search']}")
             
             # Sender filter
             if criteria.get('sender'):
@@ -113,17 +104,30 @@ class EmailSearchEngine:
                 try:
                     self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {search_folder.name}")
                     
+                    # First try to get some messages without any filtering to test basic functionality
                     if combined_query:
+                        print(f"Debug: Applying query filter to folder {search_folder.name}")
                         messages = search_folder.filter(combined_query).order_by('-datetime_received')
-                        print(f"Debug: Filtering folder {search_folder.name} with query")
                     else:
-                        messages = search_folder.all().order_by('-datetime_received')
                         print(f"Debug: Getting all messages from folder {search_folder.name}")
+                        messages = search_folder.all().order_by('-datetime_received')
                     
                     # Convert QuerySet to list and limit messages per folder to maintain performance
                     # Use list() on the QuerySet directly instead of slicing first
-                    messages_list = list(messages)
-                    print(f"Debug: Found {len(messages_list)} messages in folder {search_folder.name}")
+                    print(f"Debug: Converting messages QuerySet to list for folder {search_folder.name}")
+                    try:
+                        messages_list = list(messages)
+                        print(f"Debug: Successfully converted to list, found {len(messages_list)} messages in folder {search_folder.name}")
+                    except Exception as conversion_error:
+                        print(f"Debug: Error converting QuerySet to list: {conversion_error}")
+                        # Try alternative approach - get first few messages to test
+                        try:
+                            messages_list = [msg for msg in messages.iterator()]
+                            print(f"Debug: Alternative conversion successful, found {len(messages_list)} messages")
+                        except Exception as iter_error:
+                            print(f"Debug: Iterator approach also failed: {iter_error}")
+                            messages_list = []
+                    
                     folder_messages = messages_list[:100]  # Limit per folder after converting to list
                     
                     # Add folder information to each message
@@ -138,10 +142,13 @@ class EmailSearchEngine:
                     error_msg = f"Błąd w folderze {search_folder.name}: {str(e)}"
                     self.progress_callback(error_msg)
                     print(f"Debug: {error_msg}")
+                    import traceback
+                    print(f"Debug: Full traceback: {traceback.format_exc()}")
                     continue
             
             # Sort all messages by date
             all_messages.sort(key=lambda m: m.datetime_received if m.datetime_received else datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+            print(f"Debug: After sorting, have {len(all_messages)} total messages")
             
             self.progress_callback("Przetwarzanie wiadomości...")
             
@@ -152,15 +159,25 @@ class EmailSearchEngine:
             # Limit total messages for performance (500 total across all folders)
             total_messages = all_messages[:500]
             total_count = len(total_messages)
+            print(f"Debug: Limited to {total_count} messages for processing")
             
-            # Filter by attachment criteria if needed
+            # Filter by attachment criteria if needed  
             filtered_messages = []
+            subject_search = criteria.get('subject_search', '').lower() if criteria.get('subject_search') else None
+            print(f"Debug: Starting to filter {len(total_messages)} messages. Subject search: {subject_search}")
+            
             for message in total_messages:
                 if self.search_cancelled:
                     self.result_callback({'type': 'search_cancelled'})
                     return
                 
                 try:
+                    # Manual subject filtering as backup (case-insensitive)
+                    if subject_search:
+                        message_subject = (message.subject or '').lower()
+                        if subject_search not in message_subject:
+                            continue
+                    
                     # Check attachment filters if needed
                     if criteria.get('attachments_required') or criteria.get('attachment_name') or criteria.get('attachment_extension'):
                         if not self._check_attachment_filters(message, criteria):
@@ -169,10 +186,14 @@ class EmailSearchEngine:
                     
                 except Exception as e:
                     # Skip messages that cause errors
+                    print(f"Debug: Error processing message: {e}")
                     continue
+            
+            print(f"Debug: After filtering, have {len(filtered_messages)} messages")
             
             # Apply pagination to filtered messages
             paginated_messages = filtered_messages[start_idx:end_idx]
+            print(f"Debug: After pagination, processing {len(paginated_messages)} messages (page {page}, {start_idx}-{end_idx})")
             
             results = []
             for i, message in enumerate(paginated_messages):
@@ -213,6 +234,7 @@ class EmailSearchEngine:
                     # Skip messages that cause errors
                     continue
             
+            print(f"Debug: Returning {len(results)} results out of {len(filtered_messages)} filtered messages")
             self.result_callback({
                 'type': 'search_complete',
                 'results': results,
