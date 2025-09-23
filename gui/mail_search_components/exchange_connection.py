@@ -160,3 +160,27 @@ class ExchangeConnection:
             log(f"BŁĄD dostępu do podfolderów '{folder.name}': {str(e)}")
             pass
         return all_subfolders
+    
+    def get_available_folders_for_exclusion(self, account, folder_path):
+        """Get list of available folders that can be excluded from search"""
+        log(f"=== ODKRYWANIE FOLDERÓW DO WYKLUCZENIA ===")
+        log(f"Szukanie folderów w: '{folder_path}'")
+        
+        base_folder = self.get_folder_by_path(account, folder_path)
+        if not base_folder:
+            log(f"BŁĄD: Nie znaleziono folderu bazowego '{folder_path}'")
+            return []
+        
+        log(f"Znaleziono folder bazowy: '{base_folder.name}'")
+        
+        # Get all subfolders without exclusions to show them as options
+        all_subfolders = self._get_all_subfolders_recursive(base_folder, set())
+        
+        folder_names = [folder.name for folder in all_subfolders]
+        folder_names.sort()  # Sort alphabetically for better UX
+        
+        log(f"Znalezione foldery do wykluczenia ({len(folder_names)}):")
+        for i, name in enumerate(folder_names, 1):
+            log(f"  {i}. {name}")
+        
+        return folder_names

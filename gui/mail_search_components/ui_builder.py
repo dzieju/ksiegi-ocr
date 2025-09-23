@@ -8,9 +8,10 @@ from tkinter import ttk
 class MailSearchUI:
     """Handles UI creation for mail search tab"""
     
-    def __init__(self, parent, variables):
+    def __init__(self, parent, variables, discover_callback):
         self.parent = parent
         self.vars = variables
+        self.discover_callback = discover_callback
         
     def create_search_criteria_widgets(self):
         """Create search criteria input widgets"""
@@ -25,10 +26,15 @@ class MailSearchUI:
         
         # Search criteria fields
         ttk.Label(self.parent, text="Folder przeszukiwania (z podfolderami):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['folder_path'], width=40).grid(row=1, column=1, padx=5, pady=5)
+        folder_entry = ttk.Entry(self.parent, textvariable=self.vars['folder_path'], width=40)
+        folder_entry.grid(row=1, column=1, padx=5, pady=5)
         
-        ttk.Label(self.parent, text="Wyklucz te foldery:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['excluded_folders'], width=40).grid(row=2, column=1, padx=5, pady=5)
+        # Add folder discovery button
+        discover_button = ttk.Button(self.parent, text="Wykryj foldery", command=self.discover_callback)
+        discover_button.grid(row=1, column=2, padx=5, pady=5)
+        
+        # Placeholder for folder exclusion checkboxes (will be added dynamically)
+        # Row 2 is reserved for the checkbox frame
         
         ttk.Label(self.parent, text="Co ma szukać w temacie maila:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['subject_search'], width=40).grid(row=3, column=1, padx=5, pady=5)
@@ -97,3 +103,36 @@ class MailSearchUI:
         self.parent.grid_columnconfigure(2, weight=1)
         
         return results_frame
+    
+    def create_folder_exclusion_checkboxes(self, folders, exclusion_vars):
+        """Create checkboxes for folder exclusion"""
+        if not folders:
+            return None
+            
+        # Create frame for checkboxes
+        frame = ttk.LabelFrame(self.parent, text="Wyklucz te foldery:", padding=5)
+        frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        
+        # Create checkboxes in multiple columns if there are many folders
+        max_columns = 3
+        folders_per_column = max(1, len(folders) // max_columns + (1 if len(folders) % max_columns else 0))
+        
+        for i, folder_name in enumerate(folders):
+            var = tk.BooleanVar()
+            exclusion_vars[folder_name] = var
+            
+            row = i % folders_per_column
+            column = i // folders_per_column
+            
+            checkbox = ttk.Checkbutton(
+                frame, 
+                text=folder_name, 
+                variable=var
+            )
+            checkbox.grid(row=row, column=column, sticky="w", padx=5, pady=2)
+        
+        # Configure grid weights for the frame
+        for col in range(max_columns):
+            frame.columnconfigure(col, weight=1)
+        
+        return frame

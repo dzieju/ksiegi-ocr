@@ -26,6 +26,11 @@ class MailSearchTab(ttk.Frame):
             'selected_period': tk.StringVar(value="wszystkie")
         }
         
+        # Folder exclusion support
+        self.available_folders = []
+        self.folder_exclusion_vars = {}  # Will hold BooleanVar for each discovered folder
+        self.folder_checkboxes_frame = None
+        
         # Pagination state
         self.current_page = 0
         self.per_page = 500
@@ -37,7 +42,7 @@ class MailSearchTab(ttk.Frame):
         # Initialize components
         self.connection = ExchangeConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars)
+        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders)
         
         self.create_widgets()
         
@@ -71,6 +76,45 @@ class MailSearchTab(ttk.Frame):
         self.status_label.config(text="Anulowanie...", foreground="orange")
         self.search_button.config(text="Rozpocznij wyszukiwanie")
     
+    def discover_folders(self):
+        """Discover available folders for exclusion in background thread"""
+        def _discover():
+            try:
+                self._add_progress("Wykrywanie dostępnych folderów...")
+                account = self.connection.get_account()
+                if account:
+                    folder_path = self.vars['folder_path'].get()
+                    folders = self.connection.get_available_folders_for_exclusion(account, folder_path)
+                    self.after_idle(lambda: self._update_folder_checkboxes(folders))
+            except Exception as e:
+                print(f"Błąd wykrywania folderów: {e}")
+                self._add_progress("Błąd wykrywania folderów")
+        
+        threading.Thread(target=_discover, daemon=True).start()
+    
+    def _update_folder_checkboxes(self, folders):
+        """Update folder checkboxes in the UI thread"""
+        self.available_folders = folders
+        self.folder_exclusion_vars = {}
+        
+        # Clear existing checkboxes
+        if self.folder_checkboxes_frame:
+            self.folder_checkboxes_frame.destroy()
+        
+        # Create new checkboxes frame if we have folders
+        if folders:
+            self.folder_checkboxes_frame = self.ui_builder.create_folder_exclusion_checkboxes(folders, self.folder_exclusion_vars)
+        
+        self._add_progress(f"Wykryto {len(folders)} folderów")
+    
+    def _get_excluded_folders_from_checkboxes(self):
+        """Get list of excluded folders from checkboxes"""
+        excluded = []
+        for folder_name, var in self.folder_exclusion_vars.items():
+            if var.get():
+                excluded.append(folder_name)
+        return ','.join(excluded)  # Convert back to comma-separated format for backend compatibility
+    
     def start_search(self):
         """Start threaded search"""
         self.results_display.clear_results()
@@ -79,6 +123,9 @@ class MailSearchTab(ttk.Frame):
         
         # Reset pagination
         self.current_page = 0
+        
+        # Update excluded_folders from checkboxes before search
+        self.vars['excluded_folders'].set(self._get_excluded_folders_from_checkboxes())
 
         threading.Thread(target=self._perform_search, daemon=True).start()
     
