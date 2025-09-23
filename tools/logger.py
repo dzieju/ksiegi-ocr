@@ -8,6 +8,8 @@ def log(msg):
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         f.write(f"{timestamp} | {msg}\n")
+    # Also print to console for immediate visibility
+    print(f"[LOG {timestamp}] {msg}")
 
 def read_logs():
     if not os.path.exists(LOG_FILE):

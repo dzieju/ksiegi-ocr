@@ -5,7 +5,7 @@ import threading
 import queue
 from datetime import datetime, timedelta, timezone
 from tkinter import messagebox
-from exchangelib import Q
+from exchangelib import Q, Message
 from tools.logger import log
 
 
@@ -17,6 +17,68 @@ class EmailSearchEngine:
         self.result_callback = result_callback
         self.search_cancelled = False
         self.search_thread = None
+        
+        # Cache valid Message field names for validation
+        self._valid_fields = self._get_valid_message_fields()
+        log(f"Zainicjalizowano wyszukiwarkę z {len(self._valid_fields)} dostępnymi polami Message")
+    
+    def _get_valid_message_fields(self):
+        """Get set of valid field names from exchangelib Message class"""
+        try:
+            if hasattr(Message, 'FIELDS'):
+                # Extract field names from Message.FIELDS
+                field_names = set()
+                for field in Message.FIELDS:
+                    if hasattr(field, 'name'):
+                        field_names.add(field.name)
+                log(f"Znaleziono {len(field_names)} dostępnych pól w Message.FIELDS")
+                return field_names
+            else:
+                # Fallback to common known fields
+                log("OSTRZEŻENIE: Message.FIELDS niedostępne, używam podstawowych pól")
+                return {
+                    'subject', 'sender', 'datetime_received', 'is_read', 'has_attachments',
+                    'attachments', 'datetime_sent', 'datetime_created', 'importance',
+                    'to_recipients', 'cc_recipients', 'bcc_recipients'
+                }
+        except Exception as e:
+            log(f"BŁĄD przy pobieraniu pól Message: {str(e)}, używam podstawowych pól")
+            return {
+                'subject', 'sender', 'datetime_received', 'is_read', 'has_attachments'
+            }
+    
+    def _validate_and_log_filter(self, field_name, field_value, filter_obj):
+        """Validate field and log filter creation"""
+        log(f"Tworzenie filtru: {field_name} = '{field_value}'")
+        
+        if field_name not in self._valid_fields:
+            log(f"OSTRZEŻENIE: Pole '{field_name}' nie istnieje w Message.FIELDS!")
+            log(f"Dostępne pola: {sorted(self._valid_fields)}")
+            return False
+        
+        log(f"Pole '{field_name}' zweryfikowane jako prawidłowe")
+        return True
+    
+    def _create_safe_filter(self, field_name, field_value, lookup_type='exact'):
+        """Create Q filter with validation and logging"""
+        if not self._validate_and_log_filter(field_name, field_value, None):
+            log(f"POMINIĘCIE nieprawidłowego filtru: {field_name}")
+            return None
+        
+        try:
+            if lookup_type == 'contains':
+                filter_dict = {f"{field_name}__contains": field_value}
+            elif lookup_type == 'gte':
+                filter_dict = {f"{field_name}__gte": field_value}
+            else:
+                filter_dict = {field_name: field_value}
+            
+            q_filter = Q(**filter_dict)
+            log(f"Utworzono filtr Q({field_name}__{lookup_type if lookup_type != 'exact' else ''}={field_value})")
+            return q_filter
+        except Exception as e:
+            log(f"BŁĄD tworzenia filtru Q({field_name}={field_value}): {str(e)}")
+            return None
     
     def search_emails_threaded(self, connection, search_criteria, page=0, per_page=20):
         """Start threaded email search"""
@@ -69,45 +131,69 @@ class EmailSearchEngine:
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             
-            # Build search query - use simple, reliable approaches
+            # Build search query - use safe, validated approaches
             log("=== BUDOWANIE ZAPYTANIA WYSZUKIWANIA ===")
             query_filters = []
             
             # Subject filter - use case-insensitive contains
             if criteria.get('subject_search'):
-                subject_filter = Q(subject__contains=criteria['subject_search'])
-                query_filters.append(subject_filter)
-                log(f"Dodano filtr tematu: '{criteria['subject_search']}'")
+                subject_filter = self._create_safe_filter('subject', criteria['subject_search'], 'contains')
+                if subject_filter:
+                    query_filters.append(subject_filter)
+                    log(f"Dodano filtr tematu: '{criteria['subject_search']}'")
+                else:
+                    log(f"POMINIĘTO nieprawidłowy filtr tematu")
             
             # Sender filter
             if criteria.get('sender'):
-                sender_filter = Q(sender=criteria['sender'])
-                query_filters.append(sender_filter)
-                log(f"Dodano filtr nadawcy: '{criteria['sender']}'")
+                sender_filter = self._create_safe_filter('sender', criteria['sender'])
+                if sender_filter:
+                    query_filters.append(sender_filter)
+                    log(f"Dodano filtr nadawcy: '{criteria['sender']}'")
+                else:
+                    log(f"POMINIĘTO nieprawidłowy filtr nadawcy")
             
             # Unread filter
             if criteria.get('unread_only'):
-                unread_filter = Q(is_read=False)
-                query_filters.append(unread_filter)
-                log("Dodano filtr nieprzeczytanych wiadomości")
+                unread_filter = self._create_safe_filter('is_read', False)
+                if unread_filter:
+                    query_filters.append(unread_filter)
+                    log("Dodano filtr nieprzeczytanych wiadomości")
+                else:
+                    log("POMINIĘTO nieprawidłowy filtr nieprzeczytanych wiadomości")
             
             # Date period filter
             if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
                 start_date = self._get_period_start_date(criteria['selected_period'])
                 if start_date:
-                    date_filter = Q(datetime_received__gte=start_date)
-                    query_filters.append(date_filter)
-                    log(f"Dodano filtr daty: od {start_date} (okres: {criteria['selected_period']})")
+                    date_filter = self._create_safe_filter('datetime_received', start_date, 'gte')
+                    if date_filter:
+                        query_filters.append(date_filter)
+                        log(f"Dodano filtr daty: od {start_date} (okres: {criteria['selected_period']})")
+                    else:
+                        log(f"POMINIĘTO nieprawidłowy filtr daty")
+            
+            # Log all created filters
+            log(f"=== PODSUMOWANIE FILTRÓW ===")
+            for i, filter_obj in enumerate(query_filters, 1):
+                log(f"Filtr {i}: {filter_obj}")
+            
+            # Check for and warn about any invalid field attempts
+            for key in criteria.keys():
+                if key.startswith('_'):
+                    log(f"OSTRZEŻENIE: Wykryto potencjalne nieprawidłowe pole w kryteriach: '{key}'")
+                    if key == '_search_folder':
+                        log("OSTRZEŻENIE: '_search_folder' nie jest prawidłowym polem Message i nie może być używane w filtrach!")
             
             # Combine filters
             if query_filters:
                 combined_query = query_filters[0]
                 for query_filter in query_filters[1:]:
                     combined_query &= query_filter
-                log(f"Utworzono złożone zapytanie z {len(query_filters)} filtrów")
+                log(f"Utworzono złożone zapytanie z {len(query_filters)} prawidłowych filtrów")
             else:
                 combined_query = None
-                log("Brak filtrów - pobieranie wszystkich wiadomości")
+                log("Brak prawidłowych filtrów - pobieranie wszystkich wiadomości")
             
             # Search across all folders
             log("=== PRZESZUKIWANIE FOLDERÓW ===")
@@ -178,9 +264,9 @@ class EmailSearchEngine:
                     if original_count > 100:
                         log(f"Ograniczono z {original_count} do {len(folder_messages)} wiadomości (limit na folder)")
                     
-                    # Add folder information to each message
+                    # Add folder information to each message (use safe attribute name)
                     for message in folder_messages:
-                        message._search_folder = search_folder  # Store folder reference
+                        message._folder_reference = search_folder  # Store folder reference (renamed from _search_folder)
                     
                     all_messages.extend(folder_messages)
                     
@@ -315,7 +401,7 @@ class EmailSearchEngine:
                             sender_display = str(message.sender)
                     
                     # Get folder path for this specific message
-                    message_folder_path = self._get_folder_path(getattr(message, '_search_folder', None))
+                    message_folder_path = self._get_folder_path(getattr(message, '_folder_reference', None))
                     
                     result_info = {
                         'datetime_received': message.datetime_received,
