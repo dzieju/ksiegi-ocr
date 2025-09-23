@@ -9,6 +9,7 @@ import queue
 import time
 import re
 import csv
+from tools.ocr_engines import ocr_manager
 
 # Configuration paths
 POPPLER_PATH = r"C:\poppler\Library\bin"
@@ -331,18 +332,62 @@ class ZakupiTab(ttk.Frame):
             invoice_count = 0  # Count detected invoice numbers
             invoice_numbers = []  # Store detected invoice numbers for CSV export
             
+            # Prepare cropped images for batch OCR processing
+            self.progress_queue.put("Przygotowywanie obrazów do OCR...")
+            cropped_images = []
             for page_num, pil_img in enumerate(images, 1):
                 if self.processing_cancelled:
                     self.result_queue.put({'type': 'processing_cancelled'})
                     return
                 
-                self.progress_queue.put(f"Przetwarzanie strony {page_num} z {total_pages}...")
-                
                 # Crop the image to the specified region
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
+                cropped_images.append((page_num, crop))
+            
+            self.progress_queue.put("Uruchamianie OCR...")
+            
+            # Perform batch OCR with progress callback
+            def ocr_progress_callback(processed, total):
+                if not self.processing_cancelled:
+                    self.progress_queue.put(f"OCR: {processed + 1}/{total} stron...")
+            
+            # Extract just the images for OCR processing
+            images_for_ocr = [crop for page_num, crop in cropped_images]
+            
+            try:
+                # Perform batch OCR using the configured engine
+                ocr_results = ocr_manager.perform_ocr_batch(
+                    images_for_ocr, 
+                    language='pol+eng',
+                    progress_callback=ocr_progress_callback
+                )
+            except Exception as e:
+                # Fallback to single-threaded processing if batch fails
+                self.progress_queue.put("Błąd batch OCR, przełączam na tryb pojedynczy...")
+                ocr_results = []
+                for i, (page_num, crop) in enumerate(cropped_images):
+                    if self.processing_cancelled:
+                        self.result_queue.put({'type': 'processing_cancelled'})
+                        return
+                    
+                    self.progress_queue.put(f"OCR (fallback): {i + 1}/{len(cropped_images)} stron...")
+                    try:
+                        ocr_text = ocr_manager.perform_ocr_single(crop, 'pol+eng')
+                        ocr_results.append(ocr_text)
+                    except Exception as ocr_error:
+                        # Final fallback to tesseract
+                        ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
+                        ocr_results.append(ocr_text)
+            
+            # Process OCR results
+            for i, (page_num, crop) in enumerate(cropped_images):
+                if self.processing_cancelled:
+                    self.result_queue.put({'type': 'processing_cancelled'})
+                    return
                 
-                # Perform OCR
-                ocr_text = pytesseract.image_to_string(crop, lang='pol+eng')
+                self.progress_queue.put(f"Przetwarzanie wyników: {i + 1}/{len(cropped_images)}...")
+                
+                ocr_text = ocr_results[i] if i < len(ocr_results) else ""
                 
                 # Process lines
                 lines = [l.strip() for l in ocr_text.split('\n') if l.strip()]

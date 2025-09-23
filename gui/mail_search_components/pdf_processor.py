@@ -10,6 +10,15 @@ from tools.logger import log
 POPPLER_PATH = r"C:\poppler\Library\bin"
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# Try to import OCR engine manager first
+try:
+    from tools.ocr_engines import ocr_manager
+    HAVE_ADVANCED_OCR = True
+    log("Advanced OCR engine manager available")
+except ImportError as e:
+    HAVE_ADVANCED_OCR = False
+    log(f"Advanced OCR engine manager not available: {e}")
+
 # Try to import required packages, handle missing dependencies gracefully
 try:
     import pytesseract
@@ -140,16 +149,50 @@ class PDFProcessor:
             images = convert_from_bytes(pdf_content, dpi=200, poppler_path=POPPLER_PATH)
             
             all_ocr_text = ""
-            for page_num, image in enumerate(images):
-                if self.search_cancelled:
-                    break
-                
-                log(f"OCR strona {page_num + 1}/{len(images)} z PDF {attachment_name}")
-                
-                # Perform OCR
-                page_text = pytesseract.image_to_string(image, lang='pol+eng')
-                if page_text:
-                    all_ocr_text += page_text + "\n"
+            
+            # Use advanced OCR engine manager if available, otherwise fallback to pytesseract
+            if HAVE_ADVANCED_OCR:
+                try:
+                    log(f"Używam zaawansowanego OCR dla PDF {attachment_name}")
+                    
+                    # Progress callback for OCR
+                    def progress_callback(processed, total):
+                        if not self.search_cancelled:
+                            log(f"OCR PDF {attachment_name}: {processed + 1}/{total} stron")
+                    
+                    # Use batch OCR processing
+                    ocr_results = ocr_manager.perform_ocr_batch(
+                        images, 
+                        language='pol+eng',
+                        progress_callback=progress_callback
+                    )
+                    
+                    # Combine all results
+                    all_ocr_text = "\n".join(filter(None, ocr_results))
+                    
+                except Exception as e:
+                    log(f"Błąd zaawansowanego OCR, fallback do pytesseract: {e}")
+                    # Fallback to original method
+                    for page_num, image in enumerate(images):
+                        if self.search_cancelled:
+                            break
+                        
+                        log(f"OCR (fallback) strona {page_num + 1}/{len(images)} z PDF {attachment_name}")
+                        page_text = pytesseract.image_to_string(image, lang='pol+eng')
+                        if page_text:
+                            all_ocr_text += page_text + "\n"
+            else:
+                # Original single-threaded processing
+                for page_num, image in enumerate(images):
+                    if self.search_cancelled:
+                        break
+                    
+                    log(f"OCR strona {page_num + 1}/{len(images)} z PDF {attachment_name}")
+                    
+                    # Perform OCR
+                    page_text = pytesseract.image_to_string(image, lang='pol+eng')
+                    if page_text:
+                        all_ocr_text += page_text + "\n"
             
             if all_ocr_text.strip():
                 # Search for the text (case-insensitive)
