@@ -85,3 +85,27 @@ class ExchangeConnection:
         except Exception as e:
             messagebox.showerror("Błąd folderu", f"Błąd dostępu do folderu: {str(e)}")
             return account.inbox
+    
+    def get_folder_with_subfolders(self, account, folder_path):
+        """Get folder and all its subfolders recursively"""
+        base_folder = self.get_folder_by_path(account, folder_path)
+        if not base_folder:
+            return []
+        
+        folders = [base_folder]  # Include the base folder itself
+        folders.extend(self._get_all_subfolders_recursive(base_folder))
+        return folders
+    
+    def _get_all_subfolders_recursive(self, folder):
+        """Recursively get all subfolders of a given folder"""
+        all_subfolders = []
+        try:
+            for child in folder.children:
+                # Add the child folder
+                all_subfolders.append(child)
+                # Recursively get subfolders of this child
+                all_subfolders.extend(self._get_all_subfolders_recursive(child))
+        except Exception as e:
+            # Some folders might not be accessible, continue with others
+            pass
+        return all_subfolders

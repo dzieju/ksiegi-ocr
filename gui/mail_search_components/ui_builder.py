@@ -24,7 +24,7 @@ class MailSearchUI:
         title_label.grid(row=0, column=0, columnspan=3, pady=10)
         
         # Search criteria fields
-        ttk.Label(self.parent, text="Folder przeszukiwania:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        ttk.Label(self.parent, text="Folder przeszukiwania (z podfolderami):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['folder_path'], width=40).grid(row=1, column=1, padx=5, pady=5)
         
         ttk.Label(self.parent, text="Co ma szukać w temacie maila:").grid(row=2, column=0, sticky="e", padx=5, pady=5)
