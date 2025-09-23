@@ -1,0 +1,6 @@
+{
+  "engine": "easyocr",
+  "use_gpu": true,
+  "multiprocessing": true,
+  "max_workers": null
+}
