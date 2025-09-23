@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mail Search - Enhanced Results Display</title>
+    <meta charset="UTF-8">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5; 
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1200px;
+        }
+        .title { 
+            color: #2c3e50; 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .changes-box {
+            background: linear-gradient(135deg, #e8f5e8, #d4edda);
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .changes-title {
+            color: #27ae60;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .changes-list {
+            list-style: none;
+            padding: 0;
+        }
+        .changes-list li {
+            padding: 8px 0;
+            border-bottom: 1px dotted #27ae60;
+        }
+        .changes-list li:before {
+            content: "✅ ";
+            margin-right: 10px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td { 
+            border: 1px solid #e0e0e0; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            font-weight: bold;
+            position: relative;
+        }
+        .new-column { 
+            background: linear-gradient(135deg, #27ae60, #229954) !important;
+            position: relative;
+        }
+        .new-column::after {
+            content: "NEW!";
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .row-unread { 
+            background-color: #fff9e6; 
+            border-left: 4px solid #f39c12;
+        }
+        .row-read {
+            background-color: white;
+        }
+        .has-attachments { 
+            color: #3498db; 
+            font-weight: bold;
+        }
+        .folder-path {
+            font-family: 'Courier New', monospace;
+            background: #ecf0f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .buttons { 
+            margin-top: 25px; 
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 8px;
+        }
+        .button { 
+            padding: 10px 20px; 
+            margin-right: 15px; 
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer; 
+            font-weight: bold;
+        }
+        .button:hover {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+        }
+        .pagination { 
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pagination-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .stats {
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">📧 Wyszukiwanie poczty - Ulepszone wyniki</div>
+        
+        <div class="changes-box">
+            <div class="changes-title">🎯 Wprowadzone poprawki</div>
+            <ul class="changes-list">
+                <li><strong>Dodana kolumna "Folder"</strong> - wyświetla ścieżkę folderu przed kolumną "Nadawca"</li>
+                <li><strong>Poprawione tworzenie plików .eml</strong> - lepsze tworzenie ścieżki i weryfikacja pliku</li>
+                <li><strong>Bezpieczne nazwy plików</strong> - usunięte problematyczne znaki z nazw plików</li>
+                <li><strong>Zapewnione istnienie katalogu temp</strong> - automatyczne tworzenie folderu tymczasowego</li>
+            </ul>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th class="new-column">Folder</th>
+                    <th>Nadawca</th>
+                    <th>Temat</th>
+                    <th>Status</th>
+                    <th>Załączniki</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="row-unread">
+                    <td>2024-12-15 10:30</td>
+                    <td><span class="folder-path">/Odebrane/Faktury</span></td>
+                    <td>faktury@firma.com</td>
+                    <td>Faktura nr 2024/12/001</td>
+                    <td>Nieprzeczyt.</td>
+                    <td class="has-attachments">2</td>
+                </tr>
+                <tr class="row-read">
+                    <td>2024-12-14 16:45</td>
+                    <td><span class="folder-path">/Odebrane/Allegro</span></td>
+                    <td>allegro@allegro.pl</td>
+                    <td>Potwierdzenie zakupu - zamówienie 12345</td>
+                    <td>Przeczytane</td>
+                    <td>Brak</td>
+                </tr>
+                <tr class="row-read">
+                    <td>2024-12-13 09:15</td>
+                    <td><span class="folder-path">/Odebrane/Kompensaty Quadra</span></td>
+                    <td>kompensaty@quadra.net</td>
+                    <td>Miesięczny raport kompensaty za listopad 2024</td>
+                    <td>Przeczytane</td>
+                    <td class="has-attachments">1</td>
+                </tr>
+                <tr class="row-read">
+                    <td>2024-12-12 14:22</td>
+                    <td><span class="folder-path">Skrzynka odbiorcza</span></td>
+                    <td>info@example.com</td>
+                    <td>Informacja o aktualizacji systemu</td>
+                    <td>Przeczytane</td>
+                    <td>Brak</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="buttons">
+            <button class="button">Otwórz email</button>
+            <button class="button">Pobierz załączniki</button>
+        </div>
+        
+        <div class="pagination">
+            <div class="pagination-left">
+                <button class="button">◀ Poprzednia</button>
+                <span>Strona 1 z 1</span>
+                <button class="button">Następna ▶</button>
+            </div>
+            <div>
+                <span>Wyników na stronę: 20</span>
+                <span class="stats">Znaleziono: 4 wyników</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
