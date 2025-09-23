@@ -20,6 +20,11 @@ class MailSearchTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent, **ModernTheme.get_frame_style('section'))
         
+        # Configure the scrollable frame to support grid layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)  
+        self.grid_columnconfigure(2, weight=1)
+        
         # Initialize search variables
         self.vars = {
             'folder_path': ctk.StringVar(value="Skrzynka odbiorcza"),

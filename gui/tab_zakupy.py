@@ -30,6 +30,9 @@ class ZakupiTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent, **ModernTheme.get_frame_style('section'))
         
+        # Configure the scrollable frame to support potential grid layouts
+        self.grid_columnconfigure(0, weight=1)
+        
         # Initialize file path variable
         self.file_path_var = ctk.StringVar()
         
