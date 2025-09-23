@@ -87,10 +87,17 @@ class ExchangeConnection:
             messagebox.showerror("Błąd folderu", f"Błąd dostępu do folderu: {str(e)}")
             return account.inbox
     
-    def get_folder_with_subfolders(self, account, folder_path):
-        """Get folder and all its subfolders recursively"""
+    def get_folder_with_subfolders(self, account, folder_path, excluded_folders=None):
+        """Get folder and all its subfolders recursively, excluding specified folders"""
         log(f"=== ODKRYWANIE FOLDERÓW ===")
         log(f"Szukanie folderu bazowego: '{folder_path}'")
+        
+        # Parse excluded folders
+        excluded_folder_names = set()
+        if excluded_folders:
+            excluded_folder_names = {name.strip() for name in excluded_folders.split(',') if name.strip()}
+            if excluded_folder_names:
+                log(f"Foldery do wykluczenia: {list(excluded_folder_names)}")
         
         base_folder = self.get_folder_by_path(account, folder_path)
         if not base_folder:
@@ -101,7 +108,7 @@ class ExchangeConnection:
         folders = [base_folder]  # Include the base folder itself
         
         log("Rozpoczynanie rekursywnego wyszukiwania podfolderów...")
-        subfolders = self._get_all_subfolders_recursive(base_folder)
+        subfolders = self._get_all_subfolders_recursive(base_folder, excluded_folder_names)
         folders.extend(subfolders)
         
         log(f"Odkrywanie folderów zakończone:")
@@ -113,25 +120,40 @@ class ExchangeConnection:
         
         return folders
     
-    def _get_all_subfolders_recursive(self, folder):
-        """Recursively get all subfolders of a given folder"""
+    def _get_all_subfolders_recursive(self, folder, excluded_folder_names=None):
+        """Recursively get all subfolders of a given folder, excluding specified folders"""
+        if excluded_folder_names is None:
+            excluded_folder_names = set()
+            
         all_subfolders = []
         try:
             log(f"Sprawdzanie podfolderów w: '{folder.name}'")
             children_count = 0
+            excluded_count = 0
+            
             for child in folder.children:
                 children_count += 1
+                
+                # Check if this folder should be excluded
+                if child.name in excluded_folder_names:
+                    excluded_count += 1
+                    log(f"  Pominięto wykluczony folder: '{child.name}'")
+                    continue
+                
                 # Add the child folder
                 all_subfolders.append(child)
                 log(f"  Znaleziono podfolder: '{child.name}'")
+                
                 # Recursively get subfolders of this child
-                sub_subfolders = self._get_all_subfolders_recursive(child)
+                sub_subfolders = self._get_all_subfolders_recursive(child, excluded_folder_names)
                 all_subfolders.extend(sub_subfolders)
             
             if children_count == 0:
                 log(f"  Folder '{folder.name}' nie ma podfolderów")
             else:
                 log(f"  Folder '{folder.name}' ma {children_count} bezpośrednich podfolderów")
+                if excluded_count > 0:
+                    log(f"  Wykluczono {excluded_count} folderów z przeszukiwania")
                 
         except Exception as e:
             # Some folders might not be accessible, continue with others

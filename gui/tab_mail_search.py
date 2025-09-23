@@ -16,6 +16,7 @@ class MailSearchTab(ttk.Frame):
         # Initialize search variables
         self.vars = {
             'folder_path': tk.StringVar(value="Skrzynka odbiorcza"),
+            'excluded_folders': tk.StringVar(),
             'subject_search': tk.StringVar(),
             'sender': tk.StringVar(),
             'unread_only': tk.BooleanVar(),
