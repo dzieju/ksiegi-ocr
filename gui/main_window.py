@@ -31,6 +31,22 @@ class MainWindow(ctk.CTk):
             print(f"DEBUG: Window background configuration failed: {e}")
             self.configure(fg_color="lightgray")
         
+        # TEST: Add test widgets directly to MainWindow (outside of any container)
+        print("DEBUG: Adding test widgets directly to MainWindow...")
+        try:
+            self.test_label_main = ctk.CTkLabel(self, text="🚨 TEST: MainWindow Direct Widget", 
+                                              font=("Arial", 18, "bold"), 
+                                              text_color="red")
+            self.test_label_main.pack(pady=5)
+            
+            self.test_button_main = ctk.CTkButton(self, text="TEST: MainWindow Direct Button", 
+                                                command=lambda: print("DEBUG: MainWindow direct button clicked!"))
+            self.test_button_main.pack(pady=5)
+            print("DEBUG: Test widgets added directly to MainWindow successfully")
+        except Exception as e:
+            print(f"DEBUG: Failed to add test widgets to MainWindow: {e}")
+            print("🚨 CONSOLE MESSAGE: Test widgets could not be added directly to MainWindow - this indicates a fundamental rendering issue!")
+        
         # Create main container with padding
         print("DEBUG: Creating main container...")
         try:
@@ -81,10 +97,51 @@ class MainWindow(ctk.CTk):
             except Exception as e:
                 print(f"DEBUG: Failed to add tab {tab_name}: {e}")
 
+        # TEST: Add test widgets directly to CTkTabview (outside of tabs)
+        print("DEBUG: Adding test widgets directly to CTkTabview...")
+        try:
+            self.test_label_tabview = ctk.CTkLabel(self.tabview, text="🎯 TEST: TabView Direct Widget", 
+                                                  font=("Arial", 16, "bold"), 
+                                                  text_color="blue")
+            self.test_label_tabview.pack(pady=5, before=self.tabview._segmented_button)
+            
+            self.test_button_tabview = ctk.CTkButton(self.tabview, text="TEST: TabView Direct Button", 
+                                                   command=lambda: print("DEBUG: TabView direct button clicked!"))
+            self.test_button_tabview.pack(pady=5, before=self.tabview._segmented_button)
+            print("DEBUG: Test widgets added directly to CTkTabview successfully")
+        except Exception as e:
+            print(f"DEBUG: Failed to add test widgets to CTkTabview: {e}")
+            print("🚨 CONSOLE MESSAGE: Test widgets could not be added directly to CTkTabview - this indicates a tabview rendering issue!")
+
         # Initialize tab content
         print("DEBUG: Initializing tab content...")
         self._initialize_tabs()
+        
+        # TEST SUMMARY: Check if test widgets are visible
+        print("\n" + "="*60)
+        print("🧪 WIDGET VISIBILITY TEST SUMMARY:")
+        print("="*60)
+        try:
+            main_widgets_visible = hasattr(self, 'test_label_main') and hasattr(self, 'test_button_main')
+            tabview_widgets_visible = hasattr(self, 'test_label_tabview') and hasattr(self, 'test_button_tabview')
+            
+            print(f"✅ MainWindow direct widgets created: {main_widgets_visible}")
+            print(f"✅ TabView direct widgets created: {tabview_widgets_visible}")
+            
+            if not main_widgets_visible:
+                print("🚨 CONSOLE MESSAGE: MainWindow direct widgets FAILED - fundamental window rendering issue!")
+            if not tabview_widgets_visible:
+                print("🚨 CONSOLE MESSAGE: TabView direct widgets FAILED - tabview rendering issue!")
+            
+            if main_widgets_visible and tabview_widgets_visible:
+                print("✅ Both test widget sets created successfully - if you don't see them, there's a display/theme issue!")
+            
+        except Exception as e:
+            print(f"🚨 CONSOLE MESSAGE: Error checking test widget visibility: {e}")
+        
+        print("="*60)
         print("DEBUG: MainWindow initialization completed")
+        print("="*60 + "\n")
         
     def _initialize_tabs(self):
         """Initialize tab contents with modern components"""
