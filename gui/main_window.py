@@ -14,9 +14,8 @@ class MainWindow(ctk.CTk):
         # Initialize modern theme
         print("DEBUG: Setting up ModernTheme...")
         try:
-            # TEMPORARILY DISABLE THEME FOR DIAGNOSTICS
-            # ModernTheme.setup_theme()
-            print("DEBUG: ModernTheme setup SKIPPED for diagnostics")
+            ModernTheme.setup_theme()
+            print("DEBUG: ModernTheme setup completed successfully")
         except Exception as e:
             print(f"DEBUG: ModernTheme setup failed: {e}")
         
@@ -26,9 +25,8 @@ class MainWindow(ctk.CTk):
         
         # Configure window
         try:
-            # self.configure(fg_color=ModernTheme.COLORS['background'])
-            self.configure(fg_color="lightgray")  # Simple fallback color
-            print("DEBUG: Window background color configured with fallback")
+            self.configure(fg_color=ModernTheme.COLORS['background'])
+            print("DEBUG: Window background color configured")
         except Exception as e:
             print(f"DEBUG: Window background configuration failed: {e}")
             self.configure(fg_color="lightgray")
@@ -36,13 +34,12 @@ class MainWindow(ctk.CTk):
         # Create main container with padding
         print("DEBUG: Creating main container...")
         try:
-            # main_container = ctk.CTkFrame(
-            #     self, 
-            #     **ModernTheme.get_frame_style('section')
-            # )
-            main_container = ctk.CTkFrame(self)  # Simple fallback
-            main_container.pack(fill="both", expand=True, padx=16, pady=16)
-            print("DEBUG: Main container created successfully with fallback")
+            main_container = ctk.CTkFrame(
+                self, 
+                **ModernTheme.get_frame_style('section')
+            )
+            main_container.pack(fill="both", expand=True, padx=ModernTheme.SPACING['medium'], pady=ModernTheme.SPACING['medium'])
+            print("DEBUG: Main container created successfully")
         except Exception as e:
             print(f"DEBUG: Main container creation failed: {e}")
             # Fallback to simple frame
@@ -52,16 +49,15 @@ class MainWindow(ctk.CTk):
         # Create modern tabview
         print("DEBUG: Creating tabview...")
         try:
-            # self.tabview = ctk.CTkTabview(
-            #     main_container,
-            #     corner_radius=10,
-            #     border_width=1,
-            #     border_color=ModernTheme.COLORS['border'],
-            #     fg_color=ModernTheme.COLORS['surface']
-            # )
-            self.tabview = ctk.CTkTabview(main_container)  # Simple fallback
+            self.tabview = ctk.CTkTabview(
+                main_container,
+                corner_radius=10,
+                border_width=1,
+                border_color=ModernTheme.COLORS['border'],
+                fg_color=ModernTheme.COLORS['surface']
+            )
             self.tabview.pack(fill="both", expand=True)
-            print("DEBUG: Tabview created successfully with fallback")
+            print("DEBUG: Tabview created successfully")
         except Exception as e:
             print(f"DEBUG: Tabview creation failed: {e}")
             # Fallback to simple tabview
