@@ -9,6 +9,7 @@ class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Księga Przychodów i Rozchodów")
+        # Default geometry - can be overridden by caller
         self.geometry("900x600")
 
         style = ttk.Style(self)
