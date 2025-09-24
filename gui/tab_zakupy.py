@@ -28,7 +28,29 @@ pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 class ZakupiTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        super().__init__(parent, **ModernTheme.get_frame_style('section'))
+        print("DEBUG: ZakupiTab.__init__() started")
+        print(f"DEBUG: ZakupiTab parent: {parent}")
+        try:
+            super().__init__(parent, **ModernTheme.get_frame_style('section'))
+            print("DEBUG: ZakupiTab super().__init__() completed")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab super().__init__() failed: {e}")
+            super().__init__(parent)
+        
+        # Add test widget immediately
+        print("DEBUG: Adding test widget to ZakupiTab...")
+        try:
+            test_label = ctk.CTkLabel(self, text="🛒 TEST: Zakupy Tab Loaded!", 
+                                    font=("Arial", 16, "bold"), 
+                                    text_color="green")
+            test_label.pack(pady=10)
+            
+            test_button = ctk.CTkButton(self, text="Test Zakupy Button", 
+                                      command=lambda: print("DEBUG: Zakupy test button clicked!"))
+            test_button.pack(pady=5)
+            print("DEBUG: Test widgets added to ZakupiTab successfully")
+        except Exception as e:
+            print(f"DEBUG: Failed to add test widgets to ZakupiTab: {e}")
         
         # Initialize file path variable
         self.file_path_var = ctk.StringVar()
@@ -40,11 +62,22 @@ class ZakupiTab(ctk.CTkScrollableFrame):
         self.progress_queue = queue.Queue()
         
         # Create UI elements
-        self.create_widgets()
+        print("DEBUG: ZakupiTab calling create_widgets()...")
+        try:
+            self.create_widgets()
+            print("DEBUG: ZakupiTab create_widgets() completed")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab create_widgets() failed: {e}")
         
         # Start processing queues
-        self._process_result_queue()
-        self._process_progress_queue()
+        try:
+            self._process_result_queue()
+            self._process_progress_queue()
+            print("DEBUG: ZakupiTab queue processing started")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab queue processing failed: {e}")
+        
+        print("DEBUG: ZakupiTab.__init__() completed")
 
     def clean_invoice_name(self, text):
         """
@@ -464,25 +497,61 @@ class ZakupiTab(ctk.CTkScrollableFrame):
         
     def create_widgets(self):
         """Create modern CustomTkinter widgets for the purchases tab"""
+        print("DEBUG: ZakupiTab.create_widgets() started")
+        
+        # Add another test widget
+        try:
+            test_label2 = ctk.CTkLabel(self, text="🎯 TEST: Zakupy create_widgets() executed!", 
+                                     font=("Arial", 14), text_color="purple")
+            test_label2.pack(pady=5)
+            print("DEBUG: Additional test widget added in ZakupiTab create_widgets()")
+        except Exception as e:
+            print(f"DEBUG: Failed to add additional test widget to ZakupiTab: {e}")
         
         # Title section
-        title_label = ctk.CTkLabel(
-            self,
-            text="🛒 Odczyt Numerów Faktur",
-            **ModernTheme.get_label_style('heading')
-        )
-        title_label.pack(pady=(0, ModernTheme.SPACING['large']), anchor="w")
+        try:
+            title_label = ctk.CTkLabel(
+                self,
+                text="🛒 Odczyt Numerów Faktur",
+                **ModernTheme.get_label_style('heading')
+            )
+            title_label.pack(pady=(0, ModernTheme.SPACING['large']), anchor="w")
+            print("DEBUG: ZakupiTab title label created")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab title label creation failed: {e}")
+            # Fallback
+            try:
+                title_label = ctk.CTkLabel(self, text="🛒 Odczyt Numerów Faktur")
+                title_label.pack(pady=10)
+            except Exception as e2:
+                print(f"DEBUG: ZakupiTab fallback title creation also failed: {e2}")
 
         # File selection section
-        file_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
-        file_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
+        try:
+            file_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
+            file_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
+            print("DEBUG: ZakupiTab file frame created")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab file frame creation failed: {e}")
+            # Fallback  
+            try:
+                file_frame = ctk.CTkFrame(self)
+                file_frame.pack(fill="x", pady=10)
+            except Exception as e2:
+                print(f"DEBUG: ZakupiTab fallback file frame creation also failed: {e2}")
         
-        file_title = ctk.CTkLabel(
-            file_frame,
-            text="📄 Wybór pliku PDF",
-            **ModernTheme.get_label_style('subheading')
-        )
-        file_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+        try:
+            file_title = ctk.CTkLabel(
+                file_frame,
+                text="📄 Wybór pliku PDF",
+                **ModernTheme.get_label_style('subheading')
+            )
+            file_title.pack(pady=(ModernTheme.SPACING['medium'], ModernTheme.SPACING['small']), anchor="w", padx=ModernTheme.SPACING['medium'])
+            print("DEBUG: ZakupiTab file title created")
+        except Exception as e:
+            print(f"DEBUG: ZakupiTab file title creation failed: {e}")
+        
+        print("DEBUG: ZakupiTab.create_widgets() completed")
 
         # File input row
         file_input_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
