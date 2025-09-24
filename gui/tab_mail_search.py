@@ -5,8 +5,6 @@ import queue
 import threading
 import json
 import os
-from gui.modern_theme import ModernTheme
-from gui.tooltip_utils import add_tooltip, TOOLTIPS
 
 from gui.mail_search_components.exchange_connection import ExchangeConnection
 from gui.mail_search_components.search_engine import EmailSearchEngine
@@ -18,35 +16,11 @@ MAIL_SEARCH_CONFIG_FILE = "mail_search_config.json"
 
 class MailSearchTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        print("DEBUG: MailSearchTab.__init__() started")
-        print(f"DEBUG: MailSearchTab parent: {parent}")
+        super().__init__(parent)
         try:
-            super().__init__(parent, **ModernTheme.get_frame_style('section'))
-            print("DEBUG: MailSearchTab super().__init__() completed")
-        except Exception as e:
-            print(f"DEBUG: MailSearchTab super().__init__() failed: {e}")
-            super().__init__(parent)
-        
-        # Add test widget immediately
-        print("DEBUG: Adding test widget to MailSearchTab...")
-        try:
-            test_label = ctk.CTkLabel(self, text="📧 TEST: Mail Search Tab Loaded!", 
-                                    font=("Arial", 16, "bold"), 
-                                    text_color="darkblue")
-            test_label.pack(pady=10)
-            
-            test_button = ctk.CTkButton(self, text="Test Mail Search Button", 
-                                      command=lambda: print("DEBUG: Mail Search test button clicked!"))
-            test_button.pack(pady=5)
-            print("DEBUG: Test widgets added to MailSearchTab successfully")
-        except Exception as e:
-            print(f"DEBUG: Failed to add test widgets to MailSearchTab: {e}")
-        
-        # Create a main container frame within the scrollable frame to handle grid layout
         try:
             self.main_container = ctk.CTkFrame(self, fg_color="transparent")
             self.main_container.pack(fill="both", expand=True, padx=ModernTheme.SPACING['medium'], pady=ModernTheme.SPACING['medium'])
-            print("DEBUG: MailSearchTab main_container created")
         except Exception as e:
             print(f"DEBUG: MailSearchTab main_container creation failed: {e}")
             self.main_container = ctk.CTkFrame(self, fg_color="transparent")
@@ -57,7 +31,6 @@ class MailSearchTab(ctk.CTkScrollableFrame):
             self.main_container.grid_columnconfigure(0, weight=1)
             self.main_container.grid_columnconfigure(1, weight=1)  
             self.main_container.grid_columnconfigure(2, weight=1)
-            print("DEBUG: MailSearchTab grid configuration completed")
         except Exception as e:
             print(f"DEBUG: MailSearchTab grid configuration failed: {e}")
         
@@ -98,67 +71,44 @@ class MailSearchTab(ctk.CTkScrollableFrame):
             self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
             # Pass the main_container to UI builder instead of self
             self.ui_builder = MailSearchUI(self.main_container, self.vars, self.discover_folders)
-            print("DEBUG: MailSearchTab components initialized")
         except Exception as e:
             print(f"DEBUG: MailSearchTab components initialization failed: {e}")
 
-        print("DEBUG: MailSearchTab calling create_widgets()...")
         try:
             self.create_widgets()
-            print("DEBUG: MailSearchTab create_widgets() completed")
         except Exception as e:
             print(f"DEBUG: MailSearchTab create_widgets() failed: {e}")
         
         # Load saved settings
         try:
             self.load_mail_search_config()
-            print("DEBUG: MailSearchTab config loaded")
         except Exception as e:
             print(f"DEBUG: MailSearchTab config loading failed: {e}")
         
         # Start processing queues
         try:
             self._process_queues()
-            print("DEBUG: MailSearchTab queue processing started")
         except Exception as e:
             print(f"DEBUG: MailSearchTab queue processing failed: {e}")
         
-        print("DEBUG: MailSearchTab.__init__() completed")
         
     def create_widgets(self):
         """Create all widgets using UI builder"""
-        print("DEBUG: MailSearchTab.create_widgets() started")
         
         # Add another test widget
         try:
-            test_label2 = ctk.CTkLabel(self, text="🎯 TEST: Mail Search create_widgets() executed!", 
-                                     font=("Arial", 14), text_color="teal")
-            test_label2.pack(pady=5)
-            print("DEBUG: Additional test widget added in MailSearchTab create_widgets()")
-        except Exception as e:
-            print(f"DEBUG: Failed to add additional test widget to MailSearchTab: {e}")
-        
-        try:
-            self.ui_builder.create_search_criteria_widgets()
-            print("DEBUG: MailSearchTab search criteria widgets created")
-        except Exception as e:
-            print(f"DEBUG: MailSearchTab search criteria widgets creation failed: {e}")
-            
         try:
             self.ui_builder.create_date_period_widgets()
-            print("DEBUG: MailSearchTab date period widgets created")
         except Exception as e:
             print(f"DEBUG: MailSearchTab date period widgets creation failed: {e}")
         
         try:
             self.search_button, self.status_label = self.ui_builder.create_control_widgets(self.toggle_search)
-            print("DEBUG: MailSearchTab control widgets created")
         except Exception as e:
             print(f"DEBUG: MailSearchTab control widgets creation failed: {e}")
             
         try:
             self.results_frame = self.ui_builder.create_results_widget()
-            print("DEBUG: MailSearchTab results widget created")
         except Exception as e:
             print(f"DEBUG: MailSearchTab results widget creation failed: {e}")
         
@@ -168,11 +118,9 @@ class MailSearchTab(ctk.CTkScrollableFrame):
             self.results_display.set_page_callback(self.go_to_page)
             self.results_display.set_per_page_callback(self.change_per_page)
             self.results_display.bind_selection_change()
-            print("DEBUG: MailSearchTab results display initialized")
         except Exception as e:
             print(f"DEBUG: MailSearchTab results display initialization failed: {e}")
         
-        print("DEBUG: MailSearchTab.create_widgets() completed")
         
     def toggle_search(self):
         """Toggle between starting and cancelling search"""

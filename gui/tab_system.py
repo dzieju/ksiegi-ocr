@@ -6,47 +6,19 @@ from tools import logger, i18n, darkmode
 from tools.ocr_config import ocr_config
 from gui.system_components.backup_handler import BackupHandler
 from gui.system_components.system_operations import SystemOperations
-from gui.modern_theme import ModernTheme
-from gui.tooltip_utils import add_tooltip, TOOLTIPS
 
 
 class SystemTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
-        print("DEBUG: SystemTab.__init__() started")
-        print(f"DEBUG: SystemTab parent: {parent}")
-        try:
-            super().__init__(parent, **ModernTheme.get_frame_style('section'))
-            print("DEBUG: SystemTab super().__init__() completed")
-        except Exception as e:
-            print(f"DEBUG: SystemTab super().__init__() failed: {e}")
-            super().__init__(parent)
-
-        # Add test widget immediately
-        print("DEBUG: Adding test widget to SystemTab...")
-        try:
-            test_label = ctk.CTkLabel(self, text="🔧 TEST: System Tab Loaded!", 
-                                    font=("Arial", 16, "bold"), 
-                                    text_color="red")
-            test_label.pack(pady=10)
-            
-            test_button = ctk.CTkButton(self, text="Test System Button", 
-                                      command=lambda: print("DEBUG: System test button clicked!"))
-            test_button.pack(pady=5)
-            print("DEBUG: Test widgets added to SystemTab successfully")
-        except Exception as e:
-            print(f"DEBUG: Failed to add test widgets to SystemTab: {e}")
+        super().__init__(parent)
 
         # Threading support variables
         self.result_queue = queue.Queue()
         self.progress_queue = queue.Queue()
 
         # Initialize handlers
-        try:
-            self.backup_handler = BackupHandler(self._add_result)
-            self.system_ops = SystemOperations(self._add_result)
-            print("DEBUG: SystemTab handlers initialized")
-        except Exception as e:
-            print(f"DEBUG: SystemTab handlers initialization failed: {e}")
+        self.backup_handler = BackupHandler(self._add_result)
+        self.system_ops = SystemOperations(self._add_result)
         
         # OCR configuration variables
         try:
@@ -54,14 +26,11 @@ class SystemTab(ctk.CTkScrollableFrame):
             self.gpu_enabled_var = ctk.BooleanVar(value=ocr_config.get_use_gpu())
             self.multiprocessing_var = ctk.BooleanVar(value=ocr_config.get_multiprocessing())
             self.max_workers_var = ctk.StringVar(value=str(ocr_config.get_max_workers() or "Auto"))
-            print("DEBUG: SystemTab OCR variables initialized")
         except Exception as e:
             print(f"DEBUG: SystemTab OCR variables initialization failed: {e}")
 
-        print("DEBUG: SystemTab calling create_widgets()...")
         try:
             self.create_widgets()
-            print("DEBUG: SystemTab create_widgets() completed")
         except Exception as e:
             print(f"DEBUG: SystemTab create_widgets() failed: {e}")
         
@@ -69,34 +38,18 @@ class SystemTab(ctk.CTkScrollableFrame):
         try:
             self._process_result_queue()
             self._process_progress_queue()
-            print("DEBUG: SystemTab queue processing started")
         except Exception as e:
             print(f"DEBUG: SystemTab queue processing failed: {e}")
         
-        print("DEBUG: SystemTab.__init__() completed")
     
     def create_widgets(self):
         """Create modern CustomTkinter widgets for the system tab"""
-        print("DEBUG: SystemTab.create_widgets() started")
         
         # Add another test widget
         try:
-            test_label2 = ctk.CTkLabel(self, text="🎯 TEST: create_widgets() executed!", 
-                                     font=("Arial", 14), text_color="blue")
-            test_label2.pack(pady=5)
-            print("DEBUG: Additional test widget added in create_widgets()")
-        except Exception as e:
-            print(f"DEBUG: Failed to add additional test widget: {e}")
-        
-        # Title section
-        try:
-            title_label = ctk.CTkLabel(
-                self, 
-                text="🔧 Ustawienia Systemowe",
                 **ModernTheme.get_label_style('heading')
             )
             title_label.pack(pady=(0, ModernTheme.SPACING['large']), anchor="w")
-            print("DEBUG: SystemTab title label created")
         except Exception as e:
             print(f"DEBUG: SystemTab title label creation failed: {e}")
             # Fallback
@@ -110,7 +63,6 @@ class SystemTab(ctk.CTkScrollableFrame):
         try:
             status_frame = ctk.CTkFrame(self, **ModernTheme.get_frame_style('card'))
             status_frame.pack(fill="x", pady=(0, ModernTheme.SPACING['medium']))
-            print("DEBUG: SystemTab status frame created")
         except Exception as e:
             print(f"DEBUG: SystemTab status frame creation failed: {e}")
             # Fallback
@@ -120,7 +72,6 @@ class SystemTab(ctk.CTkScrollableFrame):
             except Exception as e2:
                 print(f"DEBUG: SystemTab fallback status frame creation also failed: {e2}")
         
-        print("DEBUG: SystemTab.create_widgets() completed")
         
         status_title = ctk.CTkLabel(
             status_frame,
