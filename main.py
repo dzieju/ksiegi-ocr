@@ -21,7 +21,9 @@ from tools.live_logger import get_live_logger
 def main():
     """Main application entry point with error handling."""
     
-    # Store original stderr for development debugging
+    # Store original stdout and stderr for robust error handling
+    # This ensures errors are always visible in console even if logs are redirected
+    original_stdout = sys.stdout
     original_stderr = sys.stderr
     app = None
     
@@ -57,42 +59,43 @@ def main():
         print("\nStarting GUI application...")
         print("=" * 60)
         
-        # Utwórz główne okno z obsługą wyjątków
-        try:
-            app = MainWindow()
-            
-            # Ustaw domyślną geometrię okna (900x700+100+100) zgodnie z wymaganiami
-            app.geometry("900x700+100+100")
-            # Ustaw minimalny rozmiar
-            app.minsize(800, 600)
-            
-            print("✓ GUI successfully initialized")
-            
-        except Exception as gui_error:
-            print(f"\n✗ ERROR: Failed to initialize GUI", file=original_stderr)
-            print(f"GUI Error Details:", file=original_stderr)
-            traceback.print_exc(file=original_stderr)
-            raise gui_error
+        # Redirect stdout/stderr to original console streams for robust error handling
+        # This ensures all GUI initialization errors are visible in console
+        sys.stdout = original_stdout
+        sys.stderr = original_stderr
+        
+        # Comprehensive GUI initialization with full error handling
+        app = MainWindow()
+        
+        # Ustaw domyślną geometrię okna (900x700+100+100) zgodnie z wymaganiami
+        app.geometry("900x700+100+100")
+        # Ustaw minimalny rozmiar
+        app.minsize(800, 600)
+        
+        print("✓ GUI successfully initialized")
+        
+        # Start the main event loop
+        print("Starting main event loop...")
+        app.mainloop()
         
     except Exception as startup_error:
-        print(f"\n✗ FATAL ERROR during application startup:", file=original_stderr)
-        print("=" * 60, file=original_stderr)
+        print(f"\n{'='*60}", file=original_stderr)
+        print("✗ FATAL ERROR during application startup:", file=original_stderr)
+        print(f"{'='*60}", file=original_stderr)
         print("FULL TRACEBACK:", file=original_stderr)
         traceback.print_exc(file=original_stderr)
-        print("=" * 60, file=original_stderr)
+        print(f"{'='*60}", file=original_stderr)
         print("Application cannot start. Please check the error details above.", file=original_stderr)
+        print("\nPress Enter to exit...", file=original_stderr)
+        try:
+            input()  # Prevent shell from closing immediately
+        except (EOFError, KeyboardInterrupt):
+            pass  # Handle cases where input is not available
         sys.exit(1)
     
     finally:
-        # Ensure mainloop is always called if app was created successfully
-        if app is not None:
-            try:
-                print("Starting main event loop...")
-                app.mainloop()
-            except Exception as mainloop_error:
-                print(f"\n✗ ERROR in main event loop:", file=original_stderr)
-                traceback.print_exc(file=original_stderr)
-                sys.exit(1)
+        # This finally block is no longer needed as mainloop is now in try block
+        pass
 
 if __name__ == "__main__":
     main()
