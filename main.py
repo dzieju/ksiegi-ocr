@@ -6,7 +6,29 @@ MS_TIMEZONE_TO_IANA_MAP['Customized Time Zone'] = "Europe/Warsaw"
 from gui.main_window import MainWindow
 import tkinter as tk
 
+# Import poppler utilities for PDF processing support
+from tools.poppler_utils import print_poppler_status, test_poppler_startup
+
 if __name__ == "__main__":
+    print("=" * 60)
+    print("KSIEGI-OCR - System uruchamiania")
+    print("=" * 60)
+    
+    # Test poppler integration on startup
+    print("\nTesting Poppler integration...")
+    poppler_success, poppler_message = test_poppler_startup()
+    if poppler_success:
+        print(f"✓ {poppler_message}")
+    else:
+        print(f"✗ {poppler_message}")
+        print("WARNING: Poppler integration issues detected. PDF processing may not work correctly.")
+    
+    # Show detailed poppler status
+    print_poppler_status()
+    
+    print("\nStarting GUI application...")
+    print("=" * 60)
+    
     # Utwórz główne okno
     app = MainWindow()
     # Ustaw domyślny rozmiar okna (np. 1400x900)
