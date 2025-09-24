@@ -78,11 +78,43 @@ python main.py
 
 ### Automatyczne wykrywanie
 
-Aplikacja automatycznie wykrywa i konfiguruje lokalne narzędzia Poppler przy starcie:
+Aplikacja automatycznie wykrywa i konfiguruje lokalne narzędzia Poppler przy starcie z ulepszoną logiką:
 
-- **Windows**: `poppler/Library/bin/*.exe`
-- **Linux/macOS**: `poppler/bin/*` lub wykrywanie systemowe
-- **Konfiguracja PATH**: Automatyczne dodanie do zmiennej środowiskowej PATH
+- **Inteligentne wykrywanie ścieżki**: Automatycznie sprawdza następujące lokalizacje w kolejności:
+  1. `poppler/Library/bin/` (Windows/conda/vcpkg style)
+  2. `poppler/bin/` (Linux/macOS/Unix style)  
+  3. `poppler/` (bezpośredni katalog bin)
+- **Walidacja narzędzi**: Sprawdza obecność podstawowych plików (`pdfinfo`, `pdfimages`, `pdftoppm`)
+- **Automatyczna konfiguracja PATH**: Dodaje wykrytą ścieżkę do zmiennej środowiskowej PATH
+- **Elastyczna obsługa**: Działa zarówno z plikami `.exe` (Windows) jak i bez rozszerzenia (Linux/macOS)
+- **Sprawdzanie plików PDF**: Automatyczne testy istnienia i dostępności plików PDF przed przetwarzaniem
+
+### Status wykrywania
+
+Sprawdź status wykrywania Poppler:
+
+```bash
+python -m tools.poppler_utils --status
+```
+
+Przykładowy wynik:
+```
+==================================================
+POPPLER INTEGRATION STATUS
+==================================================
+Repository root: /path/to/repo
+Poppler directory: /path/to/repo/poppler
+✓ Poppler DETECTED and CONFIGURED
+Bin directory: /path/to/repo/poppler/Library/bin
+PATH configured: ✓ Yes
+
+Available tools (12):
+  - pdfinfo (pdfinfo.exe)
+  - pdfimages (pdfimages.exe)
+  - pdftoppm (pdftoppm.exe)
+  [...]
+==================================================
+```
 
 ### Dostępne narzędzia Poppler
 
@@ -106,7 +138,7 @@ Aplikacja automatycznie wykrywa i konfiguruje lokalne narzędzia Poppler przy st
 #### Programowe wykorzystanie Poppler
 
 ```python
-from tools.poppler_utils import get_poppler_manager
+from tools.poppler_utils import get_poppler_manager, get_poppler_path
 
 # Uzyskaj instancję managera
 manager = get_poppler_manager()
@@ -123,6 +155,25 @@ if manager.is_detected:
     # Testuj narzędzie
     success, message = manager.test_tool("pdfinfo")
     print(f"Test pdfinfo: {message}")
+
+# Szybkie uzyskanie ścieżki poppler (dla bibliotek jak pdf2image)
+poppler_path = get_poppler_path()
+if poppler_path:
+    print(f"Ścieżka Poppler: {poppler_path}")
+```
+
+#### Sprawdzanie plików PDF
+
+```python
+from tools.poppler_utils import check_pdf_file_exists
+
+# Sprawdź czy plik PDF jest dostępny przed przetwarzaniem
+pdf_exists, message = check_pdf_file_exists("dokument.pdf")
+if pdf_exists:
+    print("Plik PDF jest gotowy do przetwarzania")
+    # Kontynuuj z przetwarzaniem...
+else:
+    print(f"Problem z plikiem PDF: {message}")
 ```
 
 #### Wykorzystanie w skryptach
@@ -199,13 +250,21 @@ Error: Poppler directory not found: /path/to/poppler
 
 **Rozwiązania:**
 1. Upewnij się, że katalog `poppler` istnieje w katalogu głównym repozytorium
-2. Sprawdź strukturę katalogów:
+2. Sprawdź strukturę katalogów (obsługiwane są różne struktury):
    ```bash
    ls -la poppler/
-   ls -la poppler/Library/bin/  # Windows
-   ls -la poppler/bin/          # Linux/macOS
+   # Opcja 1: Windows/conda style
+   ls -la poppler/Library/bin/  
+   # Opcja 2: Linux/Unix style  
+   ls -la poppler/bin/          
+   # Opcja 3: Bezpośredni katalog
+   ls -la poppler/              
    ```
-3. Pobierz i rozpakuj Poppler z oficjalnej strony
+3. Uruchom test wykrywania:
+   ```bash
+   python -m tools.poppler_utils --status
+   ```
+4. Pobierz i rozpakuj Poppler z oficjalnej strony jeśli katalog nie istnieje
 
 ### Problem: Narzędzia Poppler nie działają
 
@@ -218,13 +277,67 @@ Error: Poppler directory not found: /path/to/poppler
 
 #### Linux/macOS:
 ```bash
-# Nadaj uprawnienia wykonywania
+# Nadaj uprawnienia wykonywania (dla struktury bin/)
 chmod +x poppler/bin/*
+
+# Lub dla struktury Library/bin/
+chmod +x poppler/Library/bin/*
 ```
 
 #### Windows:
-- Sprawdź, czy pliki `.exe` są obecne w `poppler/Library/bin/`
+- Sprawdź, czy pliki `.exe` są obecne w wykrytym katalogu
 - Uruchom jako administrator jeśli potrzeba
+- Upewnij się, że antywirus nie blokuje plików
+
+### Problem: Nieprawidłowa struktura katalogów
+
+**Objawy:**
+```
+Error: No valid poppler binaries found in: [PosixPath('/path/to/poppler/Library/bin'), ...]
+```
+
+**Rozwiązania:**
+1. Sprawdź obecność podstawowych narzędzi:
+   ```bash
+   # Dla Windows
+   ls -la poppler/Library/bin/pdfinfo.exe
+   ls -la poppler/Library/bin/pdfimages.exe
+   ls -la poppler/Library/bin/pdftoppm.exe
+   
+   # Dla Linux/macOS
+   ls -la poppler/bin/pdfinfo
+   ls -la poppler/bin/pdfimages  
+   ls -la poppler/bin/pdftoppm
+   ```
+2. Jeśli brakuje plików, pobierz ponownie Poppler
+3. Przetestuj pojedyncze narzędzie:
+   ```bash
+   python -m tools.poppler_utils --tool pdfinfo
+   ```
+
+### Problem: Błędy plików PDF
+
+**Objawy:**
+```
+PDF file does not exist: /path/to/file.pdf
+PDF file appears to be too small (possibly corrupted): /path/to/file.pdf
+```
+
+**Rozwiązania:**
+1. Sprawdź czy plik istnieje:
+   ```bash
+   ls -la /path/to/file.pdf
+   ```
+2. Sprawdź uprawnienia do pliku:
+   ```bash
+   chmod 644 /path/to/file.pdf
+   ```
+3. Zweryfikuj integralność pliku PDF:
+   ```python
+   from tools.poppler_utils import check_pdf_file_exists
+   exists, message = check_pdf_file_exists("/path/to/file.pdf")
+   print(f"Status: {exists}, Wiadomość: {message}")
+   ```
 
 ### Problem: Błędy ścieżki PATH
 
@@ -234,12 +347,42 @@ PATH configured: ✗ No
 ```
 
 **Rozwiązania:**
-1. Uruchom ponownie aplikację - PATH jest konfigurowane automatycznie
-2. Sprawdź ręcznie:
+1. Uruchom ponownie aplikację - PATH jest konfigurowane automatycznie przy wykryciu Poppler
+2. Sprawdź ręcznie status konfiguracji:
    ```python
    from tools.poppler_utils import get_poppler_manager
    manager = get_poppler_manager()
-   print(manager.get_status())
+   status = manager.get_status()
+   print(f"PATH skonfigurowany: {status['path_configured']}")
+   print(f"Ścieżka bin: {status['bin_path']}")
+   ```
+3. Zweryfikuj czy zmienne środowiskowe są prawidłowe:
+   ```bash
+   echo $PATH  # Linux/macOS
+   echo %PATH% # Windows
+   ```
+
+### Problem: Importowanie poppler_utils nie powiodło się
+
+**Objawy:**
+```
+Failed to import poppler_utils, using fallback path
+```
+
+**Rozwiązania:**
+1. Sprawdź czy moduł istnieje:
+   ```bash
+   ls -la tools/poppler_utils.py
+   ```
+2. Sprawdź ścieżkę Python:
+   ```python
+   import sys
+   print(sys.path)
+   ```
+3. Uruchom z głównego katalogu repozytorium:
+   ```bash
+   cd /path/to/ksiegi-ocr
+   python -c "from tools.poppler_utils import get_poppler_manager"
    ```
 
 ### Problem: Brakujące zależności
