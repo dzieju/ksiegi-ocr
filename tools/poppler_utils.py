@@ -271,6 +271,17 @@ class PopplerManager:
                 return tool_path
         
         return None
+    
+    def get_detected_path(self) -> Optional[str]:
+        """
+        Get the detected poppler bin path as string for compatibility.
+        
+        Returns:
+            String path to poppler bin directory, or None if not detected
+        """
+        if not self.is_detected or not self.bin_path:
+            return None
+        return str(self.bin_path)
 
 
 # Global instance for easy access
@@ -298,6 +309,50 @@ def detect_poppler() -> bool:
 def print_poppler_status() -> None:
     """Print poppler status to console."""
     get_poppler_manager().print_status()
+
+
+def get_poppler_path() -> Optional[str]:
+    """
+    Get the detected poppler path for use by other modules.
+    
+    Returns:
+        String path to poppler bin directory, or None if not detected
+    """
+    return get_poppler_manager().get_detected_path()
+
+
+def check_pdf_file_exists(pdf_path: str) -> Tuple[bool, str]:
+    """
+    Check if a PDF file exists and is readable.
+    
+    Args:
+        pdf_path: Path to the PDF file to check
+        
+    Returns:
+        tuple: (exists: bool, message: str)
+    """
+    if not pdf_path:
+        return False, "No PDF path provided"
+    
+    pdf_file = Path(pdf_path)
+    
+    if not pdf_file.exists():
+        return False, f"PDF file does not exist: {pdf_path}"
+    
+    if not pdf_file.is_file():
+        return False, f"Path is not a file: {pdf_path}"
+    
+    try:
+        # Check if file is readable and has reasonable size
+        size = pdf_file.stat().st_size
+        if size == 0:
+            return False, f"PDF file is empty: {pdf_path}"
+        if size < 100:  # PDF files are typically larger than 100 bytes
+            return False, f"PDF file appears to be too small (possibly corrupted): {pdf_path}"
+    except OSError as e:
+        return False, f"Cannot access PDF file: {pdf_path} - {e}"
+    
+    return True, f"PDF file is accessible: {pdf_path}"
 
 
 def test_poppler_startup() -> Tuple[bool, str]:
