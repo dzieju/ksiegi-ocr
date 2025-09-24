@@ -9,6 +9,9 @@ import tkinter as tk
 # Import poppler utilities for PDF processing support
 from tools.poppler_utils import print_poppler_status, test_poppler_startup
 
+# Import OCR engines for Tesseract detection
+from tools.ocr_engines import ocr_manager
+
 if __name__ == "__main__":
     print("=" * 60)
     print("KSIEGI-OCR - System uruchamiania")
@@ -25,6 +28,18 @@ if __name__ == "__main__":
     
     # Show detailed poppler status
     print_poppler_status()
+    
+    # Test OCR engines availability
+    print("\nTesting OCR engines availability...")
+    available_engines = ocr_manager.get_available_engines()
+    if available_engines:
+        print(f"✓ OCR engines available: {', '.join(available_engines)}")
+        current_engine = ocr_manager.get_current_engine()
+        if current_engine:
+            print(f"  Current engine: {current_engine}")
+    else:
+        print("✗ No OCR engines available")
+        print("  Check installation instructions displayed above")
     
     print("\nStarting GUI application...")
     print("=" * 60)

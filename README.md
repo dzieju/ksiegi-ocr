@@ -32,7 +32,25 @@ cd ksiegi-ocr
 pip install -r requirements.txt
 ```
 
-### 3. Sprawdź integrację Poppler
+### 3. Zainstaluj Tesseract OCR
+
+#### Windows
+1. Pobierz instalator Tesseract z: [https://github.com/UB-Mannheim/tesseract/wiki](https://github.com/UB-Mannheim/tesseract/wiki)
+2. Zainstaluj Tesseract OCR w domyślnej lokalizacji (`C:\Program Files\Tesseract-OCR\`)
+3. Alternatywnie: dodaj `tesseract.exe` do zmiennej środowiskowej PATH
+
+#### Linux (Ubuntu/Debian)
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr tesseract-ocr-pol
+```
+
+#### macOS
+```bash
+brew install tesseract tesseract-lang
+```
+
+### 4. Sprawdź integrację Poppler
 
 ```bash
 python tools/poppler_utils.py --status
@@ -406,21 +424,43 @@ pip install exchangelib pdfplumber pdf2image pillow
 **Objawy:**
 - Błędy podczas rozpoznawania tekstu
 - Brak wyników OCR
+- Komunikat "Tesseract OCR niedostępny"
 
 **Rozwiązania:**
 1. Sprawdź instalację Tesseract:
    ```bash
-   # Linux
+   # Windows
+   tesseract --version
+   # Linux/macOS
+   tesseract --version
+   ```
+
+2. Zainstaluj Tesseract jeśli brakuje:
+   ```bash
+   # Linux (Ubuntu/Debian)
+   sudo apt-get update
    sudo apt-get install tesseract-ocr tesseract-ocr-pol
    
    # Windows
    # Pobierz z https://github.com/UB-Mannheim/tesseract/wiki
+   
+   # macOS
+   brew install tesseract tesseract-lang
    ```
 
-2. Sprawdź konfigurację OCR:
+3. Sprawdź konfigurację OCR w aplikacji:
    ```python
-   from tools.ocr_engines import test_ocr_engines
-   test_ocr_engines()
+   from tools.ocr_engines import ocr_manager
+   print("Available engines:", ocr_manager.get_available_engines())
+   print("Current engine:", ocr_manager.get_current_engine())
+   ```
+
+4. Sprawdź czy Tesseract jest w PATH:
+   ```bash
+   # Windows
+   where tesseract
+   # Linux/macOS
+   which tesseract
    ```
 
 ### Problem: Błędy GUI
