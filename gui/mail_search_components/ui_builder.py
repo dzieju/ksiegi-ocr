@@ -22,31 +22,31 @@ class MailSearchUI:
             font=("Arial", 12),
             foreground="blue"
         )
-        title_label.grid(row=0, column=0, columnspan=3, pady=10)
+        title_label.grid(row=0, column=0, columnspan=3, pady=10, sticky="w")
         
         # Search criteria fields
         ttk.Label(self.parent, text="Folder przeszukiwania (z podfolderami):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
         folder_entry = ttk.Entry(self.parent, textvariable=self.vars['folder_path'], width=40)
-        folder_entry.grid(row=1, column=1, padx=5, pady=5)
+        folder_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
         
         # Add folder discovery button
         discover_button = ttk.Button(self.parent, text="Wykryj foldery", command=self.discover_callback)
-        discover_button.grid(row=1, column=2, padx=5, pady=5)
+        discover_button.grid(row=1, column=2, padx=5, pady=5, sticky="w")
         
         # Placeholder for folder exclusion checkboxes (will be added dynamically)
         # Row 2 is reserved for the checkbox frame
         
         ttk.Label(self.parent, text="Czego mam szukać w temacie maila:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['subject_search'], width=40).grid(row=3, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['subject_search'], width=40).grid(row=3, column=1, padx=5, pady=5, sticky="ew")
         
         ttk.Label(self.parent, text="Czego mam szukać w treści maila:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['body_search'], width=40).grid(row=4, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['body_search'], width=40).grid(row=4, column=1, padx=5, pady=5, sticky="ew")
         
         ttk.Label(self.parent, text="Wyszukaj w pliku PDF (automatyczny zapis):").grid(row=5, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['pdf_search_text'], width=40).grid(row=5, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['pdf_search_text'], width=40).grid(row=5, column=1, padx=5, pady=5, sticky="ew")
         
         ttk.Label(self.parent, text="Nadawca maila:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5, sticky="ew")
         
         # Checkboxes
         ttk.Checkbutton(self.parent, text="Tylko nieprzeczytane", variable=self.vars['unread_only']).grid(row=7, column=0, sticky="w", padx=5, pady=5)
@@ -55,10 +55,10 @@ class MailSearchUI:
         
         # Attachment filters
         ttk.Label(self.parent, text="Nazwa załącznika (zawiera):").grid(row=8, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['attachment_name'], width=40).grid(row=8, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['attachment_name'], width=40).grid(row=8, column=1, padx=5, pady=5, sticky="ew")
         
         ttk.Label(self.parent, text="Rozszerzenie załącznika:").grid(row=9, column=0, sticky="e", padx=5, pady=5)
-        ttk.Entry(self.parent, textvariable=self.vars['attachment_extension'], width=40).grid(row=9, column=1, padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['attachment_extension'], width=40).grid(row=9, column=1, padx=5, pady=5, sticky="ew")
     
         return None  # No longer returning save_pdf_button
     
@@ -90,7 +90,7 @@ class MailSearchUI:
     def create_control_widgets(self, search_callback):
         """Create search button and status widgets"""
         search_frame = ttk.Frame(self.parent)
-        search_frame.grid(row=11, column=0, columnspan=3, pady=20)
+        search_frame.grid(row=11, column=0, columnspan=3, pady=20, sticky="ew")
         
         search_button = ttk.Button(search_frame, text="Rozpocznij wyszukiwanie", command=search_callback)
         search_button.pack(side="left", padx=5)

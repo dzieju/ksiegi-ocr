@@ -20,10 +20,14 @@ class MailSearchTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent, **ModernTheme.get_frame_style('section'))
         
-        # Configure the scrollable frame to support grid layout
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)  
-        self.grid_columnconfigure(2, weight=1)
+        # Create a main container frame within the scrollable frame to handle grid layout
+        self.main_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_container.pack(fill="both", expand=True, padx=ModernTheme.SPACING['medium'], pady=ModernTheme.SPACING['medium'])
+        
+        # Configure the container frame to support grid layout
+        self.main_container.grid_columnconfigure(0, weight=1)
+        self.main_container.grid_columnconfigure(1, weight=1)  
+        self.main_container.grid_columnconfigure(2, weight=1)
         
         # Initialize search variables
         self.vars = {
@@ -59,7 +63,8 @@ class MailSearchTab(ctk.CTkScrollableFrame):
         # Initialize components
         self.connection = ExchangeConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders)
+        # Pass the main_container to UI builder instead of self
+        self.ui_builder = MailSearchUI(self.main_container, self.vars, self.discover_folders)
         
         self.create_widgets()
         

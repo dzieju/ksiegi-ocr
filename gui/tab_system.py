@@ -14,9 +14,6 @@ class SystemTab(ctk.CTkScrollableFrame):
     def __init__(self, parent):
         super().__init__(parent, **ModernTheme.get_frame_style('section'))
 
-        # Configure the scrollable frame to support potential grid layouts
-        self.grid_columnconfigure(0, weight=1)
-
         # Threading support variables
         self.result_queue = queue.Queue()
         self.progress_queue = queue.Queue()
