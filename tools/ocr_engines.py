@@ -4,6 +4,8 @@ OCR engine abstraction with multiprocessing support
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
 import os
+import shutil
+import subprocess
 from tools.logger import log
 from tools.ocr_config import ocr_config
 
@@ -22,6 +24,66 @@ except ImportError as e:
 
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+def _detect_tesseract():
+    """Detect Tesseract OCR availability and provide user feedback"""
+    # Try to import pytesseract first
+    try:
+        import pytesseract
+    except ImportError:
+        log("Tesseract OCR niedostępny - brak pakietu pytesseract")
+        log("Aby zainstalować pytesseract, uruchom: pip install pytesseract")
+        return False, None
+    
+    # Check if tesseract executable is available in PATH
+    tesseract_exe = shutil.which('tesseract')
+    if tesseract_exe:
+        # Test if tesseract works
+        try:
+            result = subprocess.run([tesseract_exe, '--version'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                version_info = result.stdout.split('\n')[0] if result.stdout else "Tesseract"
+                log(f"✓ Tesseract OCR dostępny w systemie PATH: {tesseract_exe}")
+                log(f"  Wersja: {version_info}")
+                pytesseract.pytesseract.tesseract_cmd = tesseract_exe
+                return True, tesseract_exe
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError) as e:
+            log(f"Błąd podczas testowania Tesseract z PATH: {e}")
+    
+    # Check hardcoded Windows path as fallback
+    if os.path.exists(TESSERACT_PATH):
+        try:
+            result = subprocess.run([TESSERACT_PATH, '--version'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                version_info = result.stdout.split('\n')[0] if result.stdout else "Tesseract"
+                log(f"✓ Tesseract OCR dostępny w domyślnej lokalizacji: {TESSERACT_PATH}")
+                log(f"  Wersja: {version_info}")
+                pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+                return True, TESSERACT_PATH
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError) as e:
+            log(f"Błąd podczas testowania Tesseract z domyślnej ścieżki: {e}")
+    
+    # Tesseract not found - provide installation instructions
+    log("✗ Tesseract OCR niedostępny w systemie")
+    log("=" * 60)
+    log("INSTRUKCJA INSTALACJI TESSERACT OCR:")
+    log("=" * 60)
+    log("Windows:")
+    log("  1. Pobierz instalator z: https://github.com/UB-Mannheim/tesseract/wiki")
+    log("  2. Zainstaluj Tesseract OCR w domyślnej lokalizacji")
+    log("  3. Lub dodaj tesseract.exe do zmiennej PATH")
+    log("")
+    log("Linux (Ubuntu/Debian):")
+    log("  sudo apt-get update")
+    log("  sudo apt-get install tesseract-ocr tesseract-ocr-pol")
+    log("")
+    log("macOS:")
+    log("  brew install tesseract tesseract-lang")
+    log("=" * 60)
+    
+    return False, None
+
 class OCREngineManager:
     """Manages OCR engines and multiprocessing for OCR operations"""
     
@@ -32,15 +94,9 @@ class OCREngineManager:
         """Detect which OCR engines are available"""
         engines = {}
         
-        # Test Tesseract
-        try:
-            import pytesseract
-            pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-            engines['tesseract'] = True
-            log("Tesseract OCR dostępny")
-        except ImportError:
-            engines['tesseract'] = False
-            log("Tesseract OCR niedostępny")
+        # Test Tesseract with enhanced detection
+        tesseract_available, tesseract_path = _detect_tesseract()
+        engines['tesseract'] = tesseract_available
         
         # Test EasyOCR
         try:
@@ -230,7 +286,11 @@ def _ocr_worker(image, language, engine, use_gpu):
     # This function recreates the OCR setup in each worker process
     if engine == 'tesseract':
         import pytesseract
-        pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+        # Re-detect Tesseract path in worker process
+        tesseract_available, tesseract_path = _detect_tesseract()
+        if not tesseract_available:
+            raise RuntimeError("Tesseract niedostępny w procesie worker")
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
         return pytesseract.image_to_string(image, lang=language)
     
     elif engine == 'easyocr':
