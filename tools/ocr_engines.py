@@ -24,15 +24,25 @@ except ImportError as e:
 
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# Cache for Tesseract detection to avoid repeated checks
+_tesseract_detection_cache = None
+
 def _detect_tesseract():
     """Detect Tesseract OCR availability and provide user feedback"""
+    global _tesseract_detection_cache
+    
+    # Return cached result if available
+    if _tesseract_detection_cache is not None:
+        return _tesseract_detection_cache
+    
     # Try to import pytesseract first
     try:
         import pytesseract
     except ImportError:
         log("Tesseract OCR niedostępny - brak pakietu pytesseract")
         log("Aby zainstalować pytesseract, uruchom: pip install pytesseract")
-        return False, None
+        _tesseract_detection_cache = (False, None)
+        return _tesseract_detection_cache
     
     # Check if tesseract executable is available in PATH
     tesseract_exe = shutil.which('tesseract')
@@ -46,7 +56,8 @@ def _detect_tesseract():
                 log(f"✓ Tesseract OCR dostępny w systemie PATH: {tesseract_exe}")
                 log(f"  Wersja: {version_info}")
                 pytesseract.pytesseract.tesseract_cmd = tesseract_exe
-                return True, tesseract_exe
+                _tesseract_detection_cache = (True, tesseract_exe)
+                return _tesseract_detection_cache
         except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError) as e:
             log(f"Błąd podczas testowania Tesseract z PATH: {e}")
     
@@ -60,7 +71,8 @@ def _detect_tesseract():
                 log(f"✓ Tesseract OCR dostępny w domyślnej lokalizacji: {TESSERACT_PATH}")
                 log(f"  Wersja: {version_info}")
                 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-                return True, TESSERACT_PATH
+                _tesseract_detection_cache = (True, TESSERACT_PATH)
+                return _tesseract_detection_cache
         except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError) as e:
             log(f"Błąd podczas testowania Tesseract z domyślnej ścieżki: {e}")
     
@@ -82,7 +94,13 @@ def _detect_tesseract():
     log("  brew install tesseract tesseract-lang")
     log("=" * 60)
     
-    return False, None
+    _tesseract_detection_cache = (False, None)
+    return _tesseract_detection_cache
+
+def clear_tesseract_cache():
+    """Clear Tesseract detection cache to force re-detection"""
+    global _tesseract_detection_cache
+    _tesseract_detection_cache = None
 
 class OCREngineManager:
     """Manages OCR engines and multiprocessing for OCR operations"""
