@@ -5,7 +5,29 @@ from tkinter import ttk
 import pytesseract
 
 PDF_PATH = "zakupy7.pdf"
-POPPLER_PATH = r"C:\poppler\Library\bin"
+
+# Import poppler utilities for automatic path detection
+try:
+    from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
+    POPPLER_PATH = get_poppler_path()
+    if POPPLER_PATH:
+        print(f"PDF crop tool: Poppler detected at: {POPPLER_PATH}")
+    else:
+        print("PDF crop tool: Warning: Poppler not detected, using fallback path")
+        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+        
+    # Check if PDF file exists before proceeding
+    pdf_exists, pdf_message = check_pdf_file_exists(PDF_PATH)
+    if not pdf_exists:
+        print(f"PDF file check failed: {pdf_message}")
+        exit(1)
+    else:
+        print(f"PDF file validated: {pdf_message}")
+        
+except ImportError as e:
+    print(f"PDF crop tool: Failed to import poppler_utils, using fallback path: {e}")
+    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # zmień ścieżkę jeśli trzeba
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 

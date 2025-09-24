@@ -85,30 +85,73 @@ def verify_poppler_integration(repo_path):
     """Verify that poppler is properly integrated and working."""
     print("Verifying poppler integration...")
     
-    poppler_path = repo_path / "poppler"
-    if not poppler_path.exists():
-        print("ERROR: poppler directory not found!")
+    # Change to repo directory for relative imports
+    import os
+    old_cwd = os.getcwd()
+    os.chdir(repo_path)
+    
+    try:
+        from tools.poppler_utils import get_poppler_manager
+        manager = get_poppler_manager()
+        
+        if not manager.is_detected:
+            print(f"ERROR: Poppler not detected: {manager.detection_error}")
+            return False
+        
+        print(f"✓ Poppler detected at: {manager.bin_path}")
+        
+        # List all poppler binaries found
+        status = manager.get_status()
+        if status["available_tools"]:
+            print(f"Found {len(status['available_tools'])} poppler tools:")
+            for tool in status["available_tools"]:
+                print(f"  - {tool['name']} ({tool['executable']})")
+        
+        print("✓ Poppler integration verified successfully")
+        return True
+        
+    except ImportError as e:
+        print(f"ERROR: Could not import poppler_utils: {e}")
+        
+        # Fallback to old hardcoded verification
+        poppler_path = repo_path / "poppler"
+        if not poppler_path.exists():
+            print("ERROR: poppler directory not found!")
+            return False
+        
+        # Check both possible bin paths
+        possible_paths = [
+            poppler_path / "Library" / "bin",  # Windows style
+            poppler_path / "bin"               # Linux/Unix style
+        ]
+        
+        for bin_path in possible_paths:
+            if bin_path.exists():
+                print(f"Found poppler binaries at: {bin_path}")
+                essential_files = ["pdfinfo", "pdfimages", "pdftoppm"]
+                
+                # Check for tools with both .exe and no extension
+                found_tools = []
+                for tool in essential_files:
+                    for ext in [".exe", ""]:
+                        if (bin_path / f"{tool}{ext}").exists():
+                            found_tools.append(f"{tool}{ext}")
+                            break
+                
+                if len(found_tools) >= len(essential_files):
+                    print(f"✓ Found essential tools: {found_tools}")
+                    print("✓ Poppler integration verified successfully")
+                    return True
+        
+        print("ERROR: No valid poppler binaries found in any expected location!")
         return False
-    
-    # Check for essential poppler binaries
-    bin_path = poppler_path / "Library" / "bin"
-    if not bin_path.exists():
-        print("ERROR: poppler/Library/bin directory not found!")
+        
+    except Exception as e:
+        print(f"ERROR: Unexpected error during poppler verification: {e}")
         return False
-    
-    essential_files = ["poppler.dll", "pdfinfo.exe", "pdfimages.exe"]
-    missing_files = []
-    
-    for file in essential_files:
-        if not (bin_path / file).exists():
-            missing_files.append(file)
-    
-    if missing_files:
-        print(f"ERROR: Missing essential poppler files: {missing_files}")
-        return False
-    
-    print("✓ Poppler integration verified successfully")
-    return True
+        
+    finally:
+        os.chdir(old_cwd)
 
 def test_application_startup(repo_path):
     """Test if the application can start properly."""

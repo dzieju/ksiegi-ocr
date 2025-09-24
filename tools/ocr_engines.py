@@ -7,8 +7,19 @@ import os
 from tools.logger import log
 from tools.ocr_config import ocr_config
 
-# Configuration paths (same as in existing files)
-POPPLER_PATH = r"C:\poppler\Library\bin"
+# Import poppler utilities for automatic path detection
+try:
+    from tools.poppler_utils import get_poppler_path
+    POPPLER_PATH = get_poppler_path()
+    if POPPLER_PATH:
+        log(f"OCR engines: Poppler detected at: {POPPLER_PATH}")
+    else:
+        log("OCR engines: Warning: Poppler not detected, using fallback path")
+        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+except ImportError as e:
+    log(f"OCR engines: Failed to import poppler_utils, using fallback path: {e}")
+    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 class OCREngineManager:

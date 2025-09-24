@@ -11,8 +11,19 @@ import re
 import csv
 from tools.ocr_engines import ocr_manager
 
-# Configuration paths
-POPPLER_PATH = r"C:\poppler\Library\bin"
+# Import poppler utilities for automatic path detection
+try:
+    from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
+    POPPLER_PATH = get_poppler_path()
+    if POPPLER_PATH:
+        print(f"Zakupy tab: Poppler detected at: {POPPLER_PATH}")
+    else:
+        print("Zakupy tab: Warning: Poppler not detected, using fallback path")
+        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+except ImportError as e:
+    print(f"Zakupy tab: Failed to import poppler_utils, using fallback path: {e}")
+    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Crop coordinates for invoice numbers column
@@ -289,9 +300,17 @@ class ZakupiTab(ttk.Frame):
             messagebox.showwarning("Brak pliku", "Proszę najpierw wybrać plik PDF.")
             return
             
-        if not os.path.exists(filepath):
-            messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
-            return
+        # Use improved PDF file validation
+        try:
+            pdf_exists, pdf_message = check_pdf_file_exists(filepath)
+            if not pdf_exists:
+                messagebox.showwarning("Problem z plikiem PDF", pdf_message)
+                return
+        except NameError:
+            # Fallback to basic existence check if check_pdf_file_exists is not available
+            if not os.path.exists(filepath):
+                messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
+                return
 
         # Clear previous results
         self.text_area.delete("1.0", tk.END)

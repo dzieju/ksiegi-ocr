@@ -6,8 +6,19 @@ import os
 import tempfile
 from tools.logger import log
 
-# Configuration paths (same as in tab_zakupy.py)
-POPPLER_PATH = r"C:\poppler\Library\bin"
+# Import poppler utilities for automatic path detection
+try:
+    from tools.poppler_utils import get_poppler_path
+    POPPLER_PATH = get_poppler_path()
+    if POPPLER_PATH:
+        log(f"Poppler detected at: {POPPLER_PATH}")
+    else:
+        log("Warning: Poppler not detected, using fallback path")
+        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+except ImportError as e:
+    log(f"Failed to import poppler_utils, using fallback path: {e}")
+    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Try to import OCR engine manager first
