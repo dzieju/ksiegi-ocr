@@ -1,6 +1,6 @@
 {
-  "engine": "easyocr",
-  "use_gpu": true,
-  "multiprocessing": false,
+  "engine": "paddleocr",
+  "use_gpu": false,
+  "multiprocessing": true,
   "max_workers": null
 }
