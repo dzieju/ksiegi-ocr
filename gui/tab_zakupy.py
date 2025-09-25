@@ -247,15 +247,22 @@ class ZakupiTab(ttk.Frame):
                             text=f"OCR z kolumny gotowy, {result['total_lines']} linii z {result['total_pages']} stron{invoice_info}{csv_info}", 
                             foreground="green"
                         )
+                        
+                        # Display timing information
+                        if 'duration' in result:
+                            duration_text = f"Czas wykonania: {result['duration']:.2f} s"
+                            self.timing_label.config(text=duration_text, foreground="green")
                     elif result['type'] == 'processing_error':
                         # Show error and restore button
                         self.process_button.config(text="Odczytaj numery faktur")
                         messagebox.showerror("Błąd OCR z kolumny", result['error'])
                         self.status_label.config(text="Błąd OCR kolumny", foreground="red")
+                        self.timing_label.config(text="")  # Clear timing on error
                     elif result['type'] == 'processing_cancelled':
                         # Processing was cancelled
                         self.process_button.config(text="Odczytaj numery faktur")
                         self.status_label.config(text="Przetwarzanie anulowane", foreground="orange")
+                        self.timing_label.config(text="")  # Clear timing on cancellation
                 except queue.Empty:
                     break
         except Exception as e:
@@ -291,6 +298,7 @@ class ZakupiTab(ttk.Frame):
         self.processing_cancelled = True
         self.status_label.config(text="Anulowanie...", foreground="orange")
         self.process_button.config(text="Odczytaj numery faktur")
+        self.timing_label.config(text="")  # Clear timing on manual cancel
 
     def start_processing(self):
         """Start the threaded OCR processing"""
@@ -312,8 +320,9 @@ class ZakupiTab(ttk.Frame):
                 messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
                 return
 
-        # Clear previous results
+        # Clear previous results and timing
         self.text_area.delete("1.0", tk.END)
+        self.timing_label.config(text="")  # Clear previous timing display
         
         # Reset cancellation flag
         self.processing_cancelled = False
@@ -332,6 +341,7 @@ class ZakupiTab(ttk.Frame):
 
     def _threaded_ocr_processing(self, filepath):
         """Main OCR processing logic running in background thread"""
+        start_time = time.time()  # Record start time for duration calculation
         try:
             self.progress_queue.put("Konwertowanie PDF na obrazy...")
             
@@ -461,12 +471,15 @@ class ZakupiTab(ttk.Frame):
 
             # Processing complete
             if not self.processing_cancelled:
+                end_time = time.time()
+                duration = end_time - start_time
                 self.result_queue.put({
                     'type': 'processing_complete',
                     'total_lines': len(all_lines),
                     'total_pages': total_pages,
                     'invoice_count': invoice_count,
-                    'csv_saved': csv_saved
+                    'csv_saved': csv_saved,
+                    'duration': duration
                 })
 
         except Exception as e:
@@ -499,9 +512,16 @@ class ZakupiTab(ttk.Frame):
         self.log_preview_button = ttk.Button(self, text="Podgląd loga w nowym oknie", command=self.show_ocr_log_preview)
         self.log_preview_button.grid(row=2, column=2, padx=10, pady=20)
         
-        # Status label
-        self.status_label = ttk.Label(self, text="Brak wybranego pliku", foreground="blue")
-        self.status_label.grid(row=3, column=1, pady=5)
+        # Status label and timing label frame
+        status_frame = ttk.Frame(self)
+        status_frame.grid(row=3, column=1, pady=5)
+        
+        self.status_label = ttk.Label(status_frame, text="Brak wybranego pliku", foreground="blue")
+        self.status_label.pack(side="left")
+        
+        # Timing label - initially empty, positioned next to status label
+        self.timing_label = ttk.Label(status_frame, text="", foreground="gray")
+        self.timing_label.pack(side="left", padx=(10, 0))
         
         # Text area for OCR results - fixed width of ~57 chars (~12 cm for monospace fonts)
         self.text_area = ScrolledText(self, wrap="word", width=57, height=25)
