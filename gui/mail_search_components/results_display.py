@@ -191,7 +191,7 @@ class ResultsDisplay:
         self.open_selected_email()
     
     def open_selected_email(self):
-        """Open the selected email with user choice between integrated viewer and system app"""
+        """Open the selected email with enhanced opening options"""
         result = self.get_selected_result()
         if not result:
             messagebox.showwarning("Brak zaznaczenia", "Proszę wybrać email do otwarcia.")
@@ -203,23 +203,15 @@ class ResultsDisplay:
                 messagebox.showerror("Błąd", "Nie można otworzyć wiadomości - brak danych.")
                 return
             
-            # Show dialog asking user's preference
-            choice = messagebox.askyesno(
-                "Wybór aplikacji", 
-                "Czy chcesz otworzyć plik EML w zintegrowanym czytniku (Tak) czy w systemowej aplikacji (Nie)?",
-                icon="question"
-            )
-            
             # Ensure temp directory exists
             os.makedirs(self.temp_dir, exist_ok=True)
             
             # Create EML format content
             eml_content = self._create_eml_content(message, result)
             
-            if choice:  # User chose "Tak" - use integrated viewer
-                self._open_with_integrated_viewer(eml_content)
-            else:  # User chose "Nie" - use system application
-                self._open_with_system_app(eml_content, result)
+            # Use new EML opener with selection dialog
+            from tools.eml_opener import open_eml_content_with_dialog
+            open_eml_content_with_dialog(eml_content, parent=self.parent_frame)
                 
         except Exception as e:
             messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości: {str(e)}")

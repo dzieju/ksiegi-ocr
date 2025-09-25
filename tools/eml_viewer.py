@@ -9,7 +9,18 @@ import os
 import tempfile
 import subprocess
 import platform
+import webbrowser
+import html
+import base64
+import quopri
 from typing import Optional, List, Dict, Any
+
+# Try to import tkhtmlview for HTML rendering
+try:
+    from tkhtmlview import HTMLLabel
+    HTML_VIEWER_AVAILABLE = True
+except ImportError:
+    HTML_VIEWER_AVAILABLE = False
 
 
 class EmlViewer:
@@ -123,9 +134,12 @@ class EmlViewer:
     
     def _populate_body(self):
         """Populate email body content"""
-        # Create body tab
+        # Extract both plain text and HTML content
+        plain_content, html_content = self._extract_body_both()
+        
+        # Create text body tab
         body_frame = ttk.Frame(self.notebook)
-        self.notebook.add(body_frame, text="Treść wiadomości")
+        self.notebook.add(body_frame, text="Treść (tekst)")
         
         body_frame.grid_rowconfigure(0, weight=1)
         body_frame.grid_columnconfigure(0, weight=1)
@@ -138,11 +152,12 @@ class EmlViewer:
             state='normal'
         )
         text_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        
-        # Extract and display body
-        body_content = self._extract_body()
-        text_widget.insert('1.0', body_content)
+        text_widget.insert('1.0', plain_content)
         text_widget.config(state='disabled')  # Make read-only
+        
+        # Create HTML body tab if HTML content exists
+        if html_content and html_content.strip():
+            self._create_html_tab(html_content)
         
     def _populate_attachments(self):
         """Populate attachments tab if any exist"""
@@ -194,63 +209,184 @@ class EmlViewer:
         ttk.Button(btn_frame, text="Zapisz wszystkie", 
                   command=lambda: self._save_all_attachments(attachments)).pack(side="left", padx=5)
     
-    def _extract_body(self) -> str:
-        """Extract email body text"""
-        if not self.email_message:
-            return "Brak zawartości"
-            
+    def _create_html_tab(self, html_content: str):
+        """Create HTML tab with appropriate viewer"""
+        html_frame = ttk.Frame(self.notebook)
+        self.notebook.add(html_frame, text="Treść (HTML)")
+        
+        html_frame.grid_rowconfigure(0, weight=1)
+        html_frame.grid_columnconfigure(0, weight=1)
+        
+        if HTML_VIEWER_AVAILABLE:
+            # Use tkhtmlview if available
+            try:
+                html_widget = HTMLLabel(html_frame, html=html_content)
+                html_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+                return
+            except Exception as e:
+                print(f"Error using tkhtmlview: {e}")
+        
+        # Fallback: Show HTML source with option to open in browser
+        fallback_frame = ttk.Frame(html_frame)
+        fallback_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        fallback_frame.grid_rowconfigure(1, weight=1)
+        fallback_frame.grid_columnconfigure(0, weight=1)
+        
+        # Button to open in browser
+        btn_frame = ttk.Frame(fallback_frame)
+        btn_frame.grid(row=0, column=0, sticky="ew", pady=(0, 5))
+        
+        ttk.Button(btn_frame, text="Otwórz w przeglądarce", 
+                  command=lambda: self._open_html_in_browser(html_content)).pack(side="left")
+        
+        # HTML source view
+        html_text = scrolledtext.ScrolledText(
+            fallback_frame, 
+            wrap=tk.WORD, 
+            font=('Courier', 9),
+            state='normal'
+        )
+        html_text.grid(row=1, column=0, sticky="nsew")
+        html_text.insert('1.0', html_content)
+        html_text.config(state='disabled')
+    
+    def _open_html_in_browser(self, html_content: str):
+        """Open HTML content in default browser"""
         try:
-            # Try to get plain text first
+            # Create temporary HTML file
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
+                # Add basic HTML structure if not present
+                if not html_content.strip().lower().startswith('<!doctype') and not html_content.strip().lower().startswith('<html'):
+                    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Email Content</title>
+</head>
+<body>
+{html_content}
+</body>
+</html>"""
+                f.write(html_content)
+                temp_file = f.name
+            
+            # Open in default browser
+            webbrowser.open(f'file://{temp_file}')
+            
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Nie można otworzyć HTML w przeglądarce: {str(e)}")
+    
+    def _extract_body_both(self) -> tuple[str, str]:
+        """Extract both plain text and HTML body content"""
+        if not self.email_message:
+            return "Brak zawartości", ""
+            
+        plain_text = ""
+        html_content = ""
+        
+        try:
             if self.email_message.is_multipart():
                 for part in self.email_message.walk():
                     content_type = part.get_content_type()
-                    if content_type == "text/plain":
-                        try:
-                            return part.get_content()
-                        except:
-                            # Fallback to payload for older email formats
-                            payload = part.get_payload(decode=True)
-                            if payload:
-                                return payload.decode('utf-8', errors='ignore')
-                    elif content_type == "text/html":
-                        try:
-                            html_content = part.get_content()
-                        except:
-                            payload = part.get_payload(decode=True)
-                            if payload:
-                                html_content = payload.decode('utf-8', errors='ignore')
-                            else:
-                                continue
-                        # Basic HTML to text conversion
-                        import re
-                        text = re.sub('<[^<]+?>', '', html_content)
-                        return text
+                    content_disposition = part.get('Content-Disposition', '')
+                    
+                    # Skip attachments
+                    if 'attachment' in content_disposition:
+                        continue
+                    
+                    if content_type == "text/plain" and not plain_text:
+                        plain_text = self._decode_part_content(part)
+                    elif content_type == "text/html" and not html_content:
+                        html_content = self._decode_part_content(part)
             else:
                 content_type = self.email_message.get_content_type()
                 if content_type == "text/plain":
-                    try:
-                        return self.email_message.get_content()
-                    except:
-                        payload = self.email_message.get_payload(decode=True)
-                        if payload:
-                            return payload.decode('utf-8', errors='ignore')
+                    plain_text = self._decode_part_content(self.email_message)
                 elif content_type == "text/html":
-                    try:
-                        html_content = self.email_message.get_content()
-                    except:
-                        payload = self.email_message.get_payload(decode=True)
-                        if payload:
-                            html_content = payload.decode('utf-8', errors='ignore')
-                        else:
-                            return "Nie można wyświetlić zawartości HTML"
-                    import re
-                    text = re.sub('<[^<]+?>', '', html_content)
-                    return text
+                    html_content = self._decode_part_content(self.email_message)
                     
         except Exception as e:
-            return f"Błąd odczytu zawartości: {str(e)}"
+            plain_text = f"Błąd odczytu zawartości: {str(e)}"
+        
+        # If we have HTML but no plain text, create plain text from HTML
+        if html_content and not plain_text:
+            plain_text = self._html_to_text(html_content)
+        
+        # If we have neither, provide default message
+        if not plain_text and not html_content:
+            plain_text = "Nie można wyświetlić zawartości wiadomości"
             
-        return "Nie można wyświetlić zawartości wiadomości"
+        return plain_text, html_content
+    
+    def _decode_part_content(self, part) -> str:
+        """Decode email part content with proper charset and encoding handling"""
+        try:
+            # Try modern method first
+            content = part.get_content()
+            if isinstance(content, str):
+                return content
+        except:
+            pass
+        
+        # Fallback to manual decoding
+        try:
+            payload = part.get_payload()
+            encoding = part.get('Content-Transfer-Encoding', '').lower()
+            charset = part.get_content_charset() or 'utf-8'
+            
+            # Handle different transfer encodings
+            if encoding == 'base64':
+                if isinstance(payload, str):
+                    payload = base64.b64decode(payload)
+                else:
+                    payload = base64.b64decode(payload)
+            elif encoding == 'quoted-printable':
+                if isinstance(payload, str):
+                    payload = quopri.decodestring(payload.encode())
+                else:
+                    payload = quopri.decodestring(payload)
+            elif isinstance(payload, str):
+                # No special encoding, but might need charset conversion
+                return payload
+            
+            # Decode bytes to string with proper charset
+            if isinstance(payload, bytes):
+                # Try specified charset first
+                try:
+                    return payload.decode(charset)
+                except (UnicodeDecodeError, LookupError):
+                    # Fallback to common charsets
+                    for fallback_charset in ['utf-8', 'cp1252', 'iso-8859-1', 'ascii']:
+                        try:
+                            return payload.decode(fallback_charset, errors='ignore')
+                        except (UnicodeDecodeError, LookupError):
+                            continue
+                    
+                    # Last resort: decode with errors ignored
+                    return payload.decode('utf-8', errors='ignore')
+            
+            return str(payload)
+            
+        except Exception as e:
+            return f"Błąd dekodowania zawartości: {str(e)}"
+    
+    def _html_to_text(self, html_content: str) -> str:
+        """Convert HTML to plain text"""
+        try:
+            import re
+            # Unescape HTML entities
+            text = html.unescape(html_content)
+            # Remove HTML tags
+            text = re.sub('<[^<]+?>', ' ', text)
+            # Clean up whitespace
+            text = re.sub(r'\s+', ' ', text)
+            return text.strip()
+        except Exception:
+            return html_content
+    def _extract_body(self) -> str:
+        """Extract email body text (legacy method for compatibility)"""
+        plain_text, _ = self._extract_body_both()
+        return plain_text
     
     def _extract_attachments(self) -> List[Dict[str, Any]]:
         """Extract attachment information"""
