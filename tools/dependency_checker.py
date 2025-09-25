@@ -7,6 +7,34 @@ import subprocess
 import importlib
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
+import re
+
+
+def _compare_versions(current: str, minimum: str) -> int:
+    """
+    Compare version strings.
+    Returns: -1 if current < minimum, 0 if equal, 1 if current > minimum
+    """
+    def normalize_version(v):
+        # Extract numeric parts from version string
+        parts = re.findall(r'\d+', v)
+        return [int(x) for x in parts]
+    
+    curr_parts = normalize_version(current)
+    min_parts = normalize_version(minimum)
+    
+    # Pad shorter version with zeros
+    max_len = max(len(curr_parts), len(min_parts))
+    curr_parts.extend([0] * (max_len - len(curr_parts)))
+    min_parts.extend([0] * (max_len - len(min_parts)))
+    
+    for curr, min_v in zip(curr_parts, min_parts):
+        if curr < min_v:
+            return -1
+        elif curr > min_v:
+            return 1
+    
+    return 0
 
 
 class DependencyChecker:
@@ -24,14 +52,18 @@ class DependencyChecker:
                 'type': 'system',
                 'check_func': self._check_python,
                 'required': True,
-                'description': 'Interpreter Python (wymagane: 3.8+)'
+                'description': 'Interpreter Python (wymagane: 3.8+)',
+                'update_link': 'https://www.python.org/downloads/',
+                'min_version': '3.8.0'
             },
             {
                 'name': 'Tkinter',
                 'type': 'module',
                 'module': 'tkinter',
                 'required': True,
-                'description': 'Interfejs graficzny (część standardowej biblioteki)'
+                'description': 'Interfejs graficzny (część standardowej biblioteki)',
+                'install_link': 'https://docs.python.org/3/library/tkinter.html',
+                'install_cmd': 'apt-get install python3-tk'
             },
             {
                 'name': 'Tesseract OCR',
@@ -39,77 +71,99 @@ class DependencyChecker:
                 'executable': 'tesseract',
                 'module': 'pytesseract',
                 'required': True,
-                'description': 'Silnik OCR Tesseract + moduł Python'
+                'description': 'Silnik OCR Tesseract + moduł Python',
+                'install_link': 'https://github.com/tesseract-ocr/tesseract/wiki',
+                'install_cmd': 'apt-get install tesseract-ocr && pip install pytesseract'
             },
             {
                 'name': 'Poppler',
                 'type': 'custom',
                 'check_func': self._check_poppler,
                 'required': True,
-                'description': 'Narzędzia PDF (pdfinfo, pdfimages, pdftoppm)'
+                'description': 'Narzędzia PDF (pdfinfo, pdfimages, pdftoppm)',
+                'install_link': 'https://poppler.freedesktop.org/',
+                'install_cmd': 'apt-get install poppler-utils'
             },
             {
                 'name': 'pdfplumber',
                 'type': 'module',
                 'module': 'pdfplumber',
                 'required': True,
-                'description': 'Ekstrakcja tekstu z dokumentów PDF'
+                'description': 'Ekstrakcja tekstu z dokumentów PDF',
+                'install_link': 'https://pypi.org/project/pdfplumber/',
+                'install_cmd': 'pip install pdfplumber'
             },
             {
                 'name': 'EasyOCR',
                 'type': 'module',
                 'module': 'easyocr',
                 'required': False,
-                'description': 'Silnik OCR AI (obsługuje GPU)'
+                'description': 'Silnik OCR AI (obsługuje GPU)',
+                'install_link': 'https://pypi.org/project/easyocr/',
+                'install_cmd': 'pip install easyocr'
             },
             {
                 'name': 'PaddleOCR',
                 'type': 'module',
                 'module': 'paddleocr',
                 'required': False,
-                'description': 'Silnik OCR AI (obsługuje GPU)'
+                'description': 'Silnik OCR AI (obsługuje GPU)',
+                'install_link': 'https://pypi.org/project/paddleocr/',
+                'install_cmd': 'pip install paddlepaddle paddleocr'
             },
             {
                 'name': 'PIL/Pillow',
                 'type': 'module',
                 'module': 'PIL',
                 'required': True,
-                'description': 'Biblioteka przetwarzania obrazów'
+                'description': 'Biblioteka przetwarzania obrazów',
+                'install_link': 'https://pypi.org/project/Pillow/',
+                'install_cmd': 'pip install Pillow'
             },
             {
                 'name': 'OpenCV',
                 'type': 'module',
                 'module': 'cv2',
                 'required': True,
-                'description': 'Zaawansowane przetwarzanie obrazów'
+                'description': 'Zaawansowane przetwarzanie obrazów',
+                'install_link': 'https://pypi.org/project/opencv-python/',
+                'install_cmd': 'pip install opencv-python'
             },
             {
                 'name': 'pdf2image',
                 'type': 'module',
                 'module': 'pdf2image',
                 'required': True,
-                'description': 'Konwersja stron PDF do obrazów'
+                'description': 'Konwersja stron PDF do obrazów',
+                'install_link': 'https://pypi.org/project/pdf2image/',
+                'install_cmd': 'pip install pdf2image'
             },
             {
                 'name': 'exchangelib',
                 'type': 'module',
                 'module': 'exchangelib',
                 'required': True,
-                'description': 'Połączenie z serwerem Microsoft Exchange'
+                'description': 'Połączenie z serwerem Microsoft Exchange',
+                'install_link': 'https://pypi.org/project/exchangelib/',
+                'install_cmd': 'pip install exchangelib'
             },
             {
                 'name': 'tkcalendar',
                 'type': 'module',
                 'module': 'tkcalendar',
                 'required': True,
-                'description': 'Widget kalendarza dla interfejsu'
+                'description': 'Widget kalendarza dla interfejsu',
+                'install_link': 'https://pypi.org/project/tkcalendar/',
+                'install_cmd': 'pip install tkcalendar'
             },
             {
                 'name': 'pdfminer.six',
                 'type': 'module',
                 'module': 'pdfminer.six',
                 'required': True,
-                'description': 'Analiza i ekstrakcja danych z PDF'
+                'description': 'Analiza i ekstrakcja danych z PDF',
+                'install_link': 'https://pypi.org/project/pdfminer-six/',
+                'install_cmd': 'pip install pdfminer.six'
             }
         ]
     
@@ -124,15 +178,27 @@ class DependencyChecker:
         
         for dep in self.dependencies:
             status = self._check_dependency(dep)
-            results.append({
+            result = {
                 'name': dep['name'],
                 'description': dep['description'],
                 'required': dep['required'],
                 'status': status['status'],  # 'ok', 'warning', 'error'
                 'emoji': status['emoji'],    # '✅', '⚠️', '❌'
                 'message': status['message'],
-                'version': status.get('version', '')
-            })
+                'version': status.get('version', ''),
+                'install_link': dep.get('install_link', ''),
+                'install_cmd': dep.get('install_cmd', ''),
+                'update_link': dep.get('update_link', '')
+            }
+            
+            # Add version/update information for outdated dependencies
+            if status['status'] == 'warning' and 'version' in status and dep.get('min_version'):
+                result['update_available'] = True
+                result['min_version'] = dep['min_version']
+            else:
+                result['update_available'] = False
+                
+            results.append(result)
         
         return results
     
@@ -187,7 +253,7 @@ class DependencyChecker:
             emoji = '✅'
             message = f"Wersja {version}"
         elif sys.version_info >= (3, 6):
-            status = 'warning'
+            status = 'warning' 
             emoji = '⚠️'
             message = f"Wersja {version} (zalecana 3.8+)"
         else:
@@ -199,7 +265,8 @@ class DependencyChecker:
             'status': status,
             'emoji': emoji,
             'message': message,
-            'version': version
+            'version': version,
+            'needs_update': status == 'warning'
         }
     
     def _check_module(self, module_name: str) -> Dict:
