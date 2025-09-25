@@ -325,12 +325,12 @@ class MailSearchTab(ttk.Frame):
             
             if self.exclusion_section_visible:
                 # Hide the checkboxes
-                checkboxes_frame.grid_remove()
+                checkboxes_frame.pack_forget()
                 toggle_button.config(text="Pokaż")
                 self.exclusion_section_visible = False
             else:
                 # Show the checkboxes
-                checkboxes_frame.grid()
+                checkboxes_frame.pack(fill="x", padx=5, pady=5)
                 toggle_button.config(text="Ukryj")
                 self.exclusion_section_visible = True
 

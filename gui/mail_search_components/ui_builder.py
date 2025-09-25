@@ -124,69 +124,67 @@ class MailSearchUI:
         
         # Create header frame with title and hide/show button
         header_frame = ttk.Frame(container_frame)
-        header_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 5))
+        header_frame.pack(fill="x", pady=(0, 5))
         
         # Title label
         title_label = ttk.Label(header_frame, text="Wyklucz te foldery:", font=("Arial", 10, "bold"))
-        title_label.grid(row=0, column=0, sticky="w")
+        title_label.pack(side="left")
+        
+        # Uncheck all button
+        uncheck_all_button = ttk.Button(header_frame, text="Odznacz wszystkie", width=15)
+        if uncheck_all_callback:
+            uncheck_all_button.config(command=uncheck_all_callback)
+        uncheck_all_button.pack(side="right", padx=(5, 0))
+        
+        # Check all button
+        check_all_button = ttk.Button(header_frame, text="Zaznacz wszystko", width=15)
+        if check_all_callback:
+            check_all_button.config(command=check_all_callback)
+        check_all_button.pack(side="right", padx=(5, 0))
+        
+        # Save settings button
+        save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
+        save_button.pack(side="right", padx=(5, 0))
         
         # Hide/Show button
         toggle_text = "Ukryj" if is_visible else "Pokaż"
         toggle_button = ttk.Button(header_frame, text=toggle_text, width=8)
         if hide_callback:
             toggle_button.config(command=lambda: hide_callback(toggle_button))
-        toggle_button.grid(row=0, column=1, sticky="e", padx=(10, 0))
-        
-        # Save settings button
-        save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
-        save_button.grid(row=0, column=2, sticky="e", padx=(5, 0))
-        
-        # Check all button
-        check_all_button = ttk.Button(header_frame, text="Zaznacz wszystko", width=15)
-        if check_all_callback:
-            check_all_button.config(command=check_all_callback)
-        check_all_button.grid(row=0, column=3, sticky="e", padx=(5, 0))
-        
-        # Uncheck all button
-        uncheck_all_button = ttk.Button(header_frame, text="Odznacz wszystkie", width=15)
-        if uncheck_all_callback:
-            uncheck_all_button.config(command=uncheck_all_callback)
-        uncheck_all_button.grid(row=0, column=4, sticky="e", padx=(5, 0))
-        
-        # Configure header grid
-        header_frame.grid_columnconfigure(0, weight=1)
+        toggle_button.pack(side="right", padx=(10, 0))
         
         # Create frame for checkboxes
         checkboxes_frame = ttk.Frame(container_frame, relief="sunken", borderwidth=1)
-        checkboxes_frame.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
+        checkboxes_frame.pack(fill="x", padx=5, pady=5)
         
         # Initially hide or show based on is_visible parameter
         if not is_visible:
-            checkboxes_frame.grid_remove()
+            checkboxes_frame.pack_forget()
         
         # Create checkboxes in multiple columns if there are many folders
         max_columns = 3
         folders_per_column = max(1, len(folders) // max_columns + (1 if len(folders) % max_columns else 0))
         
+        # Create column frames for organizing checkboxes
+        column_frames = []
+        for col in range(max_columns):
+            col_frame = ttk.Frame(checkboxes_frame)
+            col_frame.pack(side="left", fill="both", expand=True, padx=2)
+            column_frames.append(col_frame)
+        
         for i, folder_name in enumerate(folders):
             var = tk.BooleanVar()
             exclusion_vars[folder_name] = var
             
-            row = i % folders_per_column
             column = i // folders_per_column
+            if column >= max_columns:
+                column = max_columns - 1
             
             checkbox = ttk.Checkbutton(
-                checkboxes_frame, 
+                column_frames[column], 
                 text=folder_name, 
                 variable=var
             )
-            checkbox.grid(row=row, column=column, sticky="w", padx=5, pady=2)
-        
-        # Configure grid weights for the checkboxes frame
-        for col in range(max_columns):
-            checkboxes_frame.columnconfigure(col, weight=1)
-            
-        # Configure main container grid
-        container_frame.grid_columnconfigure(0, weight=1)
+            checkbox.pack(anchor="w", padx=5, pady=2)
         
         return container_frame, (toggle_button, save_button, check_all_button, uncheck_all_button, checkboxes_frame)
