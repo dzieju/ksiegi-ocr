@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EML Viewer Enhancements Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .feature-section {
+            margin: 30px 0;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+        }
+        .dialog-mockup {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .dialog-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #3498db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        .option-btn:hover {
+            background: #3498db;
+            color: white;
+        }
+        .option-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        .option-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .option-desc {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .viewer-mockup {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .viewer-header {
+            background: #2c3e50;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+        .viewer-tabs {
+            background: #ecf0f1;
+            padding: 0;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            border-right: 1px solid #ddd;
+            cursor: pointer;
+            background: #bdc3c7;
+        }
+        .tab.active {
+            background: white;
+            border-bottom: 2px solid #3498db;
+        }
+        .viewer-content {
+            padding: 20px;
+            background: white;
+            min-height: 200px;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .enhancement-list {
+            list-style: none;
+            padding: 0;
+        }
+        .enhancement-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .enhancement-list li:before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .browser-mockup {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .browser-header {
+            background: #f1f1f1;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .browser-content {
+            padding: 20px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📧 EML Viewer Enhancements - Demo</h1>
+        
+        <div class="feature-section">
+            <h2>🎯 Enhanced Opening Dialog</h2>
+            <p>Nowy system wyboru sposobu otwarcia plików EML z automatycznym wykrywaniem dostępnych opcji:</p>
+            
+            <div class="dialog-mockup">
+                <div class="dialog-title">Jak chcesz otworzyć plik EML?</div>
+                
+                <div class="option-btn">
+                    <span class="option-icon">📧</span>
+                    <div class="option-title">Zintegrowany czytnik</div>
+                    <div class="option-desc">Otworzyć w wbudowanym czytniku aplikacji<br>• Podgląd tekstu i HTML<br>• Obsługa załączników<br>• Bezpieczne przeglądanie</div>
+                </div>
+                
+                <div class="option-btn">
+                    <span class="option-icon">🌐</span>
+                    <div class="option-title">Przeglądarka internetowa</div>
+                    <div class="option-desc">Otworzyć w domyślnej przeglądarce<br>• Pełne renderowanie HTML<br>• Obsługa stylów CSS<br>• Interaktywne linki</div>
+                </div>
+                
+                <div class="option-btn">
+                    <span class="option-icon">📮</span>
+                    <div class="option-title">Aplikacja systemowa</div>
+                    <div class="option-desc">Otworzyć w Outlook<br>• Domyślna aplikacja pocztowa<br>• Pełna funkcjonalność mail<br>• Integracja z systemem</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-section">
+            <h2>🖥️ Enhanced EML Viewer</h2>
+            <p>Ulepszona funkcjonalność zintegrowanego czytnika z obsługą HTML i lepszym dekodowaniem:</p>
+            
+            <div class="viewer-mockup">
+                <div class="viewer-header">Podgląd wiadomości EML</div>
+                <div class="viewer-tabs">
+                    <div class="tab active">Treść (tekst)</div>
+                    <div class="tab">Treść (HTML)</div>
+                    <div class="tab">Załączniki (2)</div>
+                </div>
+                <div class="viewer-content">
+                    <p><strong>HTML Content Preview:</strong></p>
+                    <div style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #f9f9f9;">
+                        <h3 style="color: #2c3e50; margin: 0 0 10px 0;">Test HTML Email</h3>
+                        <p>This is the <strong>HTML version</strong> of the email with proper formatting.</p>
+                        <ul>
+                            <li>HTML rendering support</li>
+                            <li>CSS styles</li>
+                            <li>Rich formatting</li>
+                        </ul>
+                    </div>
+                    <p style="margin-top: 15px;">
+                        <button style="padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Otwórz w przeglądarce
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-section">
+            <h2>🌐 Browser Integration</h2>
+            <p>Improved HTML rendering with proper styling and header information:</p>
+            
+            <div class="browser-mockup">
+                <div class="browser-header">
+                    🌐 file:///tmp/email_content.html
+                </div>
+                <div class="browser-content">
+                    <div style="background: #f0f0f0; padding: 10px; margin-bottom: 20px; border-radius: 4px;">
+                        <strong>Od:</strong> sender@example.com<br>
+                        <strong>Temat:</strong> Test HTML Email<br>
+                        <strong>Data:</strong> Wed, 10 Jan 2024 12:00:00 +0000
+                    </div>
+                    <h2 style="color: #2c3e50;">Test HTML Email</h2>
+                    <p>This is the <strong>HTML version</strong> of the email with <em>proper formatting</em>.</p>
+                    <ul>
+                        <li>HTML rendering support</li>
+                        <li>CSS styles</li>
+                        <li>Rich formatting</li>
+                        <li><a href="#" style="color: #3498db;">Interactive links</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="feature-section">
+            <h2>🔧 Technical Enhancements</h2>
+            <ul class="enhancement-list">
+                <li><strong>MIME Encoding Support:</strong> Quoted-printable, Base64, różne charsety</li>
+                <li><strong>Charset Detection:</strong> Automatyczne wykrywanie z fallback encoding</li>
+                <li><strong>HTML Processing:</strong> Separate tabs for plain text and HTML content</li>
+                <li><strong>tkhtmlview Integration:</strong> Native HTML rendering when available</li>
+                <li><strong>Browser Fallback:</strong> Automatic fallback to browser for HTML content</li>
+                <li><strong>Platform Detection:</strong> Windows, macOS, Linux specific handling</li>
+                <li><strong>Backwards Compatibility:</strong> Existing functionality preserved</li>
+            </ul>
+        </div>
+        
+        <div class="feature-section">
+            <h2>💻 Code Implementation</h2>
+            <p>Key implementation details:</p>
+            
+            <div class="code-block">
+# Enhanced MIME decoding with charset support
+def _decode_part_content(self, part) -> str:
+    encoding = part.get('Content-Transfer-Encoding', '').lower()
+    charset = part.get_content_charset() or 'utf-8'
+    
+    if encoding == 'base64':
+        payload = base64.b64decode(payload)
+    elif encoding == 'quoted-printable':
+        payload = quopri.decodestring(payload)
+    
+    # Try specified charset with fallbacks
+    for fallback_charset in [charset, 'utf-8', 'cp1252', 'iso-8859-1']:
+        try:
+            return payload.decode(fallback_charset)
+        except (UnicodeDecodeError, LookupError):
+            continue
+            </div>
+        </div>
+        
+        <div class="feature-section">
+            <h2>🔄 Integration with Mail Search</h2>
+            <p>Seamless integration with existing mail search functionality:</p>
+            
+            <div class="code-block">
+# Updated results_display.py integration
+def open_selected_email(self):
+    # Create EML content
+    eml_content = self._create_eml_content(message, result)
+    
+    # Use new EML opener with selection dialog
+    from tools.eml_opener import open_eml_content_with_dialog
+    open_eml_content_with_dialog(eml_content, parent=self.parent_frame)
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1;">
+            <p><strong>✅ All enhancements implemented with backwards compatibility maintained</strong></p>
+            <p style="color: #666; font-size: 14px;">Enhanced EML viewer with HTML support, improved encoding, and user-friendly opening dialog</p>
+        </div>
+    </div>
+</body>
+</html>
