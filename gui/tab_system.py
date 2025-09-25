@@ -66,8 +66,6 @@ class SystemTab(ttk.Frame):
         self.notebook.add(self.logs_frame, text="Logi")
         self._create_logs_widgets()
         logger.log("Podzakładka 'Logi' utworzona")
-        
-
     
     def _create_system_operations_widgets(self):
         """Create system operations widgets."""
@@ -393,8 +391,6 @@ class SystemTab(ttk.Frame):
             self.logs_text.insert(1.0, f"Błąd podczas ładowania logów: {str(e)}")
             self.logs_text.config(state="disabled")
             self.log_info_label.config(text="Błąd ładowania logów")
-    
-
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
