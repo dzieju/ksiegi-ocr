@@ -122,14 +122,22 @@ class OCREngineManager:
         max_workers = ocr_config.get_max_workers() or multiprocessing.cpu_count()
         max_workers = min(max_workers, len(images))  # Don't create more workers than images
         
-        log(f"Używam {max_workers} procesów dla OCR")
+        current_engine = self.get_current_engine()
+        use_gpu = ocr_config.get_use_gpu()
+        
+        # Log multiprocessing setup with engine-specific GPU info
+        if current_engine == 'tesseract':
+            log(f"Uruchamiam multiproces OCR: {max_workers} workerów, silnik: {current_engine} (CPU only - parametr use_gpu zignorowany)")
+        else:
+            gpu_mode = "GPU" if use_gpu else "CPU"
+            log(f"Uruchamiam multiproces OCR: {max_workers} workerów, silnik: {current_engine}, tryb: {gpu_mode}")
         
         try:
             with ProcessPoolExecutor(max_workers=max_workers) as executor:
                 # Submit all jobs
                 futures = []
                 for i, image in enumerate(images):
-                    future = executor.submit(_ocr_worker, image, language, self.get_current_engine(), ocr_config.get_use_gpu())
+                    future = executor.submit(_ocr_worker, image, language, current_engine, use_gpu)
                     futures.append(future)
                 
                 # Collect results
@@ -140,6 +148,7 @@ class OCREngineManager:
                     text = future.result()
                     results.append(text)
                 
+                log(f"Multiproces OCR zakończony pomyślnie, przetworzono {len(results)} obrazów")
                 return results
                 
         except Exception as e:
@@ -231,6 +240,7 @@ def _ocr_worker(image, language, engine, use_gpu):
     if engine == 'tesseract':
         import pytesseract
         pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+        # Tesseract doesn't support GPU, use_gpu parameter is ignored
         return pytesseract.image_to_string(image, lang=language)
     
     elif engine == 'easyocr':
