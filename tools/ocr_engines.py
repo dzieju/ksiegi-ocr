@@ -7,20 +7,40 @@ import os
 from tools.logger import log
 from tools.ocr_config import ocr_config
 
-# Import poppler utilities for automatic path detection
-try:
-    from tools.poppler_utils import get_poppler_path
-    POPPLER_PATH = get_poppler_path()
-    if POPPLER_PATH:
-        log(f"OCR engines: Poppler detected at: {POPPLER_PATH}")
-    else:
-        log("OCR engines: Warning: Poppler not detected, using fallback path")
-        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
-except ImportError as e:
-    log(f"OCR engines: Failed to import poppler_utils, using fallback path: {e}")
-    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+# Lazy import variables - will be populated when needed
+_poppler_path = None
+_tesseract_path = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+def _get_poppler_path():
+    """Lazy load poppler path only when needed"""
+    global _poppler_path
+    if _poppler_path is None:
+        # Import poppler utilities for automatic path detection
+        try:
+            from tools.poppler_utils import get_poppler_path
+            _poppler_path = get_poppler_path()
+            if _poppler_path:
+                log(f"OCR engines: Poppler detected at: {_poppler_path}")
+            else:
+                log("OCR engines: Warning: Poppler not detected, using fallback path")
+                _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+        except ImportError as e:
+            log(f"OCR engines: Failed to import poppler_utils, using fallback path: {e}")
+            _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+    return _poppler_path
+
+# Module-level getter functions for compatibility with existing code
+def get_poppler_path():
+    """Get poppler path - lazy loaded when first needed"""
+    return _get_poppler_path()
+
+def get_tesseract_path():
+    """Get tesseract path"""
+    return _tesseract_path
+
+# For backward compatibility, create POPPLER_PATH as a lazy-loaded constant
+# This will be loaded only when accessed
+TESSERACT_PATH = _tesseract_path
 
 class OCREngineManager:
     """Manages OCR engines and multiprocessing for OCR operations
@@ -32,7 +52,17 @@ class OCREngineManager:
     """
     
     def __init__(self):
-        self.available_engines = self._detect_available_engines()
+        # Lazy initialization - only detect engines when first needed
+        self.available_engines = None
+        self._engines_detected = False
+        
+    def _ensure_engines_detected(self):
+        """Ensure OCR engines are detected before use"""
+        if not self._engines_detected:
+            log("🔍 Wykrywanie dostępnych silników OCR...")
+            self.available_engines = self._detect_available_engines()
+            self._engines_detected = True
+            log("✓ Wykrywanie silników OCR zakończone")
         
     def _detect_available_engines(self):
         """Detect which OCR engines are available"""
@@ -48,7 +78,7 @@ class OCREngineManager:
             engines['tesseract'] = False
             log("Tesseract OCR niedostępny")
         
-        # Test EasyOCR
+        # Test EasyOCR with lazy import
         try:
             import easyocr
             engines['easyocr'] = True
@@ -57,7 +87,7 @@ class OCREngineManager:
             engines['easyocr'] = False
             log("EasyOCR niedostępny")
         
-        # Test PaddleOCR
+        # Test PaddleOCR with lazy import
         try:
             import paddleocr
             engines['paddleocr'] = True
@@ -70,14 +100,17 @@ class OCREngineManager:
     
     def get_available_engines(self):
         """Get list of available OCR engines"""
+        self._ensure_engines_detected()
         return [engine for engine, available in self.available_engines.items() if available]
     
     def is_engine_available(self, engine_name):
         """Check if specific engine is available"""
+        self._ensure_engines_detected()
         return self.available_engines.get(engine_name, False)
     
     def get_current_engine(self):
         """Get currently configured engine, falling back to available one if needed"""
+        self._ensure_engines_detected()
         preferred = ocr_config.get_engine()
         
         if self.is_engine_available(preferred):

@@ -6,28 +6,51 @@ import os
 import tempfile
 from tools.logger import log
 
-# Import poppler utilities for automatic path detection
-try:
-    from tools.poppler_utils import get_poppler_path
-    POPPLER_PATH = get_poppler_path()
-    if POPPLER_PATH:
-        log(f"Poppler detected at: {POPPLER_PATH}")
-    else:
-        log("Warning: Poppler not detected, using fallback path")
-        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
-except ImportError as e:
-    log(f"Failed to import poppler_utils, using fallback path: {e}")
-    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+# Global variables for lazy loading
+_poppler_path = None
+_ocr_manager = None
+_pdf_processing_initialized = False
+
+def _initialize_pdf_processing():
+    """Initialize PDF processing only when needed"""
+    global _poppler_path, _pdf_processing_initialized
+    
+    if _pdf_processing_initialized:
+        return _poppler_path
+    
+    log("📄 Inicjalizacja przetwarzania PDF dla wyszukiwania...")
+    
+    # Import poppler utilities for automatic path detection
+    try:
+        from tools.poppler_utils import get_poppler_path
+        _poppler_path = get_poppler_path()
+        if _poppler_path:
+            log(f"Poppler detected at: {_poppler_path}")
+        else:
+            log("Warning: Poppler not detected, using fallback path")
+            _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+    except ImportError as e:
+        log(f"Failed to import poppler_utils, using fallback path: {e}")
+        _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+    
+    _pdf_processing_initialized = True
+    return _poppler_path
+
+def _get_ocr_manager():
+    """Get OCR manager with lazy loading"""
+    global _ocr_manager
+    if _ocr_manager is None:
+        try:
+            from tools.ocr_engines import ocr_manager
+            _ocr_manager = ocr_manager
+            log("Advanced OCR engine manager available")
+            return True, _ocr_manager
+        except ImportError as e:
+            log(f"Advanced OCR not available: {e}")
+            return False, None
+    return True, _ocr_manager
 
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
-# Try to import OCR engine manager first
-try:
-    from tools.ocr_engines import ocr_manager
-    HAVE_ADVANCED_OCR = True
-    log("Advanced OCR engine manager available")
-except ImportError as e:
-    HAVE_ADVANCED_OCR = False
     log(f"Advanced OCR engine manager not available: {e}")
 
 # Try to import required packages, handle missing dependencies gracefully

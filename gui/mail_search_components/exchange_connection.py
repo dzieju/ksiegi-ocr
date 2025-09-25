@@ -3,10 +3,18 @@ Exchange email connection manager for mail search functionality
 """
 import json
 from tkinter import messagebox
-from exchangelib import Credentials, Account, Configuration, DELEGATE
 from tools.logger import log
 
 CONFIG_FILE = "exchange_config.json"
+
+def _lazy_import_exchangelib():
+    """Lazy import exchangelib only when needed for actual connection"""
+    try:
+        from exchangelib import Credentials, Account, Configuration, DELEGATE
+        return Credentials, Account, Configuration, DELEGATE
+    except ImportError as e:
+        log(f"⚠️  exchangelib not available: {e}")
+        return None, None, None, None
 
 
 class ExchangeConnection:
@@ -35,6 +43,14 @@ class ExchangeConnection:
             return None
             
         try:
+            # Lazy import exchangelib when actually connecting
+            log("🔗 Inicjalizacja połączenia Exchange...")
+            Credentials, Account, Configuration, DELEGATE = _lazy_import_exchangelib()
+            
+            if not Credentials:
+                messagebox.showerror("Błąd", "exchangelib nie jest zainstalowany. Funkcja poczty nie będzie działać.")
+                return None
+            
             creds = Credentials(
                 username=config.get("username", ""),
                 password=config.get("password", "")
@@ -50,6 +66,7 @@ class ExchangeConnection:
                 access_type=DELEGATE
             )
             self.account = account
+            log("✓ Połączenie Exchange ustanowione")
             return account
         except Exception as e:
             messagebox.showerror("Błąd połączenia", f"Nie można połączyć z serwerem poczty: {str(e)}")
