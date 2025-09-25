@@ -1,7 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from gui.tab_exchange_config import ExchangeConfigTab
-from gui.tab_mail_search import MailSearchTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
 
@@ -18,19 +16,11 @@ class MainWindow(tk.Tk):
         notebook = ttk.Notebook(self)
         notebook.pack(fill="both", expand=True)
 
-        # Zakładka: Przeszukiwanie Poczty (first tab)
-        mail_search_tab = MailSearchTab(notebook)
-        notebook.add(mail_search_tab, text="Przeszukiwanie Poczty")
-
-        # Zakładka: Konfiguracja poczty
-        exchange_tab = ExchangeConfigTab(notebook)
-        notebook.add(exchange_tab, text="Konfiguracja poczty")
-
-        # Zakładka: Zakupy
+        # Zakładka: Zakupy (first tab)
         zakupy_tab = ZakupiTab(notebook)
         notebook.add(zakupy_tab, text="Zakupy")
 
-        # Dodanie rozbudowanej zakładki System
+        # Zakładka: System
         system_tab = SystemTab(notebook)
         notebook.add(system_tab, text="System")
 

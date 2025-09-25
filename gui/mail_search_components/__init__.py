@@ -1,1 +1,0 @@
-# Mail search components package

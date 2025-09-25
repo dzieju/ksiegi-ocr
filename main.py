@@ -2,10 +2,13 @@ import sys
 import traceback
 import os
 
-from exchangelib.winzone import MS_TIMEZONE_TO_IANA_MAP
-
-# Mapowanie niestandardowej strefy czasowej Exchange na prawidłową strefę IANA
-MS_TIMEZONE_TO_IANA_MAP['Customized Time Zone'] = "Europe/Warsaw"
+# Try to import exchangelib, but continue without it if not available
+try:
+    from exchangelib.winzone import MS_TIMEZONE_TO_IANA_MAP
+    # Mapowanie niestandardowej strefy czasowej Exchange na prawidłową strefę IANA
+    MS_TIMEZONE_TO_IANA_MAP['Customized Time Zone'] = "Europe/Warsaw"
+except ImportError:
+    print("Note: exchangelib not available - mail search functionality will be limited")
 
 from gui.main_window import MainWindow
 import tkinter as tk
