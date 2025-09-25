@@ -12,6 +12,7 @@ from gui.system_components.dependency_widget import DependencyWidget
 class SystemTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        print("⚙️ Inicjalizacja SystemTab...")
 
         # Threading support variables
         self.result_queue = queue.Queue()
@@ -32,6 +33,8 @@ class SystemTab(ttk.Frame):
         # Start processing queues
         self._process_result_queue()
         self._process_progress_queue()
+        
+        print("✅ SystemTab zainicjalizowany")
     
     def create_widgets(self):
         # Main container with notebook for organization

@@ -42,8 +42,10 @@ class DependencyChecker:
     """Checks system dependencies and provides status information."""
     
     def __init__(self):
+        print("🔧 Inicjalizacja DependencyChecker...")
         self.dependencies = []
         self._setup_dependencies()
+        print("✅ DependencyChecker zainicjalizowany")
     
     def _setup_dependencies(self):
         """Setup the list of dependencies to check."""
@@ -505,7 +507,9 @@ def get_dependency_checker() -> DependencyChecker:
     """Get the global dependency checker instance."""
     global _dependency_checker
     if _dependency_checker is None:
+        print("🔧 Tworzenie instancji DependencyChecker...")
         _dependency_checker = DependencyChecker()
+        print("✅ DependencyChecker utworzony")
     return _dependency_checker
 
 

@@ -147,8 +147,11 @@ class MainWindow(tk.Tk):
         print("📬 Ładowanie zakładki: Przeszukiwanie Poczty...")
         
         try:
+            print("📦 Importowanie modułu tab_mail_search...")
             from gui.tab_mail_search import MailSearchTab
+            print("🔧 Tworzenie instancji MailSearchTab...")
             self.mail_search_tab = MailSearchTab(self.notebook)
+            print("✅ MailSearchTab utworzony")
             
             # Safe tab replacement with validation
             if self._safe_notebook_operation(self.notebook.forget, 0) is not None:
@@ -172,8 +175,11 @@ class MainWindow(tk.Tk):
         print("⚙️  Ładowanie zakładki: Konfiguracja poczty...")
         
         try:
+            print("📦 Importowanie modułu tab_exchange_config...")
             from gui.tab_exchange_config import ExchangeConfigTab
+            print("🔧 Tworzenie instancji ExchangeConfigTab...")
             self.exchange_tab = ExchangeConfigTab(self.notebook)
+            print("✅ ExchangeConfigTab utworzony")
             
             # Safe tab replacement with validation
             if self._safe_notebook_operation(self.notebook.forget, 1) is not None:
@@ -221,8 +227,11 @@ class MainWindow(tk.Tk):
             
             # Load the actual tab
             try:
+                print("📦 Importowanie modułu tab_zakupy...")
                 from gui.tab_zakupy import ZakupiTab
+                print("🔧 Tworzenie instancji ZakupiTab...")
                 self.zakupy_tab = ZakupiTab(self.notebook)
+                print("✅ ZakupiTab utworzony")
                 
                 # Find and replace loading frame with actual tab
                 loading_tab_index = self._find_tab_by_text("Zakupy")
@@ -287,8 +296,11 @@ class MainWindow(tk.Tk):
             
             # Load the actual tab
             try:
+                print("📦 Importowanie modułu tab_system...")
                 from gui.tab_system import SystemTab
+                print("🔧 Tworzenie instancji SystemTab...")
                 self.system_tab = SystemTab(self.notebook)
+                print("✅ SystemTab utworzony")
                 
                 # Find and replace loading frame with actual tab
                 loading_tab_index = self._find_tab_by_text("System")

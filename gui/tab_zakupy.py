@@ -31,21 +31,24 @@ def _initialize_pdf_processing():
     global _poppler_path, _pdf_processing_initialized
     
     if _pdf_processing_initialized:
+        print("✅ Przetwarzanie PDF już zainicjalizowane")
         return _poppler_path
     
-    print("📄 Inicjalizacja przetwarzania PDF...")
+    print("📄 Inicjalizacja przetwarzania PDF w wątku tła...")
     
     # Import poppler utilities for automatic path detection
     try:
+        print("🔧 Importowanie poppler_utils...")
         from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
+        print("🔍 Pobieranie ścieżki Poppler...")
         _poppler_path = get_poppler_path()
         if _poppler_path:
-            print(f"Zakupy tab: Poppler detected at: {_poppler_path}")
+            print(f"✅ Poppler wykryty w: {_poppler_path}")
         else:
-            print("Zakupy tab: Warning: Poppler not detected, using fallback path")
+            print("⚠️ Poppler nie wykryty, używam ścieżki zapasowej")
             _poppler_path = r"C:\poppler\Library\bin"  # Fallback
     except ImportError as e:
-        print(f"Zakupy tab: Failed to import poppler_utils, using fallback path: {e}")
+        print(f"❌ Błąd importowania poppler_utils, używam ścieżki zapasowej: {e}")
         _poppler_path = r"C:\poppler\Library\bin"  # Fallback
     
     _pdf_processing_initialized = True
@@ -90,6 +93,7 @@ OCR_LOG_FILE = "ocr_log.txt"
 class ZakupiTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        print("🛒 Inicjalizacja ZakupiTab...")
         
         # Initialize file path variable
         self.file_path_var = tk.StringVar()
@@ -106,6 +110,8 @@ class ZakupiTab(ttk.Frame):
         # Start processing queues
         self._process_result_queue()
         self._process_progress_queue()
+        
+        print("✅ ZakupiTab zainicjalizowany")
 
     def clean_invoice_name(self, text):
         """
