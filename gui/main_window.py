@@ -19,12 +19,15 @@ import logging
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
+        print("🖥️  Inicjalizacja głównego okna...")
         self.title("Księga Przychodów i Rozchodów")
         self.geometry("900x600")
 
+        print("🎨 Ustawianie stylu...")
         style = ttk.Style(self)
         style.theme_use("clam")
 
+        print("📁 Tworzenie notebooka zakładek...")
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
@@ -35,6 +38,7 @@ class MainWindow(tk.Tk):
         self.zakupy_tab = None
         self.system_tab = None
         
+        print("🔄 Inicjalizacja stanu ładowania zakładek...")
         # Initialize loading state tracking to prevent duplicate loading
         self._loading_states = {
             'mail_search': False,
@@ -47,14 +51,19 @@ class MainWindow(tk.Tk):
         self._loading_frames = {}
         self._loading_labels = {}
         
+        print("📋 Tworzenie placeholder'ów zakładek...")
         # Add placeholder frames for lazy loading
         self._create_tab_placeholders()
         
+        print("🔗 Powiązywanie zdarzeń zakładek...")
         # Bind tab selection event for lazy loading
         self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         
+        print("📬 Ładowanie pierwszej zakładki...")
         # Load the first tab immediately for better UX
         self._load_mail_search_tab()
+        
+        print("✅ MainWindow zainicjalizowane")
 
     def _create_tab_placeholders(self):
         """Create placeholder frames for all tabs"""

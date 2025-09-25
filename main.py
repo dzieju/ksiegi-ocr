@@ -57,12 +57,15 @@ if __name__ == "__main__":
     print("\nUruchamianie interfejsu użytkownika...")
     print("ℹ️  Sprawdzanie zależności zostanie wykonane w tle...")
     
+    print("📦 Importowanie głównego okna...")
     # Import main window (now optimized to not load heavy dependencies)
     from gui.main_window import MainWindow
     
+    print("🖥️  Tworzenie aplikacji...")
     # Create main window
     app = MainWindow()
     
+    print("📐 Ustawianie właściwości okna...")
     # Set window properties
     app.geometry("1400x900")
     app.minsize(1200, 700)
@@ -118,10 +121,12 @@ if __name__ == "__main__":
         system_thread.start()
         print("✓ Wątek sprawdzania systemu uruchomiony w tle")
     
+    print("⏰ Planowanie sprawdzania systemu w tle...")
     # Schedule background checks to run after GUI starts (but in background thread)
     app.after(100, background_system_checks)
     
     print("✓ Interfejs gotowy do użycia")
+    print("🚀 Uruchamianie głównej pętli aplikacji...")
     print("=" * 60)
     
     app.mainloop()

@@ -6,7 +6,8 @@ import queue
 import os
 import time
 from datetime import datetime, timedelta, timezone
-from exchangelib import Q, Message
+# TODO: exchangelib import could be lazy-loaded for better startup performance
+from exchangelib import Q, Message  # Heavy import - consider lazy loading if startup optimization needed
 from tools.logger import log
 from .pdf_processor import PDFProcessor
 

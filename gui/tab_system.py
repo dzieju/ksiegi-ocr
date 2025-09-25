@@ -3,7 +3,7 @@ from tkinter import ttk, messagebox
 import queue
 import multiprocessing
 from tools import logger, i18n, darkmode
-from tools.ocr_config import ocr_config
+from tools.ocr_config import ocr_config  # TODO: Could potentially be lazy-loaded if startup optimization needed
 from gui.system_components.backup_handler import BackupHandler
 from gui.system_components.system_operations import SystemOperations
 from gui.system_components.dependency_widget import DependencyWidget
