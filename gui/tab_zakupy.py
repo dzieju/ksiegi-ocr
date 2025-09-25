@@ -93,7 +93,6 @@ OCR_LOG_FILE = "ocr_log.txt"
 class ZakupiTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
-        print("🛒 Inicjalizacja ZakupiTab...")
         
         # Initialize file path variable
         self.file_path_var = tk.StringVar()
@@ -110,8 +109,6 @@ class ZakupiTab(ttk.Frame):
         # Start processing queues
         self._process_result_queue()
         self._process_progress_queue()
-        
-        print("✅ ZakupiTab zainicjalizowany")
 
     def clean_invoice_name(self, text):
         """

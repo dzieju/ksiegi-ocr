@@ -1,53 +1,61 @@
 #!/usr/bin/env python3
 """
-Main Window with Optimized Lazy Loading
-
-PERFORMANCE FEATURES:
-- Tabs are created only when first accessed (lazy loading)
-- Heavy dependencies loaded on demand
-- Progress indicators for loading heavy components
-- Immediate GUI responsiveness
-- Robust error handling for widget lifecycle
-- Safe notebook operations with index validation
-
-This provides ~80x faster startup compared to loading all tabs at once.
+Main Window - Simple version after reverting PRs #132-#136 
+All tabs created synchronously at startup
 """
 import tkinter as tk
-from tkinter import ttk, messagebox
-import logging
+from tkinter import ttk
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
-        print("🖥️  Inicjalizacja głównego okna...")
         self.title("Księga Przychodów i Rozchodów")
         self.geometry("900x600")
 
-        print("🎨 Ustawianie stylu...")
+        # Set up style
         style = ttk.Style(self)
         style.theme_use("clam")
 
-        print("📁 Tworzenie notebooka zakładek...")
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
         
-        # Initialize tab references to None (lazy loading)
-        self.mail_search_tab = None
-        self.exchange_tab = None
-        self.zakupy_tab = None
-        self.system_tab = None
-        
-        print("🔄 Inicjalizacja stanu ładowania zakładek...")
-        # Initialize loading state tracking to prevent duplicate loading
-        self._loading_states = {
-            'mail_search': False,
-            'exchange': False,
-            'zakupy': False,
-            'system': False
-        }
-        
-        # Keep references to loading frames to prevent widget destruction issues
+        # Create all tabs immediately (synchronous loading)
+        self.create_all_tabs()
+
+    def create_all_tabs(self):
+        """Create all tabs synchronously"""
+        # Create mail search placeholder (complex mail search removed)
+        mail_search_frame = ttk.Frame(self.notebook)
+        ttk.Label(mail_search_frame, text="Mail Search functionality removed\n(was part of PRs #132-#136)").pack(expand=True)
+        self.notebook.add(mail_search_frame, text="Przeszukiwanie Poczty")
+
+        # Create exchange config tab
+        try:
+            from gui.tab_exchange_config import ExchangeConfigTab
+            self.exchange_tab = ExchangeConfigTab(self.notebook)
+            self.notebook.add(self.exchange_tab, text="Konfiguracja Exchange")
+        except ImportError as e:
+            print(f"Could not load exchange config tab: {e}")
+            placeholder = ttk.Frame(self.notebook)
+            ttk.Label(placeholder, text="Exchange Config - Not Available").pack(expand=True)
+            self.notebook.add(placeholder, text="Konfiguracja Exchange")
+
+        # Create zakupy tab (with OCR)
+        try:
+            from gui.tab_zakupy import ZakupiTab
+            self.zakupy_tab = ZakupiTab(self.notebook)
+            self.notebook.add(self.zakupy_tab, text="Zakupy")
+        except ImportError as e:
+            print(f"Could not load zakupy tab: {e}")
+            placeholder = ttk.Frame(self.notebook)
+            ttk.Label(placeholder, text="Zakupy - Not Available").pack(expand=True)
+            self.notebook.add(placeholder, text="Zakupy")
+
+        # Create system placeholder (complex system tab removed)
+        system_frame = ttk.Frame(self.notebook)
+        ttk.Label(system_frame, text="System functionality removed\n(was part of PRs #132-#136)").pack(expand=True)
+        self.notebook.add(system_frame, text="System")
         self._loading_frames = {}
         self._loading_labels = {}
         
