@@ -24,14 +24,14 @@ class DependencyChecker:
                 'type': 'system',
                 'check_func': self._check_python,
                 'required': True,
-                'description': 'Interpreter Python'
+                'description': 'Interpreter Python (wymagane: 3.8+)'
             },
             {
                 'name': 'Tkinter',
                 'type': 'module',
                 'module': 'tkinter',
                 'required': True,
-                'description': 'Interfejs graficzny'
+                'description': 'Interfejs graficzny (część standardowej biblioteki)'
             },
             {
                 'name': 'Tesseract OCR',
@@ -39,70 +39,77 @@ class DependencyChecker:
                 'executable': 'tesseract',
                 'module': 'pytesseract',
                 'required': True,
-                'description': 'Silnik OCR Tesseract'
+                'description': 'Silnik OCR Tesseract + moduł Python'
             },
             {
                 'name': 'Poppler',
                 'type': 'custom',
                 'check_func': self._check_poppler,
                 'required': True,
-                'description': 'Narzędzia PDF'
+                'description': 'Narzędzia PDF (pdfinfo, pdfimages, pdftoppm)'
             },
             {
                 'name': 'pdfplumber',
                 'type': 'module',
                 'module': 'pdfplumber',
                 'required': True,
-                'description': 'Ekstrakcja tekstu z PDF'
+                'description': 'Ekstrakcja tekstu z dokumentów PDF'
             },
             {
                 'name': 'EasyOCR',
                 'type': 'module',
                 'module': 'easyocr',
                 'required': False,
-                'description': 'Silnik OCR AI'
+                'description': 'Silnik OCR AI (obsługuje GPU)'
             },
             {
                 'name': 'PaddleOCR',
                 'type': 'module',
                 'module': 'paddleocr',
                 'required': False,
-                'description': 'Silnik OCR AI'
+                'description': 'Silnik OCR AI (obsługuje GPU)'
             },
             {
                 'name': 'PIL/Pillow',
                 'type': 'module',
                 'module': 'PIL',
                 'required': True,
-                'description': 'Przetwarzanie obrazów'
+                'description': 'Biblioteka przetwarzania obrazów'
             },
             {
                 'name': 'OpenCV',
                 'type': 'module',
                 'module': 'cv2',
                 'required': True,
-                'description': 'Przetwarzanie obrazów'
+                'description': 'Zaawansowane przetwarzanie obrazów'
             },
             {
                 'name': 'pdf2image',
                 'type': 'module',
                 'module': 'pdf2image',
                 'required': True,
-                'description': 'Konwersja PDF do obrazów'
+                'description': 'Konwersja stron PDF do obrazów'
             },
             {
                 'name': 'exchangelib',
                 'type': 'module',
                 'module': 'exchangelib',
                 'required': True,
-                'description': 'Połączenie z Exchange'
+                'description': 'Połączenie z serwerem Microsoft Exchange'
             },
             {
                 'name': 'tkcalendar',
                 'type': 'module',
                 'module': 'tkcalendar',
                 'required': True,
-                'description': 'Widget kalendarza'
+                'description': 'Widget kalendarza dla interfejsu'
+            },
+            {
+                'name': 'pdfminer.six',
+                'type': 'module',
+                'module': 'pdfminer.six',
+                'required': True,
+                'description': 'Analiza i ekstrakcja danych z PDF'
             }
         ]
     
@@ -173,10 +180,25 @@ class DependencyChecker:
     def _check_python(self) -> Dict:
         """Check Python version."""
         version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        
+        # Check minimum version requirement (Python 3.8+)
+        if sys.version_info >= (3, 8):
+            status = 'ok'
+            emoji = '✅'
+            message = f"Wersja {version}"
+        elif sys.version_info >= (3, 6):
+            status = 'warning'
+            emoji = '⚠️'
+            message = f"Wersja {version} (zalecana 3.8+)"
+        else:
+            status = 'error'
+            emoji = '❌'
+            message = f"Wersja {version} (za stara, wymagana 3.8+)"
+        
         return {
-            'status': 'ok',
-            'emoji': '✅',
-            'message': f"Wersja {version}",
+            'status': status,
+            'emoji': emoji,
+            'message': message,
             'version': version
         }
     

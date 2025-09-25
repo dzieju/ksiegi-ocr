@@ -32,7 +32,14 @@ class DependencyWidget(ttk.Frame):
         title_label = ttk.Label(header_frame, text="Zależności środowiskowe:", font=("Arial", 10, "bold"))
         title_label.pack(side="left")
         
-        self.refresh_btn = ttk.Button(header_frame, text="Odśwież", command=self.refresh_dependencies, width=10)
+        # Buttons frame
+        buttons_frame = ttk.Frame(header_frame)
+        buttons_frame.pack(side="right")
+        
+        self.export_btn = ttk.Button(buttons_frame, text="Eksportuj", command=self.export_status, width=10)
+        self.export_btn.pack(side="right", padx=(5, 0))
+        
+        self.refresh_btn = ttk.Button(buttons_frame, text="Odśwież", command=self.refresh_dependencies, width=10)
         self.refresh_btn.pack(side="right")
         
         self.status_label = ttk.Label(header_frame, text="Sprawdzanie...", foreground="blue")
@@ -164,10 +171,36 @@ class DependencyWidget(ttk.Frame):
                               font=("Arial", 8), foreground="gray")
         desc_label.grid(row=2, column=1, sticky="w", padx=(0, 5))
         
+        # Add installation hint for missing required dependencies
+        if result['required'] and result['status'] == 'error':
+            hint_text = self._get_installation_hint(result['name'])
+            if hint_text:
+                hint_label = ttk.Label(item_frame, text=f"💡 {hint_text}", 
+                                      font=("Arial", 8), foreground="blue")
+                hint_label.grid(row=3, column=1, sticky="w", padx=(0, 5))
+        
         # Add separator for visual clarity
         if index < len(self.results) - 1:
             separator = ttk.Separator(self.scrollable_frame, orient="horizontal")
             separator.pack(fill="x", padx=10, pady=2)
+    
+    def _get_installation_hint(self, dependency_name: str) -> str:
+        """Get installation hint for missing dependency."""
+        hints = {
+            'Tkinter': 'Zainstaluj tkinter: apt-get install python3-tk (Ubuntu/Debian)',
+            'Tesseract OCR': 'Zainstaluj tesseract: apt-get install tesseract-ocr (Ubuntu/Debian)',
+            'pdfplumber': 'pip install pdfplumber',
+            'EasyOCR': 'pip install easyocr',
+            'PaddleOCR': 'pip install paddlepaddle paddleocr',
+            'PIL/Pillow': 'pip install Pillow',
+            'OpenCV': 'pip install opencv-python',
+            'pdf2image': 'pip install pdf2image',
+            'exchangelib': 'pip install exchangelib',
+            'tkcalendar': 'pip install tkcalendar',
+            'pdfminer.six': 'pip install pdfminer.six',
+            'Poppler': 'Zainstaluj poppler-utils: apt-get install poppler-utils (Ubuntu/Debian)'
+        }
+        return hints.get(dependency_name, '')
     
     def _get_status_color(self, status: str) -> str:
         """Get color for status display."""
@@ -177,6 +210,74 @@ class DependencyWidget(ttk.Frame):
             return 'orange'
         else:
             return 'red'
+    
+    def export_status(self):
+        """Export dependency status to a text file."""
+        if not self.results:
+            return
+        
+        try:
+            from tkinter import filedialog
+            import datetime
+            
+            # Get filename from user
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                title="Eksportuj status zależności",
+                initialvalue=f"ksiegi-ocr-dependencies-{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.txt"
+            )
+            
+            if not filename:
+                return
+            
+            # Generate report
+            report_lines = []
+            report_lines.append("KSIEGI-OCR - Raport zależności środowiskowych")
+            report_lines.append("=" * 50)
+            report_lines.append(f"Data wygenerowania: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            report_lines.append("")
+            
+            # Summary
+            summary = self.dependency_checker.get_summary()
+            report_lines.append(f"PODSUMOWANIE: {summary['message']}")
+            report_lines.append(f"Status ogólny: {summary['status']}")
+            report_lines.append(f"Sprawdzono: {summary['total']} zależności")
+            report_lines.append(f"OK: {summary['ok']}, Ostrzeżenia: {summary['warning']}, Błędy: {summary['error']}")
+            report_lines.append("")
+            
+            # Detailed results
+            report_lines.append("SZCZEGÓŁOWE WYNIKI:")
+            report_lines.append("-" * 30)
+            
+            for result in self.results:
+                status_symbol = result['emoji']
+                required_text = " (WYMAGANE)" if result['required'] else ""
+                version_text = f" - {result['version']}" if result['version'] else ""
+                
+                report_lines.append(f"{status_symbol} {result['name']}{required_text}")
+                report_lines.append(f"   Status: {result['message']}{version_text}")
+                report_lines.append(f"   Opis: {result['description']}")
+                
+                # Add installation hint if needed
+                if result['required'] and result['status'] == 'error':
+                    hint = self._get_installation_hint(result['name'])
+                    if hint:
+                        report_lines.append(f"   Instalacja: {hint}")
+                
+                report_lines.append("")
+            
+            # Write to file
+            with open(filename, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(report_lines))
+            
+            # Show success message
+            from tkinter import messagebox
+            messagebox.showinfo("Eksport zakończony", f"Raport zapisano do pliku:\n{filename}")
+            
+        except Exception as e:
+            from tkinter import messagebox
+            messagebox.showerror("Błąd eksportu", f"Nie udało się wyeksportować raportu:\n{str(e)}")
     
     def get_results(self) -> List[Dict]:
         """Get current dependency check results."""
