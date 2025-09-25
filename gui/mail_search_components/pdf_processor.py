@@ -19,7 +19,18 @@ except ImportError as e:
     log(f"Failed to import poppler_utils, using fallback path: {e}")
     POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
 
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Import tesseract utilities for automatic path detection
+try:
+    from tools.tesseract_utils import get_tesseract_path
+    TESSERACT_PATH = get_tesseract_path()
+    if TESSERACT_PATH:
+        log(f"Tesseract detected at: {TESSERACT_PATH}")
+    else:
+        log("Warning: Tesseract not detected, using fallback path")
+        TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
+except ImportError as e:
+    log(f"Failed to import tesseract_utils, using fallback path: {e}")
+    TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
 
 # Try to import OCR engine manager first
 try:

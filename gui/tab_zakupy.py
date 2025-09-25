@@ -24,7 +24,18 @@ except ImportError as e:
     print(f"Zakupy tab: Failed to import poppler_utils, using fallback path: {e}")
     POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
 
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Import tesseract utilities for automatic path detection
+try:
+    from tools.tesseract_utils import get_tesseract_path
+    TESSERACT_PATH = get_tesseract_path()
+    if TESSERACT_PATH:
+        print(f"Zakupy tab: Tesseract detected at: {TESSERACT_PATH}")
+    else:
+        print("Zakupy tab: Warning: Tesseract not detected, using fallback path")
+        TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
+except ImportError as e:
+    print(f"Zakupy tab: Failed to import tesseract_utils, using fallback path: {e}")
+    TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
 
 # Crop coordinates for invoice numbers column
 CROP_LEFT, CROP_RIGHT = 499, 771
