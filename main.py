@@ -9,10 +9,25 @@ import tkinter as tk
 # Import poppler utilities for PDF processing support
 from tools.poppler_utils import print_poppler_status, test_poppler_startup
 
+# Import dependency checker for startup validation
+from tools.dependency_checker import get_dependencies_summary
+
 if __name__ == "__main__":
     print("=" * 60)
     print("KSIEGI-OCR - System uruchamiania")
     print("=" * 60)
+    
+    # Check system dependencies
+    print("\nSprawdzanie zależności systemowych...")
+    try:
+        summary = get_dependencies_summary()
+        print(f"{summary['emoji']} {summary['message']}")
+        if summary['required_missing'] > 0:
+            print(f"⚠️  UWAGA: Brak {summary['required_missing']} wymaganych zależności!")
+            print("   Niektóre funkcje mogą nie działać poprawnie.")
+            print("   Sprawdź zakładkę 'System > Zależności środowiskowe' w aplikacji.")
+    except Exception as e:
+        print(f"⚠️  Błąd sprawdzania zależności: {e}")
     
     # Test poppler integration on startup
     print("\nTesting Poppler integration...")
