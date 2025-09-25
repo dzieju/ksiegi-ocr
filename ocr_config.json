@@ -1,6 +1,6 @@
 {
   "engine": "paddleocr",
   "use_gpu": false,
-  "multiprocessing": true,
+  "multiprocessing": false,
   "max_workers": null
 }
