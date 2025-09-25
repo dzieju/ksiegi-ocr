@@ -66,6 +66,12 @@ class SystemTab(ttk.Frame):
         self.notebook.add(self.logs_frame, text="Logi")
         self._create_logs_widgets()
         logger.log("Podzakładka 'Logi' utworzona")
+        
+        # EML Reader Tab
+        self.eml_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.eml_frame, text="Czytnik EML")
+        self._create_eml_viewer_widgets()
+        logger.log("Podzakładka 'Czytnik EML' utworzona")
     
     def _create_system_operations_widgets(self):
         """Create system operations widgets."""
@@ -391,6 +397,11 @@ class SystemTab(ttk.Frame):
             self.logs_text.insert(1.0, f"Błąd podczas ładowania logów: {str(e)}")
             self.logs_text.config(state="disabled")
             self.log_info_label.config(text="Błąd ładowania logów")
+    
+    def _create_eml_viewer_widgets(self):
+        """Create EML viewer widgets in the EML subtab"""
+        from tools.eml_viewer import EMLViewerGUI
+        self.eml_viewer = EMLViewerGUI(self.eml_frame)
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
