@@ -22,85 +22,53 @@ class MailSearchUI:
             font=("Arial", 12),
             foreground="blue"
         )
-        title_label.pack(pady=10)
+        title_label.grid(row=0, column=0, columnspan=3, pady=10)
         
-        # Folder frame
-        folder_frame = ttk.Frame(self.parent)
-        folder_frame.pack(fill="x", padx=5, pady=5)
-        
-        ttk.Label(folder_frame, text="Folder przeszukiwania (z podfolderami):").pack(side="left")
-        folder_entry = ttk.Entry(folder_frame, textvariable=self.vars['folder_path'], width=40)
-        folder_entry.pack(side="left", padx=5)
+        # Search criteria fields
+        ttk.Label(self.parent, text="Folder przeszukiwania (z podfolderami):").grid(row=1, column=0, sticky="e", padx=5, pady=5)
+        folder_entry = ttk.Entry(self.parent, textvariable=self.vars['folder_path'], width=40)
+        folder_entry.grid(row=1, column=1, padx=5, pady=5)
         
         # Add folder discovery button
-        discover_button = ttk.Button(folder_frame, text="Wykryj foldery", command=self.discover_callback)
-        discover_button.pack(side="left", padx=5)
+        discover_button = ttk.Button(self.parent, text="Wykryj foldery", command=self.discover_callback)
+        discover_button.grid(row=1, column=2, padx=5, pady=5)
         
         # Placeholder for folder exclusion checkboxes (will be added dynamically)
+        # Row 2 is reserved for the checkbox frame
         
-        # Subject search frame
-        subject_frame = ttk.Frame(self.parent)
-        subject_frame.pack(fill="x", padx=5, pady=5)
+        ttk.Label(self.parent, text="Czego mam szukać w temacie maila:").grid(row=3, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['subject_search'], width=40).grid(row=3, column=1, padx=5, pady=5)
         
-        ttk.Label(subject_frame, text="Czego mam szukać w temacie maila:").pack(side="left")
-        ttk.Entry(subject_frame, textvariable=self.vars['subject_search'], width=40).pack(side="left", padx=5)
+        ttk.Label(self.parent, text="Czego mam szukać w treści maila:").grid(row=4, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['body_search'], width=40).grid(row=4, column=1, padx=5, pady=5)
         
-        # Body search frame
-        body_frame = ttk.Frame(self.parent)
-        body_frame.pack(fill="x", padx=5, pady=5)
+        ttk.Label(self.parent, text="Wyszukaj w pliku PDF (automatyczny zapis):").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['pdf_search_text'], width=40).grid(row=5, column=1, padx=5, pady=5)
         
-        ttk.Label(body_frame, text="Czego mam szukać w treści maila:").pack(side="left")
-        ttk.Entry(body_frame, textvariable=self.vars['body_search'], width=40).pack(side="left", padx=5)
+        ttk.Label(self.parent, text="Nadawca maila:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5)
         
-        # PDF search frame
-        pdf_frame = ttk.Frame(self.parent)
-        pdf_frame.pack(fill="x", padx=5, pady=5)
+        # Checkboxes
+        ttk.Checkbutton(self.parent, text="Tylko nieprzeczytane", variable=self.vars['unread_only']).grid(row=7, column=0, sticky="w", padx=5, pady=5)
+        ttk.Checkbutton(self.parent, text="Tylko z załącznikami", variable=self.vars['attachments_required']).grid(row=7, column=1, sticky="w", padx=5, pady=5)
+        ttk.Checkbutton(self.parent, text="Tylko bez załączników", variable=self.vars['no_attachments_only']).grid(row=7, column=2, sticky="w", padx=5, pady=5)
         
-        ttk.Label(pdf_frame, text="Wyszukaj w pliku PDF (automatyczny zapis):").pack(side="left")
-        ttk.Entry(pdf_frame, textvariable=self.vars['pdf_search_text'], width=40).pack(side="left", padx=5)
+        # Attachment filters
+        ttk.Label(self.parent, text="Nazwa załącznika (zawiera):").grid(row=8, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['attachment_name'], width=40).grid(row=8, column=1, padx=5, pady=5)
         
-        # Sender frame
-        sender_frame = ttk.Frame(self.parent)
-        sender_frame.pack(fill="x", padx=5, pady=5)
-        
-        ttk.Label(sender_frame, text="Nadawca maila:").pack(side="left")
-        ttk.Entry(sender_frame, textvariable=self.vars['sender'], width=40).pack(side="left", padx=5)
-        
-        # Checkboxes frame
-        checkboxes_frame = ttk.Frame(self.parent)
-        checkboxes_frame.pack(fill="x", padx=5, pady=5)
-        
-        ttk.Checkbutton(checkboxes_frame, text="Tylko nieprzeczytane", variable=self.vars['unread_only']).pack(side="left", padx=5)
-        ttk.Checkbutton(checkboxes_frame, text="Tylko z załącznikami", variable=self.vars['attachments_required']).pack(side="left", padx=5)
-        ttk.Checkbutton(checkboxes_frame, text="Tylko bez załączników", variable=self.vars['no_attachments_only']).pack(side="left", padx=5)
-        
-        # Attachment name frame
-        attachment_name_frame = ttk.Frame(self.parent)
-        attachment_name_frame.pack(fill="x", padx=5, pady=5)
-        
-        ttk.Label(attachment_name_frame, text="Nazwa załącznika (zawiera):").pack(side="left")
-        ttk.Entry(attachment_name_frame, textvariable=self.vars['attachment_name'], width=40).pack(side="left", padx=5)
-        
-        # Attachment extension frame
-        attachment_ext_frame = ttk.Frame(self.parent)
-        attachment_ext_frame.pack(fill="x", padx=5, pady=5)
-        
-        ttk.Label(attachment_ext_frame, text="Rozszerzenie załącznika:").pack(side="left")
-        ttk.Entry(attachment_ext_frame, textvariable=self.vars['attachment_extension'], width=40).pack(side="left", padx=5)
+        ttk.Label(self.parent, text="Rozszerzenie załącznika:").grid(row=9, column=0, sticky="e", padx=5, pady=5)
+        ttk.Entry(self.parent, textvariable=self.vars['attachment_extension'], width=40).grid(row=9, column=1, padx=5, pady=5)
     
         return None  # No longer returning save_pdf_button
     
     def create_date_period_widgets(self):
         """Create date period selection widgets"""
-        # Date period frame
-        date_frame = ttk.Frame(self.parent)
-        date_frame.pack(fill="x", padx=5, pady=(15, 5))
-        
-        ttk.Label(date_frame, text="Okres wiadomości:", font=("Arial", 10, "bold")).pack(side="left", padx=5)
+        ttk.Label(self.parent, text="Okres wiadomości:", font=("Arial", 10, "bold")).grid(row=10, column=0, sticky="w", padx=5, pady=(15, 5))
         
         # Create frame for period buttons
-        period_frame = ttk.Frame(date_frame)
-        period_frame.pack(side="left", padx=5)
+        period_frame = ttk.Frame(self.parent)
+        period_frame.grid(row=10, column=1, columnspan=2, sticky="w", padx=5, pady=(15, 5))
         
         # Period selection buttons
         periods = [
@@ -117,12 +85,12 @@ class MailSearchUI:
                 text=text, 
                 variable=self.vars['selected_period'], 
                 value=value
-            ).pack(side="left", padx=5)
+            ).grid(row=0, column=i, padx=5, sticky="w")
     
     def create_control_widgets(self, search_callback):
         """Create search button and status widgets"""
         search_frame = ttk.Frame(self.parent)
-        search_frame.pack(fill="x", pady=20)
+        search_frame.grid(row=11, column=0, columnspan=3, pady=20)
         
         search_button = ttk.Button(search_frame, text="Rozpocznij wyszukiwanie", command=search_callback)
         search_button.pack(side="left", padx=5)
@@ -135,7 +103,13 @@ class MailSearchUI:
     def create_results_widget(self):
         """Create results area widget - now returns a frame for the new ResultsDisplay"""
         results_frame = ttk.Frame(self.parent)
-        results_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        results_frame.grid(row=12, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+        
+        # Configure grid weights for the parent to allow dynamic resizing
+        self.parent.grid_rowconfigure(12, weight=1)  # Results row gets all extra space
+        self.parent.grid_columnconfigure(0, weight=1)
+        self.parent.grid_columnconfigure(1, weight=1)
+        self.parent.grid_columnconfigure(2, weight=1)
         
         return results_frame
     
@@ -146,71 +120,73 @@ class MailSearchUI:
             
         # Create main container frame
         container_frame = ttk.Frame(self.parent)
-        container_frame.pack(fill="x", padx=5, pady=5)
+        container_frame.grid(row=2, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
         
         # Create header frame with title and hide/show button
         header_frame = ttk.Frame(container_frame)
-        header_frame.pack(fill="x", pady=(0, 5))
+        header_frame.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 5))
         
         # Title label
         title_label = ttk.Label(header_frame, text="Wyklucz te foldery:", font=("Arial", 10, "bold"))
-        title_label.pack(side="left")
+        title_label.grid(row=0, column=0, sticky="w")
         
         # Hide/Show button
         toggle_text = "Ukryj" if is_visible else "Pokaż"
         toggle_button = ttk.Button(header_frame, text=toggle_text, width=8)
         if hide_callback:
             toggle_button.config(command=lambda: hide_callback(toggle_button))
-        toggle_button.pack(side="right", padx=(10, 0))
+        toggle_button.grid(row=0, column=1, sticky="e", padx=(10, 0))
         
         # Save settings button
         save_button = ttk.Button(header_frame, text="Zapisz ustawienia", width=15)
-        save_button.pack(side="right", padx=(5, 0))
+        save_button.grid(row=0, column=2, sticky="e", padx=(5, 0))
         
         # Check all button
         check_all_button = ttk.Button(header_frame, text="Zaznacz wszystko", width=15)
         if check_all_callback:
             check_all_button.config(command=check_all_callback)
-        check_all_button.pack(side="right", padx=(5, 0))
+        check_all_button.grid(row=0, column=3, sticky="e", padx=(5, 0))
         
         # Uncheck all button
         uncheck_all_button = ttk.Button(header_frame, text="Odznacz wszystkie", width=15)
         if uncheck_all_callback:
             uncheck_all_button.config(command=uncheck_all_callback)
-        uncheck_all_button.pack(side="right", padx=(5, 0))
+        uncheck_all_button.grid(row=0, column=4, sticky="e", padx=(5, 0))
+        
+        # Configure header grid
+        header_frame.grid_columnconfigure(0, weight=1)
         
         # Create frame for checkboxes
         checkboxes_frame = ttk.Frame(container_frame, relief="sunken", borderwidth=1)
-        checkboxes_frame.pack(fill="x", padx=5, pady=5)
+        checkboxes_frame.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky="ew")
         
         # Initially hide or show based on is_visible parameter
         if not is_visible:
-            checkboxes_frame.pack_forget()
+            checkboxes_frame.grid_remove()
         
         # Create checkboxes in multiple columns if there are many folders
         max_columns = 3
         folders_per_column = max(1, len(folders) // max_columns + (1 if len(folders) % max_columns else 0))
         
-        # Create column frames for organizing checkboxes
-        column_frames = []
-        for col in range(max_columns):
-            col_frame = ttk.Frame(checkboxes_frame)
-            col_frame.pack(side="left", fill="both", expand=True, padx=2)
-            column_frames.append(col_frame)
-        
         for i, folder_name in enumerate(folders):
             var = tk.BooleanVar()
             exclusion_vars[folder_name] = var
             
+            row = i % folders_per_column
             column = i // folders_per_column
-            if column >= max_columns:
-                column = max_columns - 1
             
             checkbox = ttk.Checkbutton(
-                column_frames[column], 
+                checkboxes_frame, 
                 text=folder_name, 
                 variable=var
             )
-            checkbox.pack(anchor="w", padx=5, pady=2)
+            checkbox.grid(row=row, column=column, sticky="w", padx=5, pady=2)
+        
+        # Configure grid weights for the checkboxes frame
+        for col in range(max_columns):
+            checkboxes_frame.columnconfigure(col, weight=1)
+            
+        # Configure main container grid
+        container_frame.grid_columnconfigure(0, weight=1)
         
         return container_frame, (toggle_button, save_button, check_all_button, uncheck_all_button, checkboxes_frame)

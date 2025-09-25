@@ -28,7 +28,13 @@ class ResultsDisplay:
         """Create the results display widgets"""
         # Results frame
         self.results_frame = ttk.Frame(self.parent_frame)
-        self.results_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        self.results_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=5)
+        
+        # Configure grid weights for dynamic resizing
+        self.parent_frame.grid_rowconfigure(0, weight=1)
+        self.parent_frame.grid_columnconfigure(0, weight=1)
+        self.results_frame.grid_rowconfigure(0, weight=1)
+        self.results_frame.grid_columnconfigure(0, weight=1)
         
         # Treeview with scrollbars - Added Folder column before Sender
         self.tree = ttk.Treeview(self.results_frame, columns=("Date", "Folder", "Sender", "Subject", "Status", "Attachments", "PDFMatch"), show="headings", height=15)
@@ -50,25 +56,19 @@ class ResultsDisplay:
         self.tree.column("Attachments", width=80, minwidth=70)
         self.tree.column("PDFMatch", width=150, minwidth=100)
         
-        # Create frame for treeview and scrollbars
-        tree_frame = ttk.Frame(self.results_frame)
-        tree_frame.pack(fill="both", expand=True)
-        
-        # Pack treeview to fill frame
-        self.tree.pack(in_=tree_frame, side="left", fill="both", expand=True)
-        
         # Scrollbars
-        v_scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        v_scrollbar.pack(side="right", fill="y")
-        self.tree.configure(yscrollcommand=v_scrollbar.set)
-        
         h_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
-        h_scrollbar.pack(side="bottom", fill="x")
-        self.tree.configure(xscrollcommand=h_scrollbar.set)
+        v_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+        
+        # Grid the treeview and scrollbars
+        self.tree.grid(row=0, column=0, sticky="nsew")
+        v_scrollbar.grid(row=0, column=1, sticky="ns")
+        h_scrollbar.grid(row=1, column=0, sticky="ew")
         
         # Action buttons frame
         self.action_frame = ttk.Frame(self.parent_frame)
-        self.action_frame.pack(fill="x", padx=10, pady=5)
+        self.action_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         
         # Buttons
         self.open_email_btn = ttk.Button(self.action_frame, text="Otwórz email", command=self.open_selected_email)
@@ -79,7 +79,7 @@ class ResultsDisplay:
         
         # Pagination frame
         self.pagination_frame = ttk.Frame(self.parent_frame)
-        self.pagination_frame.pack(fill="x", padx=10, pady=5)
+        self.pagination_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
         
         # Pagination controls
         self.prev_btn = ttk.Button(self.pagination_frame, text="< Poprzednia", command=self.prev_page)
