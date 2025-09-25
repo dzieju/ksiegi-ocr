@@ -191,7 +191,7 @@ class ResultsDisplay:
         self.open_selected_email()
     
     def open_selected_email(self):
-        """Open the selected email in default email client"""
+        """Open the selected email with user choice between integrated viewer and system app"""
         result = self.get_selected_result()
         if not result:
             messagebox.showwarning("Brak zaznaczenia", "Proszę wybrać email do otwarcia.")
@@ -203,12 +203,48 @@ class ResultsDisplay:
                 messagebox.showerror("Błąd", "Nie można otworzyć wiadomości - brak danych.")
                 return
             
+            # Show dialog asking user's preference
+            choice = messagebox.askyesno(
+                "Wybór aplikacji", 
+                "Czy chcesz otworzyć plik EML w zintegrowanym czytniku (Tak) czy w systemowej aplikacji (Nie)?",
+                icon="question"
+            )
+            
             # Ensure temp directory exists
             os.makedirs(self.temp_dir, exist_ok=True)
             
             # Create EML format content
             eml_content = self._create_eml_content(message, result)
             
+            if choice:  # User chose "Tak" - use integrated viewer
+                self._open_with_integrated_viewer(eml_content)
+            else:  # User chose "Nie" - use system application
+                self._open_with_system_app(eml_content, result)
+                
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości: {str(e)}")
+    
+    def _open_with_integrated_viewer(self, eml_content):
+        """Open email with the integrated EML viewer"""
+        try:
+            # Import the EML viewer
+            from tools.eml_viewer import EmlViewer
+            
+            # Create and show the viewer
+            viewer = EmlViewer(parent=self.parent_frame)
+            if viewer.open_eml_content(eml_content):
+                viewer.show()
+            else:
+                messagebox.showerror("Błąd", "Nie można otworzyć wiadomości w zintegrowanym czytniku.")
+                
+        except ImportError as e:
+            messagebox.showerror("Błąd", f"Nie można załadować zintegrowanego czytnika EML: {str(e)}")
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Błąd zintegrowanego czytnika: {str(e)}")
+    
+    def _open_with_system_app(self, eml_content, result):
+        """Open email with system default application"""
+        try:
             # Create safe filename
             message_id = result.get('message_id', 'unknown')
             # Remove any problematic characters from message_id
@@ -231,7 +267,7 @@ class ResultsDisplay:
                 os.system(f'xdg-open "{temp_file}"')
                 
         except Exception as e:
-            messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości: {str(e)}")
+            messagebox.showerror("Błąd", f"Nie można otworzyć wiadomości w aplikacji systemowej: {str(e)}")
     
     def _create_eml_content(self, message, result):
         """Create proper EML format content for email with attachments"""
