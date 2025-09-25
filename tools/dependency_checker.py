@@ -195,6 +195,26 @@ class DependencyChecker:
                 'description': 'Analiza i ekstrakcja danych z PDF',
                 'install_link': 'https://pypi.org/project/pdfminer-six/',
                 'install_cmd': 'pip install pdfminer.six'
+            },
+            {
+                'name': 'numpy',
+                'type': 'module',
+                'module': 'numpy',
+                'required': False,
+                'description': 'Biblioteka do obliczeń numerycznych (może poprawić wydajność OCR)',
+                'install_links': {
+                    'linux': 'https://numpy.org/install/',
+                    'windows': 'https://numpy.org/install/',
+                    'darwin': 'https://numpy.org/install/',
+                    'default': 'https://numpy.org/install/'
+                },
+                'install_commands': {
+                    'linux': 'pip install numpy',
+                    'windows': 'pip install numpy',
+                    'darwin': 'pip install numpy',
+                    'default': 'pip install numpy'
+                },
+                'update_link': 'https://numpy.org/install/'
             }
         ]
     
