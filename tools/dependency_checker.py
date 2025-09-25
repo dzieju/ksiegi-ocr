@@ -5,6 +5,7 @@ Checks all required dependencies and provides status information.
 import sys
 import subprocess
 import importlib
+import platform
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 import re
@@ -62,8 +63,18 @@ class DependencyChecker:
                 'module': 'tkinter',
                 'required': True,
                 'description': 'Interfejs graficzny (część standardowej biblioteki)',
-                'install_link': 'https://docs.python.org/3/library/tkinter.html',
-                'install_cmd': 'apt-get install python3-tk'
+                'install_links': {
+                    'linux': 'https://docs.python.org/3/library/tkinter.html',
+                    'windows': 'https://docs.python.org/3/library/tkinter.html',
+                    'darwin': 'https://docs.python.org/3/library/tkinter.html',
+                    'default': 'https://docs.python.org/3/library/tkinter.html'
+                },
+                'install_commands': {
+                    'linux': 'sudo apt-get install python3-tk  # Ubuntu/Debian\nsudo yum install tkinter  # RHEL/CentOS',
+                    'windows': 'Tkinter jest zwykle dołączony do Pythona w systemie Windows.\nJeśli brakuje, przeinstaluj Python z oficjalnej strony.',
+                    'darwin': 'brew install python-tk  # jeśli używasz Homebrew',
+                    'default': 'apt-get install python3-tk'
+                }
             },
             {
                 'name': 'Tesseract OCR',
@@ -72,8 +83,18 @@ class DependencyChecker:
                 'module': 'pytesseract',
                 'required': True,
                 'description': 'Silnik OCR Tesseract + moduł Python',
-                'install_link': 'https://github.com/tesseract-ocr/tesseract/wiki',
-                'install_cmd': 'apt-get install tesseract-ocr && pip install pytesseract'
+                'install_links': {
+                    'linux': 'https://github.com/tesseract-ocr/tesseract/wiki/Compiling#linux',
+                    'windows': 'https://github.com/UB-Mannheim/tesseract/wiki',
+                    'darwin': 'https://github.com/tesseract-ocr/tesseract/wiki/Compiling#macos',
+                    'default': 'https://github.com/tesseract-ocr/tesseract/wiki'
+                },
+                'install_commands': {
+                    'linux': 'sudo apt-get install tesseract-ocr && pip install pytesseract  # Ubuntu/Debian\nsudo yum install tesseract && pip install pytesseract  # RHEL/CentOS',
+                    'windows': '1. Pobierz installer z: https://github.com/UB-Mannheim/tesseract/wiki\n2. pip install pytesseract',
+                    'darwin': 'brew install tesseract && pip install pytesseract',
+                    'default': 'apt-get install tesseract-ocr && pip install pytesseract'
+                }
             },
             {
                 'name': 'Poppler',
@@ -81,8 +102,18 @@ class DependencyChecker:
                 'check_func': self._check_poppler,
                 'required': True,
                 'description': 'Narzędzia PDF (pdfinfo, pdfimages, pdftoppm)',
-                'install_link': 'https://poppler.freedesktop.org/',
-                'install_cmd': 'apt-get install poppler-utils'
+                'install_links': {
+                    'linux': 'https://poppler.freedesktop.org/',
+                    'windows': 'https://github.com/oschwartz10612/poppler-windows/releases/',
+                    'darwin': 'https://formulae.brew.sh/formula/poppler',
+                    'default': 'https://poppler.freedesktop.org/'
+                },
+                'install_commands': {
+                    'linux': 'sudo apt-get install poppler-utils  # Ubuntu/Debian\nsudo yum install poppler-utils  # RHEL/CentOS',
+                    'windows': '1. Pobierz z: https://github.com/oschwartz10612/poppler-windows/releases/\n2. Wypakuj do katalogu poppler/ w projekcie',
+                    'darwin': 'brew install poppler',
+                    'default': 'apt-get install poppler-utils'
+                }
             },
             {
                 'name': 'pdfplumber',
@@ -186,8 +217,8 @@ class DependencyChecker:
                 'emoji': status['emoji'],    # '✅', '⚠️', '❌'
                 'message': status['message'],
                 'version': status.get('version', ''),
-                'install_link': dep.get('install_link', ''),
-                'install_cmd': dep.get('install_cmd', ''),
+                'install_link': self._get_os_specific_install_link(dep),
+                'install_cmd': self._get_os_specific_install_cmd(dep),
                 'update_link': dep.get('update_link', '')
             }
             
@@ -201,6 +232,36 @@ class DependencyChecker:
             results.append(result)
         
         return results
+    
+    def _get_os_specific_install_link(self, dep: Dict) -> str:
+        """Get OS-specific installation link for a dependency."""
+        system = platform.system().lower()
+        
+        # Check if dependency has OS-specific links
+        if 'install_links' in dep:
+            links = dep['install_links']
+            if system in links:
+                return links[system]
+            elif 'default' in links:
+                return links['default']
+        
+        # Fall back to general install_link
+        return dep.get('install_link', '')
+    
+    def _get_os_specific_install_cmd(self, dep: Dict) -> str:
+        """Get OS-specific installation command for a dependency."""
+        system = platform.system().lower()
+        
+        # Check if dependency has OS-specific commands  
+        if 'install_commands' in dep:
+            commands = dep['install_commands']
+            if system in commands:
+                return commands[system]
+            elif 'default' in commands:
+                return commands['default']
+        
+        # Fall back to general install_cmd
+        return dep.get('install_cmd', '')
     
     def _check_dependency(self, dep: Dict) -> Dict:
         """Check a single dependency."""
