@@ -7,11 +7,14 @@ PERFORMANCE FEATURES:
 - Heavy dependencies loaded on demand
 - Progress indicators for loading heavy components
 - Immediate GUI responsiveness
+- Robust error handling for widget lifecycle
+- Safe notebook operations with index validation
 
 This provides ~80x faster startup compared to loading all tabs at once.
 """
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
+import logging
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -31,6 +34,18 @@ class MainWindow(tk.Tk):
         self.exchange_tab = None
         self.zakupy_tab = None
         self.system_tab = None
+        
+        # Initialize loading state tracking to prevent duplicate loading
+        self._loading_states = {
+            'mail_search': False,
+            'exchange': False,
+            'zakupy': False,
+            'system': False
+        }
+        
+        # Keep references to loading frames to prevent widget destruction issues
+        self._loading_frames = {}
+        self._loading_labels = {}
         
         # Add placeholder frames for lazy loading
         self._create_tab_placeholders()
@@ -60,151 +75,260 @@ class MainWindow(tk.Tk):
         self.notebook.add(system_placeholder, text="System")
 
     def _on_tab_changed(self, event):
-        """Handle tab change events to load tabs on demand"""
-        selected_tab = self.notebook.select()
-        tab_index = self.notebook.index(selected_tab)
-        
-        # Load the appropriate tab based on index
-        if tab_index == 0 and self.mail_search_tab is None:
-            self._load_mail_search_tab()
-        elif tab_index == 1 and self.exchange_tab is None:
-            self._load_exchange_tab()
-        elif tab_index == 2 and self.zakupy_tab is None:
-            self._load_zakupy_tab()
-        elif tab_index == 3 and self.system_tab is None:
-            self._load_system_tab()
+        """Handle tab change events to load tabs on demand with safe error handling"""
+        try:
+            selected_tab = self.notebook.select()
+            if not selected_tab:
+                return
+                
+            tab_index = self.notebook.index(selected_tab)
+            
+            # Load the appropriate tab based on index with loading state protection
+            if tab_index == 0 and self.mail_search_tab is None and not self._loading_states['mail_search']:
+                self._load_mail_search_tab()
+            elif tab_index == 1 and self.exchange_tab is None and not self._loading_states['exchange']:
+                self._load_exchange_tab()
+            elif tab_index == 2 and self.zakupy_tab is None and not self._loading_states['zakupy']:
+                self._load_zakupy_tab()
+            elif tab_index == 3 and self.system_tab is None and not self._loading_states['system']:
+                self._load_system_tab()
+        except Exception as e:
+            self._handle_critical_error("Błąd przełączania zakładek", str(e))
 
-    def _load_mail_search_tab(self):
-        """Lazy load the Mail Search tab"""
-        if self.mail_search_tab is None:
-            print("📬 Ładowanie zakładki: Przeszukiwanie Poczty...")
+    def _handle_critical_error(self, title, message):
+        """Handle critical errors with proper logging and user notification"""
+        try:
+            error_msg = f"{title}: {message}"
+            print(f"⚠️  KRYTYCZNY BŁĄD: {error_msg}")
+            logging.error(error_msg)
+            
+            # Show error to user via messagebox (safer than label updates)
             try:
-                from gui.tab_mail_search import MailSearchTab
-                self.mail_search_tab = MailSearchTab(self.notebook)
-                # Safe tab replacement with fallback
-                try:
-                    self.notebook.forget(0)  # Remove placeholder
-                    self.notebook.insert(0, self.mail_search_tab, text="Przeszukiwanie Poczty")
-                except tk.TclError:
-                    # Fallback if insert fails
-                    self.notebook.add(self.mail_search_tab, text="Przeszukiwanie Poczty")
-                print("✓ Zakładka Przeszukiwanie Poczty załadowana")
-            except Exception as e:
-                print(f"⚠️  Błąd ładowania zakładki Przeszukiwanie Poczty: {e}")
+                messagebox.showerror(title, f"Wystąpił błąd: {message}")
+            except Exception:
+                # Fallback if messagebox fails - just log
+                print(f"❌ Nie można wyświetlić okna błędu: {message}")
+        except Exception:
+            # Last resort - basic print
+            print(f"❌ KRYTYCZNY BŁĄD: {title} - {message}")
+    
+    def _safe_notebook_operation(self, operation, *args, **kwargs):
+        """Safely perform notebook operations with error handling"""
+        try:
+            return operation(*args, **kwargs)
+        except tk.TclError as e:
+            print(f"⚠️  Błąd operacji notebook: {e}")
+            return None
+        except Exception as e:
+            print(f"⚠️  Nieoczekiwany błąd notebook: {e}")
+            return None
+    
+    def _safe_label_update(self, label, text, color=None):
+        """Safely update label text and color, handling destroyed widgets"""
+        try:
+            if label and label.winfo_exists():
+                label.config(text=text)
+                if color:
+                    label.config(foreground=color)
+                return True
+        except tk.TclError:
+            # Widget was destroyed, this is expected in some cases
+            return False
+        except Exception as e:
+            print(f"⚠️  Błąd aktualizacji etykiety: {e}")
+            return False
+        return False
+    def _load_mail_search_tab(self):
+        """Lazy load the Mail Search tab with robust error handling"""
+        if self.mail_search_tab is not None or self._loading_states['mail_search']:
+            return
+            
+        self._loading_states['mail_search'] = True
+        print("📬 Ładowanie zakładki: Przeszukiwanie Poczty...")
+        
+        try:
+            from gui.tab_mail_search import MailSearchTab
+            self.mail_search_tab = MailSearchTab(self.notebook)
+            
+            # Safe tab replacement with validation
+            if self._safe_notebook_operation(self.notebook.forget, 0) is not None:
+                self._safe_notebook_operation(self.notebook.insert, 0, self.mail_search_tab, text="Przeszukiwanie Poczty")
+            else:
+                # Fallback if forget fails
+                self._safe_notebook_operation(self.notebook.add, self.mail_search_tab, text="Przeszukiwanie Poczty")
+            
+            print("✓ Zakładka Przeszukiwanie Poczty załadowana")
+            
+        except Exception as e:
+            self._loading_states['mail_search'] = False  # Reset loading state on error
+            self._handle_critical_error("Błąd ładowania zakładki Przeszukiwanie Poczty", str(e))
 
     def _load_exchange_tab(self):
-        """Lazy load the Exchange Config tab"""
-        if self.exchange_tab is None:
-            print("⚙️  Ładowanie zakładki: Konfiguracja poczty...")
-            try:
-                from gui.tab_exchange_config import ExchangeConfigTab
-                self.exchange_tab = ExchangeConfigTab(self.notebook)
-                # Safe tab replacement with fallback
-                try:
-                    self.notebook.forget(1)  # Remove placeholder
-                    self.notebook.insert(1, self.exchange_tab, text="Konfiguracja poczty")
-                except tk.TclError:
-                    # Fallback if insert fails
-                    self.notebook.add(self.exchange_tab, text="Konfiguracja poczty")
-                print("✓ Zakładka Konfiguracja poczty załadowana")
-            except Exception as e:
-                print(f"⚠️  Błąd ładowania zakładki Konfiguracja poczty: {e}")
+        """Lazy load the Exchange Config tab with robust error handling"""
+        if self.exchange_tab is not None or self._loading_states['exchange']:
+            return
+            
+        self._loading_states['exchange'] = True
+        print("⚙️  Ładowanie zakładki: Konfiguracja poczty...")
+        
+        try:
+            from gui.tab_exchange_config import ExchangeConfigTab
+            self.exchange_tab = ExchangeConfigTab(self.notebook)
+            
+            # Safe tab replacement with validation
+            if self._safe_notebook_operation(self.notebook.forget, 1) is not None:
+                self._safe_notebook_operation(self.notebook.insert, 1, self.exchange_tab, text="Konfiguracja poczty")
+            else:
+                # Fallback if forget fails
+                self._safe_notebook_operation(self.notebook.add, self.exchange_tab, text="Konfiguracja poczty")
+            
+            print("✓ Zakładka Konfiguracja poczty załadowana")
+            
+        except Exception as e:
+            self._loading_states['exchange'] = False  # Reset loading state on error
+            self._handle_critical_error("Błąd ładowania zakładki Konfiguracja poczty", str(e))
 
     def _load_zakupy_tab(self):
-        """Lazy load the Zakupy tab with heavy OCR dependencies"""
-        if self.zakupy_tab is None:
-            print("🛒 Ładowanie zakładki: Zakupy (z OCR)...")
+        """Lazy load the Zakupy tab with heavy OCR dependencies and safe error handling"""
+        if self.zakupy_tab is not None or self._loading_states['zakupy']:
+            return
             
-            # Create a temporary label to show loading progress
-            loading_frame = ttk.Frame(self.notebook)
-            loading_label = ttk.Label(loading_frame, text="⏳ Inicjalizacja OCR i przetwarzania PDF...", 
-                                    font=("Arial", 12), foreground="blue")
-            loading_label.pack(expand=True)
+        self._loading_states['zakupy'] = True
+        print("🛒 Ładowanie zakładki: Zakupy (z OCR)...")
+        
+        # Create loading frame with safe reference management
+        loading_frame = ttk.Frame(self.notebook)
+        loading_label = ttk.Label(loading_frame, text="⏳ Inicjalizacja OCR i przetwarzania PDF...", 
+                                font=("Arial", 12), foreground="blue")
+        loading_label.pack(expand=True)
+        
+        # Store references to prevent destruction issues
+        self._loading_frames['zakupy'] = loading_frame
+        self._loading_labels['zakupy'] = loading_label
+        
+        # Show loading frame with safe operations
+        try:
+            if self._safe_notebook_operation(self.notebook.forget, 2) is not None:
+                self._safe_notebook_operation(self.notebook.insert, 2, loading_frame, text="Zakupy")
+            else:
+                self._safe_notebook_operation(self.notebook.add, loading_frame, text="Zakupy")
             
-            # Temporarily show loading frame with safe index handling
+            # Force UI update
             try:
-                self.notebook.forget(2)  # Remove placeholder
-                self.notebook.insert(2, loading_frame, text="Zakupy")
-            except tk.TclError:
-                # Fallback if insert fails
-                self.notebook.add(loading_frame, text="Zakupy")
-            self.notebook.update()  # Force UI update
+                self.notebook.update()
+            except Exception:
+                pass  # Ignore update errors
             
+            # Load the actual tab
             try:
                 from gui.tab_zakupy import ZakupiTab
                 self.zakupy_tab = ZakupiTab(self.notebook)
                 
-                # Replace loading frame with actual tab
-                loading_tab_index = None
-                for i in range(self.notebook.index("end")):
-                    if self.notebook.tab(i, "text") == "Zakupy":
-                        loading_tab_index = i
-                        break
-                
+                # Find and replace loading frame with actual tab
+                loading_tab_index = self._find_tab_by_text("Zakupy")
                 if loading_tab_index is not None:
-                    self.notebook.forget(loading_tab_index)  # Remove loading frame
-                    try:
-                        self.notebook.insert(loading_tab_index, self.zakupy_tab, text="Zakupy")
-                    except tk.TclError:
+                    if self._safe_notebook_operation(self.notebook.forget, loading_tab_index) is not None:
+                        self._safe_notebook_operation(self.notebook.insert, loading_tab_index, self.zakupy_tab, text="Zakupy")
+                    else:
                         # Fallback if insert fails
-                        self.notebook.add(self.zakupy_tab, text="Zakupy")
+                        self._safe_notebook_operation(self.notebook.add, self.zakupy_tab, text="Zakupy")
                 else:
-                    # Fallback if we can't find the loading tab
-                    self.notebook.add(self.zakupy_tab, text="Zakupy")
+                    # Fallback if we can't find loading tab
+                    self._safe_notebook_operation(self.notebook.add, self.zakupy_tab, text="Zakupy")
                 
                 print("✓ Zakładka Zakupy załadowana")
+                
             except Exception as e:
-                print(f"⚠️  Błąd ładowania zakładki Zakupy: {e}")
-                # Show error in loading frame
-                loading_label.config(text=f"❌ Błąd ładowania: {str(e)}", foreground="red")
+                self._loading_states['zakupy'] = False  # Reset loading state on error
+                # Safe error display - check if label still exists
+                error_msg = f"❌ Błąd ładowania: {str(e)}"
+                if not self._safe_label_update(loading_label, error_msg, "red"):
+                    # Fallback to critical error handling if label update fails
+                    self._handle_critical_error("Błąd ładowania zakładki Zakupy", str(e))
+                    
+        except Exception as e:
+            self._loading_states['zakupy'] = False  # Reset loading state on error
+            self._handle_critical_error("Błąd inicjalizacji zakładki Zakupy", str(e))
+        finally:
+            # Clean up references
+            self._loading_frames.pop('zakupy', None)
+            self._loading_labels.pop('zakupy', None)
 
     def _load_system_tab(self):
-        """Lazy load the System tab"""
-        if self.system_tab is None:
-            print("🔧 Ładowanie zakładki: System...")
+        """Lazy load the System tab with safe error handling"""
+        if self.system_tab is not None or self._loading_states['system']:
+            return
             
-            # Create a temporary label to show loading progress
-            loading_frame = ttk.Frame(self.notebook)
-            loading_label = ttk.Label(loading_frame, text="⏳ Inicjalizacja narzędzi systemowych...", 
-                                    font=("Arial", 12), foreground="blue")
-            loading_label.pack(expand=True)
+        self._loading_states['system'] = True
+        print("🔧 Ładowanie zakładki: System...")
+        
+        # Create loading frame with safe reference management
+        loading_frame = ttk.Frame(self.notebook)
+        loading_label = ttk.Label(loading_frame, text="⏳ Inicjalizacja narzędzi systemowych...", 
+                                font=("Arial", 12), foreground="blue")
+        loading_label.pack(expand=True)
+        
+        # Store references to prevent destruction issues
+        self._loading_frames['system'] = loading_frame
+        self._loading_labels['system'] = loading_label
+        
+        # Show loading frame with safe operations
+        try:
+            if self._safe_notebook_operation(self.notebook.forget, 3) is not None:
+                self._safe_notebook_operation(self.notebook.insert, 3, loading_frame, text="System")
+            else:
+                self._safe_notebook_operation(self.notebook.add, loading_frame, text="System")
             
-            # Temporarily show loading frame with safe index handling
+            # Force UI update
             try:
-                self.notebook.forget(3)  # Remove placeholder
-                self.notebook.insert(3, loading_frame, text="System")
-            except tk.TclError:
-                # Fallback if insert fails
-                self.notebook.add(loading_frame, text="System")
-            self.notebook.update()  # Force UI update
+                self.notebook.update()
+            except Exception:
+                pass  # Ignore update errors
             
+            # Load the actual tab
             try:
                 from gui.tab_system import SystemTab
                 self.system_tab = SystemTab(self.notebook)
                 
-                # Replace loading frame with actual tab
-                loading_tab_index = None
-                for i in range(self.notebook.index("end")):
-                    if self.notebook.tab(i, "text") == "System":
-                        loading_tab_index = i
-                        break
-                
+                # Find and replace loading frame with actual tab
+                loading_tab_index = self._find_tab_by_text("System")
                 if loading_tab_index is not None:
-                    self.notebook.forget(loading_tab_index)  # Remove loading frame
-                    try:
-                        self.notebook.insert(loading_tab_index, self.system_tab, text="System")
-                    except tk.TclError:
+                    if self._safe_notebook_operation(self.notebook.forget, loading_tab_index) is not None:
+                        self._safe_notebook_operation(self.notebook.insert, loading_tab_index, self.system_tab, text="System")
+                    else:
                         # Fallback if insert fails
-                        self.notebook.add(self.system_tab, text="System")
+                        self._safe_notebook_operation(self.notebook.add, self.system_tab, text="System")
                 else:
-                    # Fallback if we can't find the loading tab
-                    self.notebook.add(self.system_tab, text="System")
+                    # Fallback if we can't find loading tab
+                    self._safe_notebook_operation(self.notebook.add, self.system_tab, text="System")
                 
                 print("✓ Zakładka System załadowana")
+                
             except Exception as e:
-                print(f"⚠️  Błąd ładowania zakładki System: {e}")
-                # Show error in loading frame
-                loading_label.config(text=f"❌ Błąd ładowania: {str(e)}", foreground="red")
+                self._loading_states['system'] = False  # Reset loading state on error
+                # Safe error display - check if label still exists
+                error_msg = f"❌ Błąd ładowania: {str(e)}"
+                if not self._safe_label_update(loading_label, error_msg, "red"):
+                    # Fallback to critical error handling if label update fails
+                    self._handle_critical_error("Błąd ładowania zakładki System", str(e))
+                    
+        except Exception as e:
+            self._loading_states['system'] = False  # Reset loading state on error
+            self._handle_critical_error("Błąd inicjalizacji zakładki System", str(e))
+        finally:
+            # Clean up references
+            self._loading_frames.pop('system', None)
+            self._loading_labels.pop('system', None)
+    
+    def _find_tab_by_text(self, text):
+        """Safely find tab index by text with error handling"""
+        try:
+            for i in range(self.notebook.index("end")):
+                if self.notebook.tab(i, "text") == text:
+                    return i
+        except Exception as e:
+            print(f"⚠️  Błąd wyszukiwania zakładki '{text}': {e}")
+        return None
 
 if __name__ == "__main__":
     app = MainWindow()
