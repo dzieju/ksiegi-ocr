@@ -6,6 +6,7 @@ from tools import logger, i18n, darkmode
 from tools.ocr_config import ocr_config
 from gui.system_components.backup_handler import BackupHandler
 from gui.system_components.system_operations import SystemOperations
+from gui.system_components.dependency_widget import DependencyWidget
 
 
 class SystemTab(ttk.Frame):
@@ -33,62 +34,97 @@ class SystemTab(ttk.Frame):
         self._process_progress_queue()
     
     def create_widgets(self):
+        # Main container with notebook for organization
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill="both", expand=True, padx=5, pady=5)
+        
+        # System Operations Tab
+        self.system_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.system_frame, text="Operacje systemowe")
+        self._create_system_operations_widgets()
+        
+        # Dependencies Tab
+        self.deps_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.deps_frame, text="Zależności środowiskowe")
+        self._create_dependencies_widgets()
+        
+        # OCR Configuration Tab
+        self.ocr_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.ocr_frame, text="Konfiguracja OCR")
+        self._create_ocr_config_widgets()
+    
+    def _create_system_operations_widgets(self):
+        """Create system operations widgets."""
+        parent = self.system_frame
+        
         # Status label
-        self.status_label = ttk.Label(self, text="Gotowy", foreground="green")
+        self.status_label = ttk.Label(parent, text="Gotowy", foreground="green")
         self.status_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
 
         # Backup
-        self.backup_btn = ttk.Button(self, text=i18n.translate("Utwórz backup"), command=self.create_backup)
+        self.backup_btn = ttk.Button(parent, text=i18n.translate("Utwórz backup"), command=self.create_backup)
         self.backup_btn.grid(row=1, column=0, padx=10, pady=10, sticky="w")
 
-        self.restore_btn = ttk.Button(self, text=i18n.translate("Przywróć backup"), command=self.restore_backup)
+        self.restore_btn = ttk.Button(parent, text=i18n.translate("Przywróć backup"), command=self.restore_backup)
         self.restore_btn.grid(row=1, column=1, padx=10, pady=10, sticky="w")
 
         # Logi/historia
-        log_btn = ttk.Button(self, text=i18n.translate("Pokaż logi"), command=self.show_logs)
+        log_btn = ttk.Button(parent, text=i18n.translate("Pokaż logi"), command=self.show_logs)
         log_btn.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         # Aktualizacje
-        self.update_btn = ttk.Button(self, text=i18n.translate("Sprawdź aktualizacje"), command=self.check_update)
+        self.update_btn = ttk.Button(parent, text=i18n.translate("Sprawdź aktualizacje"), command=self.check_update)
         self.update_btn.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 
         # Raportowanie
-        self.report_btn = ttk.Button(self, text=i18n.translate("Wyślij raport"), command=self.send_report)
+        self.report_btn = ttk.Button(parent, text=i18n.translate("Wyślij raport"), command=self.send_report)
         self.report_btn.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
         # Dark mode
-        theme_btn = ttk.Button(self, text=i18n.translate("Przełącz tryb ciemny/jasny"), command=darkmode.toggle_theme)
+        theme_btn = ttk.Button(parent, text=i18n.translate("Przełącz tryb ciemny/jasny"), command=darkmode.toggle_theme)
         theme_btn.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
         # Restart
-        restart_btn = ttk.Button(self, text=i18n.translate("Restartuj aplikację"), command=self.restart_app)
+        restart_btn = ttk.Button(parent, text=i18n.translate("Restartuj aplikację"), command=self.restart_app)
         restart_btn.grid(row=6, column=0, padx=10, pady=10, sticky="w")
+    
+    def _create_dependencies_widgets(self):
+        """Create dependencies checklist widgets."""
+        parent = self.deps_frame
+        
+        # Create dependency widget
+        self.dependency_widget = DependencyWidget(parent)
+        self.dependency_widget.pack(fill="both", expand=True, padx=10, pady=10)
+    
+    def _create_ocr_config_widgets(self):
+        """Create OCR configuration widgets."""
+        parent = self.ocr_frame
         
         # OCR Configuration Section
-        ocr_label = ttk.Label(self, text="Konfiguracja OCR:", font=("Arial", 10, "bold"))
-        ocr_label.grid(row=7, column=0, columnspan=3, padx=10, pady=(20, 5), sticky="w")
+        ocr_label = ttk.Label(parent, text="Konfiguracja OCR:", font=("Arial", 10, "bold"))
+        ocr_label.grid(row=0, column=0, columnspan=3, padx=10, pady=(10, 5), sticky="w")
         
         # OCR Engine selection
-        ttk.Label(self, text="Silnik OCR:").grid(row=8, column=0, padx=10, pady=5, sticky="w")
-        ocr_engine_combo = ttk.Combobox(self, textvariable=self.ocr_engine_var, width=15, state="readonly")
+        ttk.Label(parent, text="Silnik OCR:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
+        ocr_engine_combo = ttk.Combobox(parent, textvariable=self.ocr_engine_var, width=15, state="readonly")
         ocr_engine_combo['values'] = ("tesseract", "easyocr", "paddleocr")
-        ocr_engine_combo.grid(row=8, column=1, padx=10, pady=5, sticky="w")
+        ocr_engine_combo.grid(row=1, column=1, padx=10, pady=5, sticky="w")
         ocr_engine_combo.bind('<<ComboboxSelected>>', self._on_engine_change)
         
         # GPU/CPU selection
-        ttk.Label(self, text="Tryb GPU:").grid(row=9, column=0, padx=10, pady=5, sticky="w")
-        gpu_checkbox = ttk.Checkbutton(self, text="Użyj GPU (jeśli dostępny)", variable=self.gpu_enabled_var, command=self._on_gpu_change)
-        gpu_checkbox.grid(row=9, column=1, padx=10, pady=5, sticky="w")
+        ttk.Label(parent, text="Tryb GPU:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        gpu_checkbox = ttk.Checkbutton(parent, text="Użyj GPU (jeśli dostępny)", variable=self.gpu_enabled_var, command=self._on_gpu_change)
+        gpu_checkbox.grid(row=2, column=1, padx=10, pady=5, sticky="w")
         
         # Multiprocessing
-        ttk.Label(self, text="Wieloprocesowość:").grid(row=10, column=0, padx=10, pady=5, sticky="w")
-        mp_checkbox = ttk.Checkbutton(self, text="Włącz wieloprocesowość OCR", variable=self.multiprocessing_var, command=self._on_multiprocessing_change)
-        mp_checkbox.grid(row=10, column=1, padx=10, pady=5, sticky="w")
+        ttk.Label(parent, text="Wieloprocesowość:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        mp_checkbox = ttk.Checkbutton(parent, text="Włącz wieloprocesowość OCR", variable=self.multiprocessing_var, command=self._on_multiprocessing_change)
+        mp_checkbox.grid(row=3, column=1, padx=10, pady=5, sticky="w")
         
         # Max workers
-        ttk.Label(self, text="Maks. procesów:").grid(row=11, column=0, padx=10, pady=5, sticky="w")
-        workers_frame = ttk.Frame(self)
-        workers_frame.grid(row=11, column=1, padx=10, pady=5, sticky="w")
+        ttk.Label(parent, text="Maks. procesów:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        workers_frame = ttk.Frame(parent)
+        workers_frame.grid(row=4, column=1, padx=10, pady=5, sticky="w")
         
         self.workers_entry = ttk.Entry(workers_frame, textvariable=self.max_workers_var, width=10)
         self.workers_entry.pack(side="left")
@@ -97,8 +133,8 @@ class SystemTab(ttk.Frame):
         ttk.Label(workers_frame, text=f"(Auto = {multiprocessing.cpu_count()})").pack(side="left", padx=(5, 0))
         
         # Save OCR config button
-        save_ocr_btn = ttk.Button(self, text="Zapisz konfigurację OCR", command=self._save_ocr_config)
-        save_ocr_btn.grid(row=12, column=0, padx=10, pady=10, sticky="w")
+        save_ocr_btn = ttk.Button(parent, text="Zapisz konfigurację OCR", command=self._save_ocr_config)
+        save_ocr_btn.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
     def create_backup(self):
         """Create backup using threaded handler"""
