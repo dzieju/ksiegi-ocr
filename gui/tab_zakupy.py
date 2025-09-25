@@ -1,39 +1,90 @@
+#!/usr/bin/env python3
+"""
+Zakupy Tab - PDF OCR Processing with Lazy Loading
+
+PERFORMANCE OPTIMIZATIONS:
+- Heavy libraries (pdf2image, pytesseract, OCR engines) loaded only when OCR is used
+- Poppler detection deferred until PDF processing starts
+- Progress indicators during initialization and processing
+- Background OCR processing to keep GUI responsive
+
+OCR libraries are imported only when user actually performs OCR operations,
+significantly improving tab loading time.
+"""
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
 import os
-import pytesseract
-from pdf2image import convert_from_path
 import threading
 import queue
 import time
 import re
 import csv
-from tools.ocr_engines import ocr_manager
 
-# Import poppler utilities for automatic path detection
-try:
-    from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
-    POPPLER_PATH = get_poppler_path()
-    if POPPLER_PATH:
-        print(f"Zakupy tab: Poppler detected at: {POPPLER_PATH}")
-    else:
-        print("Zakupy tab: Warning: Poppler not detected, using fallback path")
-        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
-except ImportError as e:
-    print(f"Zakupy tab: Failed to import poppler_utils, using fallback path: {e}")
-    POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+# Global variables for lazy loading
+_poppler_path = None
+_ocr_manager = None
+_pdf_processing_initialized = False
+
+def _initialize_pdf_processing():
+    """Initialize PDF processing libraries only when needed"""
+    global _poppler_path, _pdf_processing_initialized
+    
+    if _pdf_processing_initialized:
+        return _poppler_path
+    
+    print("📄 Inicjalizacja przetwarzania PDF...")
+    
+    # Import poppler utilities for automatic path detection
+    try:
+        from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
+        _poppler_path = get_poppler_path()
+        if _poppler_path:
+            print(f"Zakupy tab: Poppler detected at: {_poppler_path}")
+        else:
+            print("Zakupy tab: Warning: Poppler not detected, using fallback path")
+            _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+    except ImportError as e:
+        print(f"Zakupy tab: Failed to import poppler_utils, using fallback path: {e}")
+        _poppler_path = r"C:\poppler\Library\bin"  # Fallback
+    
+    _pdf_processing_initialized = True
+    print("✓ Przetwarzanie PDF zainicjalizowane")
+    return _poppler_path
+
+def _get_ocr_manager():
+    """Get OCR manager with lazy loading"""
+    global _ocr_manager
+    if _ocr_manager is None:
+        print("🔍 Inicjalizacja OCR...")
+        from tools.ocr_engines import ocr_manager
+        _ocr_manager = ocr_manager
+        print("✓ OCR zainicjalizowany")
+    return _ocr_manager
+
+def _lazy_import_pdf_libraries():
+    """Lazy import heavy PDF processing libraries"""
+    try:
+        import pytesseract
+        from pdf2image import convert_from_path
+        
+        # Configure tesseract path when first imported
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+        
+        return pytesseract, convert_from_path
+    except ImportError as e:
+        print(f"⚠️  Błąd importu bibliotek PDF: {e}")
+        return None, None
 
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # Crop coordinates for invoice numbers column
 CROP_LEFT, CROP_RIGHT = 499, 771
 CROP_TOP, CROP_BOTTOM = 332, 2377
+CROP_TOP, CROP_BOTTOM = 332, 2377
 
 # OCR log file
 OCR_LOG_FILE = "ocr_log.txt"
-
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 
 class ZakupiTab(ttk.Frame):
@@ -308,16 +359,21 @@ class ZakupiTab(ttk.Frame):
             messagebox.showwarning("Brak pliku", "Proszę najpierw wybrać plik PDF.")
             return
             
-        # Use improved PDF file validation
+        # Use improved PDF file validation with lazy loading
         try:
+            # Try to lazy load the PDF validation function
+            from tools.poppler_utils import check_pdf_file_exists
             pdf_exists, pdf_message = check_pdf_file_exists(filepath)
             if not pdf_exists:
                 messagebox.showwarning("Problem z plikiem PDF", pdf_message)
                 return
-        except NameError:
-            # Fallback to basic existence check if check_pdf_file_exists is not available
+        except ImportError:
+            # Fallback to basic existence check if poppler_utils is not available
             if not os.path.exists(filepath):
                 messagebox.showwarning("Brak pliku", "Wybierz poprawny plik PDF.")
+                return
+            if not filepath.lower().endswith('.pdf'):
+                messagebox.showwarning("Nieprawidłowy plik", "Wybierz plik PDF.")
                 return
 
         # Clear previous results and timing
@@ -343,10 +399,26 @@ class ZakupiTab(ttk.Frame):
         """Main OCR processing logic running in background thread"""
         start_time = time.time()  # Record start time for duration calculation
         try:
+            # Initialize PDF processing libraries when first needed
+            self.progress_queue.put("Inicjalizacja przetwarzania PDF...")
+            poppler_path = _initialize_pdf_processing()
+            
+            # Lazy import PDF libraries
+            pytesseract, convert_from_path = _lazy_import_pdf_libraries()
+            if not convert_from_path:
+                self.result_queue.put({
+                    'type': 'error', 
+                    'message': 'Błąd: Nie można załadować bibliotek PDF. Sprawdź instalację pdf2image i pytesseract.'
+                })
+                return
+            
+            # Initialize OCR manager
+            ocr_manager = _get_ocr_manager()
+            
             self.progress_queue.put("Konwertowanie PDF na obrazy...")
             
-            # Convert PDF to images
-            images = convert_from_path(filepath, dpi=300, poppler_path=POPPLER_PATH)
+            # Convert PDF to images using lazy-loaded libraries
+            images = convert_from_path(filepath, dpi=300, poppler_path=poppler_path)
             total_pages = len(images)
             
             if self.processing_cancelled:
@@ -373,7 +445,7 @@ class ZakupiTab(ttk.Frame):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
                 cropped_images.append((page_num, crop))
             
-            self.progress_queue.put("Uruchamianie OCR...")
+            self.progress_queue.put("Inicjalizacja OCR...")
             
             # Perform batch OCR with progress callback
             def ocr_progress_callback(processed, total):
@@ -555,7 +627,15 @@ class ZakupiTab(ttk.Frame):
 
         self.text_area.delete("1.0", tk.END)
         try:
-            images = convert_from_path(filepath, dpi=300, poppler_path=POPPLER_PATH)
+            # Lazy load PDF processing when needed
+            poppler_path = _initialize_pdf_processing()
+            pytesseract, convert_from_path = _lazy_import_pdf_libraries()
+            
+            if not convert_from_path:
+                messagebox.showerror("Błąd", "Nie można załadować bibliotek PDF.")
+                return
+            
+            images = convert_from_path(filepath, dpi=300, poppler_path=poppler_path)
             all_lines = []
             for page_num, pil_img in enumerate(images, 1):
                 crop = pil_img.crop((CROP_LEFT, CROP_TOP, CROP_RIGHT, CROP_BOTTOM))
