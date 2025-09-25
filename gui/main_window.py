@@ -308,7 +308,15 @@ class MainWindow(tk.Tk):
                 print("📦 Importowanie modułu tab_system...")
                 from gui.tab_system import SystemTab
                 print("🔧 Tworzenie instancji SystemTab...")
-                self.system_tab = SystemTab(self.notebook)
+                
+                # Create SystemTab with callback for when system components are ready
+                def on_system_components_ready():
+                    """Called when SystemTab's dependency checking completes"""
+                    print("🎯 SystemTab components ready - updating loading UI")
+                    # This will be called from the main thread, so it's safe to update GUI
+                    self._hide_system_loading_label()
+                
+                self.system_tab = SystemTab(self.notebook, system_ready_callback=on_system_components_ready)
                 print("✅ SystemTab utworzony")
                 
                 # Find and replace loading frame with actual tab
@@ -350,6 +358,61 @@ class MainWindow(tk.Tk):
         except Exception as e:
             print(f"⚠️  Błąd wyszukiwania zakładki '{text}': {e}")
         return None
+
+    def on_system_initialization_complete(self, error=None):
+        """
+        Callback method called when background system initialization completes.
+        This method is called in the main thread via after() to ensure thread safety.
+        Hides loading labels and shows proper system widgets.
+        """
+        print("🔄 Callback: System initialization completed, updating GUI...")
+        
+        try:
+            # Check if System tab is currently being displayed and has a loading state
+            if self._loading_states.get('system', False):
+                print("📱 Updating System tab GUI after background initialization...")
+                
+                # Find the System tab loading label and update it
+                loading_label = self._loading_labels.get('system')
+                if loading_label and self._safe_label_update(loading_label, "", ""):
+                    # Update loading label to show completion or error
+                    if error:
+                        completion_text = "❌ Błąd inicjalizacji systemu"
+                        completion_color = "red"
+                        print(f"⚠️  System initialization error: {error}")
+                    else:
+                        completion_text = "✅ System zainicjalizowany"
+                        completion_color = "green"
+                        print("✅ System initialization completed successfully")
+                    
+                    # Update the label with completion status
+                    self._safe_label_update(loading_label, completion_text, completion_color)
+                    
+                    # Schedule hiding the loading label after a brief display
+                    self.after(2000, self._hide_system_loading_label)
+                    
+                else:
+                    print("ℹ️  Loading label no longer exists or tab was replaced")
+                    
+            else:
+                print("ℹ️  System tab not in loading state or already completed")
+                
+        except Exception as e:
+            print(f"❌ Error in system initialization callback: {e}")
+    
+    def _hide_system_loading_label(self):
+        """
+        Hide the system loading label after system initialization completes.
+        Called with a delay to let users see the completion status.
+        """
+        try:
+            loading_label = self._loading_labels.get('system')
+            if loading_label:
+                # Gracefully fade out the loading label
+                self._safe_label_update(loading_label, "System gotowy do użycia", "gray")
+                print("🎯 System loading label updated to ready state")
+        except Exception as e:
+            print(f"⚠️  Error hiding system loading label: {e}")
 
 if __name__ == "__main__":
     app = MainWindow()

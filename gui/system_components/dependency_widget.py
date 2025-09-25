@@ -13,12 +13,13 @@ from tools.dependency_checker import get_dependency_checker
 class DependencyWidget(ttk.Frame):
     """Widget for displaying system dependencies checklist."""
     
-    def __init__(self, parent):
+    def __init__(self, parent, completion_callback=None):
         super().__init__(parent)
         print("🔧 Inicjalizacja DependencyWidget...")
         self.dependency_checker = get_dependency_checker()
         self.results = []
         self.checking = False
+        self.completion_callback = completion_callback  # Callback when dependency check completes
         
         self.setup_widgets()
         
@@ -157,6 +158,14 @@ class DependencyWidget(ttk.Frame):
         self.checking = False
         
         self.results = results
+        
+        # Notify parent that dependency checking is complete (thread-safe callback)
+        if self.completion_callback:
+            try:
+                self.completion_callback(results, summary)
+                print("✅ Dependency check completion callback executed")
+            except Exception as e:
+                print(f"⚠️  Error in dependency completion callback: {e}")
     
     def _handle_error(self, error_msg: str):
         """Handle error in dependency checking."""
@@ -171,6 +180,14 @@ class DependencyWidget(ttk.Frame):
         self.status_label.config(text="Błąd sprawdzania zależności", foreground="red")
         self.refresh_btn.config(state="normal", text="Odśwież")
         self.checking = False
+        
+        # Notify parent that dependency checking completed with error (thread-safe callback)
+        if self.completion_callback:
+            try:
+                self.completion_callback([], {'status': 'error', 'message': f'Błąd: {error_msg}'})
+                print("✅ Dependency error completion callback executed")
+            except Exception as e:
+                print(f"⚠️  Error in dependency error completion callback: {e}")
     
     def _create_dependency_item(self, result: Dict, index: int):
         """Create a single dependency item widget with click handler."""
