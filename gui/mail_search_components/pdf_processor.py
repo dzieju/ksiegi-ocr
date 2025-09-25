@@ -51,7 +51,6 @@ def _get_ocr_manager():
     return True, _ocr_manager
 
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-    log(f"Advanced OCR engine manager not available: {e}")
 
 # Try to import required packages, handle missing dependencies gracefully
 try:
