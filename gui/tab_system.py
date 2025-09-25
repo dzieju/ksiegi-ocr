@@ -12,6 +12,7 @@ from gui.system_components.dependency_widget import DependencyWidget
 class SystemTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        logger.log("Inicjalizacja SystemTab")
 
         # Threading support variables
         self.result_queue = queue.Queue()
@@ -20,38 +21,51 @@ class SystemTab(ttk.Frame):
         # Initialize handlers
         self.backup_handler = BackupHandler(self._add_result)
         self.system_ops = SystemOperations(self._add_result)
+        logger.log("Komponenty systemowe zainicjalizowane")
         
         # OCR configuration variables
         self.ocr_engine_var = tk.StringVar(value=ocr_config.get_engine())
         self.gpu_enabled_var = tk.BooleanVar(value=ocr_config.get_use_gpu())
         self.multiprocessing_var = tk.BooleanVar(value=ocr_config.get_multiprocessing())
         self.max_workers_var = tk.StringVar(value=str(ocr_config.get_max_workers() or "Auto"))
+        logger.log("Konfiguracja OCR załadowana")
 
         self.create_widgets()
         
         # Start processing queues
         self._process_result_queue()
         self._process_progress_queue()
+        logger.log("SystemTab - inicjalizacja zakończona")
     
     def create_widgets(self):
         # Main container with notebook for organization
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True, padx=5, pady=5)
+        logger.log("Tworzenie zakładek SystemTab")
         
         # System Operations Tab
         self.system_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.system_frame, text="Operacje systemowe")
         self._create_system_operations_widgets()
+        logger.log("Podzakładka 'Operacje systemowe' utworzona")
         
         # Dependencies Tab
         self.deps_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.deps_frame, text="Zależności środowiskowe")
         self._create_dependencies_widgets()
+        logger.log("Podzakładka 'Zależności środowiskowe' utworzona")
         
         # OCR Configuration Tab
         self.ocr_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.ocr_frame, text="Konfiguracja OCR")
         self._create_ocr_config_widgets()
+        logger.log("Podzakładka 'Konfiguracja OCR' utworzona")
+        
+        # Logs Tab - NEW
+        self.logs_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.logs_frame, text="Logi")
+        self._create_logs_widgets()
+        logger.log("Podzakładka 'Logi' utworzona")
     
     def _create_system_operations_widgets(self):
         """Create system operations widgets."""
@@ -311,6 +325,72 @@ class SystemTab(ttk.Frame):
         else:
             self.status_label.config(text="Błąd zapisywania konfiguracji OCR", foreground="red")
             messagebox.showerror("Błąd", "Nie udało się zapisać konfiguracji OCR.")
+    
+    def _create_logs_widgets(self):
+        """Create logs viewing widgets."""
+        parent = self.logs_frame
+        
+        # Top frame with refresh button
+        button_frame = ttk.Frame(parent)
+        button_frame.pack(fill="x", padx=10, pady=5)
+        
+        # Refresh button
+        self.refresh_logs_btn = ttk.Button(button_frame, text=i18n.translate("Odśwież logi"), command=self.refresh_logs)
+        self.refresh_logs_btn.pack(side="left")
+        
+        # Log info label
+        self.log_info_label = ttk.Label(button_frame, text="", foreground="gray")
+        self.log_info_label.pack(side="left", padx=(10, 0))
+        
+        # Text widget with scrollbar for logs
+        text_frame = ttk.Frame(parent)
+        text_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # Create text widget
+        self.logs_text = tk.Text(text_frame, wrap="word", state="disabled", 
+                                font=("Consolas", 9), bg="white", fg="black")
+        
+        # Create scrollbar
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.logs_text.yview)
+        self.logs_text.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack text widget and scrollbar
+        self.logs_text.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Load logs initially
+        self.refresh_logs()
+    
+    def refresh_logs(self):
+        """Refresh and display logs from app.log"""
+        try:
+            logs_content = logger.read_logs()
+            
+            # Update text widget
+            self.logs_text.config(state="normal")
+            self.logs_text.delete(1.0, tk.END)
+            self.logs_text.insert(1.0, logs_content)
+            self.logs_text.config(state="disabled")
+            
+            # Scroll to bottom to show latest logs
+            self.logs_text.see(tk.END)
+            
+            # Update info label
+            if logs_content == "Brak logów.":
+                self.log_info_label.config(text="Brak logów do wyświetlenia")
+            else:
+                lines_count = len(logs_content.split('\n')) - 1  # -1 for empty last line
+                self.log_info_label.config(text=f"Załadowano {lines_count} linii logów")
+                
+            # Log the refresh action (this will appear in next refresh)
+            logger.log("Logi odświeżone przez użytkownika")
+            
+        except Exception as e:
+            self.logs_text.config(state="normal")
+            self.logs_text.delete(1.0, tk.END)
+            self.logs_text.insert(1.0, f"Błąd podczas ładowania logów: {str(e)}")
+            self.logs_text.config(state="disabled")
+            self.log_info_label.config(text="Błąd ładowania logów")
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
