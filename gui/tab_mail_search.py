@@ -72,10 +72,7 @@ class MailSearchTab(ttk.Frame):
         self.notebook.add(self.search_frame, text="Wyszukiwanie")
         self._create_search_widgets()
         
-        # EML Reader Tab
-        self.eml_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.eml_frame, text="Czytnik EML")
-        self._create_eml_viewer_widgets()
+
     
     def _create_search_widgets(self):
         """Create search widgets in the search subtab"""
@@ -98,10 +95,7 @@ class MailSearchTab(ttk.Frame):
         # Restore original parent
         self.ui_builder.parent = original_parent
     
-    def _create_eml_viewer_widgets(self):
-        """Create EML viewer widgets in the EML subtab"""
-        from tools.eml_viewer import EMLViewerGUI
-        self.eml_viewer = EMLViewerGUI(self.eml_frame)
+
         
     def toggle_search(self):
         """Toggle between starting and cancelling search"""
