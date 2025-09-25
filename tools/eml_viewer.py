@@ -203,20 +203,46 @@ class EmlViewer:
             # Try to get plain text first
             if self.email_message.is_multipart():
                 for part in self.email_message.walk():
-                    if part.get_content_type() == "text/plain":
-                        return part.get_content()
-                    elif part.get_content_type() == "text/html":
+                    content_type = part.get_content_type()
+                    if content_type == "text/plain":
+                        try:
+                            return part.get_content()
+                        except:
+                            # Fallback to payload for older email formats
+                            payload = part.get_payload(decode=True)
+                            if payload:
+                                return payload.decode('utf-8', errors='ignore')
+                    elif content_type == "text/html":
+                        try:
+                            html_content = part.get_content()
+                        except:
+                            payload = part.get_payload(decode=True)
+                            if payload:
+                                html_content = payload.decode('utf-8', errors='ignore')
+                            else:
+                                continue
                         # Basic HTML to text conversion
-                        html_content = part.get_content()
-                        # Remove HTML tags (basic approach)
                         import re
                         text = re.sub('<[^<]+?>', '', html_content)
                         return text
             else:
-                if self.email_message.get_content_type() == "text/plain":
-                    return self.email_message.get_content()
-                elif self.email_message.get_content_type() == "text/html":
-                    html_content = self.email_message.get_content()
+                content_type = self.email_message.get_content_type()
+                if content_type == "text/plain":
+                    try:
+                        return self.email_message.get_content()
+                    except:
+                        payload = self.email_message.get_payload(decode=True)
+                        if payload:
+                            return payload.decode('utf-8', errors='ignore')
+                elif content_type == "text/html":
+                    try:
+                        html_content = self.email_message.get_content()
+                    except:
+                        payload = self.email_message.get_payload(decode=True)
+                        if payload:
+                            html_content = payload.decode('utf-8', errors='ignore')
+                        else:
+                            return "Nie można wyświetlić zawartości HTML"
                     import re
                     text = re.sub('<[^<]+?>', '', html_content)
                     return text
@@ -235,19 +261,44 @@ class EmlViewer:
             
         try:
             for part in self.email_message.walk():
-                if part.get_content_disposition() == 'attachment':
-                    filename = part.get_filename()
-                    if filename:
+                # Skip the multipart container itself
+                if part.is_multipart():
+                    continue
+                    
+                content_disposition = part.get('Content-Disposition', '')
+                filename = part.get_filename()
+                
+                # Check if this is an attachment
+                if 'attachment' in content_disposition or filename:
+                    if not filename:
+                        # Try to generate a filename if none exists
+                        content_type = part.get_content_type()
+                        if content_type:
+                            ext = content_type.split('/')[-1]
+                            filename = f"attachment.{ext}"
+                        else:
+                            filename = "attachment.bin"
+                    
+                    try:
+                        # Try modern method first
                         content = part.get_content()
                         if isinstance(content, str):
                             content = content.encode('utf-8')
-                        
-                        attachments.append({
-                            'filename': filename,
-                            'content_type': part.get_content_type(),
-                            'content': content,
-                            'part': part
-                        })
+                    except:
+                        # Fallback to older method
+                        try:
+                            content = part.get_payload(decode=True)
+                            if not content:
+                                content = b""
+                        except:
+                            content = b""
+                    
+                    attachments.append({
+                        'filename': filename,
+                        'content_type': part.get_content_type() or 'application/octet-stream',
+                        'content': content,
+                        'part': part
+                    })
                         
         except Exception as e:
             print(f"Error extracting attachments: {e}")
