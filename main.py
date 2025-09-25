@@ -16,11 +16,21 @@ from tools.poppler_utils import print_poppler_status, test_poppler_startup
 # Import OCR engines for Tesseract detection
 from tools.ocr_engines import ocr_manager
 
-# Live logger for stderr restoration during development
-from tools.live_logger import get_live_logger
-
 def main():
     """Main application entry point with error handling."""
+    
+    # Display OCR engine availability status (from PR #118)
+    print_poppler_status()
+    print()
+    
+    # Check OCR engine availability (PR #118 feature)
+    print("Sprawdzanie dostępności silników OCR...")
+    available_engines = ocr_manager.get_available_engines()
+    if available_engines:
+        print(f"✓ OCR engines available: {', '.join(available_engines)}")
+    else:
+        print("✗ No OCR engines available")
+    print()
     
     # For debug mode: set KSIEGI_DEBUG=1 && python main.py
     debug_mode = os.environ.get('KSIEGI_DEBUG', '0') == '1'
