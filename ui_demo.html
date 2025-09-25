@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Logi Tab UI Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .demo { background: white; border: 2px solid #ccc; width: 800px; height: 600px; margin: 0 auto; }
+        .tabs { background: #f8f8f8; border-bottom: 1px solid #ccc; padding: 5px; }
+        .tab { display: inline-block; padding: 6px 12px; background: #e8e8e8; border: 1px solid #ddd; margin-right: 2px; }
+        .tab.active { background: white; }
+        .tab.new { background: #e8f5e8; border-color: #4CAF50; font-weight: bold; }
+        .content { padding: 15px; }
+        .toolbar { padding: 10px 0; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        .btn { background: #f0f0f0; border: 1px solid #ccc; padding: 6px 12px; margin-right: 10px; border-radius: 3px; }
+        .logs { border: 1px solid #ccc; height: 400px; background: white; font-family: monospace; font-size: 12px; padding: 10px; overflow-y: scroll; }
+        .title { text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="title">📋 New "Logi" Subtab in System Tab - Implementation Demo</div>
+    <div class="demo">
+        <div class="tabs">
+            <div class="tab">Operacje systemowe</div>
+            <div class="tab">Zależności środowiskowe</div>
+            <div class="tab">Konfiguracja OCR</div>
+            <div class="tab active new">Logi ✨</div>
+        </div>
+        <div class="content">
+            <div class="toolbar">
+                <button class="btn">🔄 Odśwież logi</button>
+                <span style="color: #666; font-size: 14px;">Załadowano 31 linii logów</span>
+            </div>
+            <div class="logs">2025-09-25 14:21:42 | === APLIKACJA KSIEGI-OCR - START ===
+2025-09-25 14:21:42 | Rozpoczynanie inicjalizacji aplikacji
+2025-09-25 14:21:42 | Sprawdzanie zależności systemowych
+2025-09-25 14:21:42 | Status zależności: OK - wszystkie wymagane zależności dostępne
+2025-09-25 14:21:42 | Testowanie integracji Poppler
+2025-09-25 14:21:42 | Poppler OK: Integracja działa poprawnie
+2025-09-25 14:21:42 | Uruchamianie interfejsu graficznego
+2025-09-25 14:21:42 | Tworzenie głównego okna aplikacji
+2025-09-25 14:21:42 | Inicjalizacja MainWindow
+2025-09-25 14:21:42 | Konfiguracja stylu GUI zakończona
+2025-09-25 14:21:42 | Utworzenie głównego Notebook
+2025-09-25 14:21:42 | Ładowanie zakładki: Przeszukiwanie Poczty
+2025-09-25 14:21:42 | Zakładka 'Przeszukiwanie Poczty' załadowana
+2025-09-25 14:21:42 | Ładowanie zakładki: Konfiguracja poczty
+2025-09-25 14:21:42 | Zakładka 'Konfiguracja poczty' załadowana
+2025-09-25 14:21:42 | Ładowanie zakładki: Zakupy
+2025-09-25 14:21:42 | Zakładka 'Zakupy' załadowana
+2025-09-25 14:21:42 | Ładowanie zakładki: System
+2025-09-25 14:21:42 | Inicjalizacja SystemTab
+2025-09-25 14:21:42 | Komponenty systemowe zainicjalizowane
+2025-09-25 14:21:42 | Konfiguracja OCR załadowana
+2025-09-25 14:21:42 | Tworzenie zakładek SystemTab
+2025-09-25 14:21:42 | Podzakładka 'Operacje systemowe' utworzona
+2025-09-25 14:21:42 | Podzakładka 'Zależności środowiskowe' utworzona
+2025-09-25 14:21:42 | Podzakładka 'Konfiguracja OCR' utworzona
+2025-09-25 14:21:42 | Podzakładka 'Logi' utworzona
+2025-09-25 14:21:42 | SystemTab - inicjalizacja zakończona
+2025-09-25 14:21:42 | Zakładka 'System' załadowana
+2025-09-25 14:21:42 | MainWindow - wszystkie komponenty załadowane pomyślnie
+2025-09-25 14:21:42 | Główne okno utworzone, rozpoczynanie pętli głównej
+2025-09-25 14:21:42 | === INICJALIZACJA APLIKACJI ZAKOŃCZONA ===</div>
+        </div>
+    </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <h3>✅ Implementation Complete</h3>
+        <p><strong>Features:</strong> Real-time log viewing, refresh button, read-only text area, monospace font, auto-scroll to bottom</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                      📋 KSIĘGA PRZYCHODÓW I ROZCHODÓW                        ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║ [Przeszukiwanie Poczty] [Konfiguracja poczty] [Zakupy] [★ System ★]         ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  [Operacje systemowe] [Zależności środowiskowe] [Konfiguracja OCR] [✨Logi]  ║
+║                                                                               ║
+║  ┌─────────────────────────────────────────────────────────────────────────┐ ║
+║  │ [🔄 Odśwież logi]     📄 Załadowano 31 linii logów                     │ ║
+║  ├─────────────────────────────────────────────────────────────────────────┤ ║
+║  │ 2025-09-25 14:24:20 | === APLIKACJA KSIEGI-OCR - START ===            │ ║
+║  │ 2025-09-25 14:24:20 | Rozpoczynanie inicjalizacji aplikacji           │ ║
+║  │ 2025-09-25 14:24:20 | Sprawdzanie zależności systemowych             │ ║
+║  │ 2025-09-25 14:24:20 | Status zależności: OK - wszystkie wymagane...  │ ║
+║  │ 2025-09-25 14:24:20 | Testowanie integracji Poppler                  │ ║
+║  │ 2025-09-25 14:24:20 | Poppler OK: Integracja działa poprawnie        │ ║
+║  │ 2025-09-25 14:24:20 | Uruchamianie interfejsu graficznego            │ ║
+║  │ 2025-09-25 14:24:20 | Tworzenie głównego okna aplikacji              │ ║
+║  │ 2025-09-25 14:24:20 | Inicjalizacja MainWindow                       │ ║
+║  │ 2025-09-25 14:24:20 | Konfiguracja stylu GUI zakończona              │ ║
+║  │ 2025-09-25 14:24:20 | Utworzenie głównego Notebook                   │ ║
+║  │ 2025-09-25 14:24:20 | Ładowanie zakładki: Przeszukiwanie Poczty      │ ║
+║  │ 2025-09-25 14:24:20 | Zakładka 'Przeszukiwanie Poczty' załadowana    │ ║
+║  │ 2025-09-25 14:24:20 | Ładowanie zakładki: Konfiguracja poczty        │ ║
+║  │ 2025-09-25 14:24:20 | Zakładka 'Konfiguracja poczty' załadowana      │ ║
+║  │ 2025-09-25 14:24:20 | Ładowanie zakładki: Zakupy                     │ ║
+║  │ 2025-09-25 14:24:20 | Zakładka 'Zakupy' załadowana                   │ ║
+║  │ 2025-09-25 14:24:20 | Ładowanie zakładki: System                     │ ║
+║  │ 2025-09-25 14:24:20 | Inicjalizacja SystemTab                        │ ║
+║  │ 2025-09-25 14:24:20 | Komponenty systemowe zainicjalizowane          │ ║
+║  │ 2025-09-25 14:24:20 | Konfiguracja OCR załadowana                    │ ║
+║  │ 2025-09-25 14:24:20 | Tworzenie zakładek SystemTab                   │ ║
+║  │ 2025-09-25 14:24:20 | Podzakładka 'Operacje systemowe' utworzona     │ ║
+║  │ 2025-09-25 14:24:20 | Podzakładka 'Zależności środowiskowe' utw...   │ ║
+║  │ 2025-09-25 14:24:20 | Podzakładka 'Konfiguracja OCR' utworzona       │ ║
+║  │ 2025-09-25 14:24:20 | ★ Podzakładka 'Logi' utworzona ★               │ ║
+║  │ 2025-09-25 14:24:20 | SystemTab - inicjalizacja zakończona           │ ║
+║  │ 2025-09-25 14:24:20 | Zakładka 'System' załadowana                   │ ║
+║  │ 2025-09-25 14:24:20 | MainWindow - wszystkie komponenty załadowane   │ ║
+║  │ 2025-09-25 14:24:20 | Główne okno utworzone, rozpoczynanie pętli...  │ ║
+║  │ 2025-09-25 14:24:20 | === INICJALIZACJA APLIKACJI ZAKOŃCZONA ===     │ ║
+║  │ [Przewijanie w dół ↓]                                                  │ ║
+║  └─────────────────────────────────────────────────────────────────────────┘ ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+✨ NOWA FUNKCJONALNOŚĆ:
+• Podzakładka "Logi" w SystemTab
+• Przycisk "Odśwież logi" do odświeżania na żądanie  
+• Read-only pole tekstowe z paskiem przewijania
+• Automatyczne przewijanie do końca po odświeżeniu
+• Czcionka monospace dla lepszej czytelności
+• Informacja o liczbie załadowanych linii logów
+• Szczegółowe logowanie startu i inicjalizacji wszystkich komponentów
