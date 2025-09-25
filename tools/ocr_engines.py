@@ -23,7 +23,13 @@ except ImportError as e:
 TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 class OCREngineManager:
-    """Manages OCR engines and multiprocessing for OCR operations"""
+    """Manages OCR engines and multiprocessing for OCR operations
+    
+    Performance Note: On Windows, multiprocessing can sometimes be slower than 
+    threading due to process creation overhead. For small batches (< 10 images) 
+    or on Windows systems, consider disabling multiprocessing in favor of 
+    single-threaded processing or ThreadPoolExecutor for better performance.
+    """
     
     def __init__(self):
         self.available_engines = self._detect_available_engines()
@@ -107,7 +113,12 @@ class OCREngineManager:
             raise RuntimeError(f"Nieobsługiwany silnik OCR: {engine}")
     
     def perform_ocr_batch(self, images, language='pol+eng', progress_callback=None):
-        """Perform OCR on multiple images with optional multiprocessing"""
+        """Perform OCR on multiple images with optional multiprocessing
+        
+        Note: On Windows, multiprocessing overhead can exceed benefits for small batches.
+        Consider using single-threaded mode for < 10 images or on Windows systems
+        where process creation is expensive.
+        """
         if not ocr_config.get_multiprocessing() or len(images) == 1:
             # Single-threaded processing
             results = []
@@ -137,7 +148,17 @@ class OCREngineManager:
                 # Submit all jobs
                 futures = []
                 for i, image in enumerate(images):
-                    future = executor.submit(_ocr_worker, image, language, current_engine, use_gpu)
+                    # Prepare arguments based on engine capabilities
+                    worker_kwargs = {}
+                    
+                    # Only pass use_gpu for engines that support it
+                    if current_engine in ['easyocr', 'paddleocr']:
+                        worker_kwargs['use_gpu'] = use_gpu
+                    elif current_engine == 'tesseract' and use_gpu:
+                        # Log warning if GPU was requested for Tesseract
+                        log("Warning: GPU został żądany dla Tesseract, ale nie jest obsługiwany - używam CPU")
+                    
+                    future = executor.submit(_ocr_worker, image, language, current_engine, **worker_kwargs)
                     futures.append(future)
                 
                 # Collect results
@@ -153,8 +174,18 @@ class OCREngineManager:
                 
         except Exception as e:
             log(f"Błąd wieloprocesowego OCR: {e}, przełączam na tryb pojedynczy")
-            # Fallback to single-threaded
-            return self.perform_ocr_batch(images, language, progress_callback)
+            # Fallback to single-threaded processing (disable multiprocessing temporarily)
+            results = []
+            for i, image in enumerate(images):
+                if progress_callback:
+                    progress_callback(i, len(images))
+                try:
+                    text = self.perform_ocr_single(image, language)
+                    results.append(text)
+                except Exception as single_error:
+                    log(f"Błąd pojedynczego OCR dla obrazu {i}: {single_error}")
+                    results.append("")  # Empty result for failed image
+            return results
     
     def _ocr_tesseract(self, image, language):
         """Perform OCR using Tesseract"""
@@ -234,13 +265,26 @@ class OCREngineManager:
         return '\n'.join(texts)
 
 
-def _ocr_worker(image, language, engine, use_gpu):
+def _ocr_worker(image, language, engine, **kwargs):
     """Worker function for multiprocessing OCR (must be at module level)"""
     # This function recreates the OCR setup in each worker process
+    
+    # Extract supported parameters based on engine
+    use_gpu = kwargs.get('use_gpu', False)
+    
     if engine == 'tesseract':
         import pytesseract
         pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
-        # Tesseract doesn't support GPU, use_gpu parameter is ignored
+        
+        # Log warning if GPU parameter was passed for Tesseract
+        if 'use_gpu' in kwargs and use_gpu:
+            log("Warning: Tesseract nie obsługuje GPU, parametr use_gpu zostanie zignorowany")
+        
+        # Filter out unsupported arguments for Tesseract
+        unsupported_args = [arg for arg in kwargs.keys() if arg != 'use_gpu']
+        if unsupported_args:
+            log(f"Warning: Nieobsługiwane argumenty dla Tesseract: {unsupported_args}")
+        
         return pytesseract.image_to_string(image, lang=language)
     
     elif engine == 'easyocr':
@@ -249,6 +293,11 @@ def _ocr_worker(image, language, engine, use_gpu):
         
         if hasattr(image, 'convert'):
             image = np.array(image.convert('RGB'))
+        
+        # Log warning for any unsupported arguments
+        unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
+        if unsupported_args:
+            log(f"Warning: Nieobsługiwane argumenty dla EasyOCR: {unsupported_args}")
         
         reader = easyocr.Reader(['en', 'pl'], gpu=use_gpu)
         results = reader.readtext(image)
@@ -260,6 +309,11 @@ def _ocr_worker(image, language, engine, use_gpu):
         
         if hasattr(image, 'convert'):
             image = np.array(image.convert('RGB'))
+        
+        # Log warning for any unsupported arguments
+        unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
+        if unsupported_args:
+            log(f"Warning: Nieobsługiwane argumenty dla PaddleOCR: {unsupported_args}")
         
         ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=use_gpu)
         results = ocr.ocr(image, cls=True)
