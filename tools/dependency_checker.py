@@ -190,7 +190,7 @@ class DependencyChecker:
             {
                 'name': 'pdfminer.six',
                 'type': 'module',
-                'module': 'pdfminer.six',
+                'module': 'pdfminer',
                 'required': True,
                 'description': 'Analiza i ekstrakcja danych z PDF',
                 'install_link': 'https://pypi.org/project/pdfminer-six/',
