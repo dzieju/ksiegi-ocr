@@ -19,12 +19,15 @@ import logging
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
+        print("🖥️  Inicjalizacja głównego okna...")
         self.title("Księga Przychodów i Rozchodów")
         self.geometry("900x600")
 
+        print("🎨 Ustawianie stylu...")
         style = ttk.Style(self)
         style.theme_use("clam")
 
+        print("📁 Tworzenie notebooka zakładek...")
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill="both", expand=True)
@@ -35,6 +38,7 @@ class MainWindow(tk.Tk):
         self.zakupy_tab = None
         self.system_tab = None
         
+        print("🔄 Inicjalizacja stanu ładowania zakładek...")
         # Initialize loading state tracking to prevent duplicate loading
         self._loading_states = {
             'mail_search': False,
@@ -47,14 +51,19 @@ class MainWindow(tk.Tk):
         self._loading_frames = {}
         self._loading_labels = {}
         
+        print("📋 Tworzenie placeholder'ów zakładek...")
         # Add placeholder frames for lazy loading
         self._create_tab_placeholders()
         
+        print("🔗 Powiązywanie zdarzeń zakładek...")
         # Bind tab selection event for lazy loading
         self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         
+        print("📬 Ładowanie pierwszej zakładki...")
         # Load the first tab immediately for better UX
         self._load_mail_search_tab()
+        
+        print("✅ MainWindow zainicjalizowane")
 
     def _create_tab_placeholders(self):
         """Create placeholder frames for all tabs"""
@@ -147,8 +156,11 @@ class MainWindow(tk.Tk):
         print("📬 Ładowanie zakładki: Przeszukiwanie Poczty...")
         
         try:
+            print("📦 Importowanie modułu tab_mail_search...")
             from gui.tab_mail_search import MailSearchTab
+            print("🔧 Tworzenie instancji MailSearchTab...")
             self.mail_search_tab = MailSearchTab(self.notebook)
+            print("✅ MailSearchTab utworzony")
             
             # Safe tab replacement with validation
             if self._safe_notebook_operation(self.notebook.forget, 0) is not None:
@@ -172,8 +184,11 @@ class MainWindow(tk.Tk):
         print("⚙️  Ładowanie zakładki: Konfiguracja poczty...")
         
         try:
+            print("📦 Importowanie modułu tab_exchange_config...")
             from gui.tab_exchange_config import ExchangeConfigTab
+            print("🔧 Tworzenie instancji ExchangeConfigTab...")
             self.exchange_tab = ExchangeConfigTab(self.notebook)
+            print("✅ ExchangeConfigTab utworzony")
             
             # Safe tab replacement with validation
             if self._safe_notebook_operation(self.notebook.forget, 1) is not None:
@@ -221,8 +236,11 @@ class MainWindow(tk.Tk):
             
             # Load the actual tab
             try:
+                print("📦 Importowanie modułu tab_zakupy...")
                 from gui.tab_zakupy import ZakupiTab
+                print("🔧 Tworzenie instancji ZakupiTab...")
                 self.zakupy_tab = ZakupiTab(self.notebook)
+                print("✅ ZakupiTab utworzony")
                 
                 # Find and replace loading frame with actual tab
                 loading_tab_index = self._find_tab_by_text("Zakupy")
@@ -287,8 +305,11 @@ class MainWindow(tk.Tk):
             
             # Load the actual tab
             try:
+                print("📦 Importowanie modułu tab_system...")
                 from gui.tab_system import SystemTab
+                print("🔧 Tworzenie instancji SystemTab...")
                 self.system_tab = SystemTab(self.notebook)
+                print("✅ SystemTab utworzony")
                 
                 # Find and replace loading frame with actual tab
                 loading_tab_index = self._find_tab_by_text("System")

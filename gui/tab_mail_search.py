@@ -16,6 +16,7 @@ MAIL_SEARCH_CONFIG_FILE = "mail_search_config.json"
 class MailSearchTab(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
+        print("📬 Inicjalizacja MailSearchTab...")
         
         # Initialize search variables
         self.vars = {
@@ -60,6 +61,8 @@ class MailSearchTab(ttk.Frame):
         
         # Start processing queues
         self._process_queues()
+        
+        print("✅ MailSearchTab zainicjalizowany")
         
     def create_widgets(self):
         """Create all widgets using UI builder"""

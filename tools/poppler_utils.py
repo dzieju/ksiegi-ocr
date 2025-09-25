@@ -23,6 +23,7 @@ class PopplerManager:
         Args:
             repo_root: Root directory of the repository. If None, auto-detect.
         """
+        print("🔧 Inicjalizacja PopplerManager...")
         self.repo_root = repo_root or self._detect_repo_root()
         self.poppler_path = self.repo_root / "poppler"
         self.bin_path = None
@@ -30,7 +31,9 @@ class PopplerManager:
         self.detection_error = None
         
         # Detect poppler on initialization
-        self._detect_poppler()
+        print("🔍 Rozpoczynam detekcję Poppler...")
+        detection_result = self._detect_poppler()
+        print(f"✓ Detekcja Poppler zakończona: {'sukces' if detection_result else 'niepowodzenie'}")
     
     def _detect_repo_root(self) -> Path:
         """Auto-detect repository root directory."""

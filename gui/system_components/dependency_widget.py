@@ -15,14 +15,17 @@ class DependencyWidget(ttk.Frame):
     
     def __init__(self, parent):
         super().__init__(parent)
+        print("🔧 Inicjalizacja DependencyWidget...")
         self.dependency_checker = get_dependency_checker()
         self.results = []
         self.checking = False
         
         self.setup_widgets()
         
-        # Start initial check
-        self.refresh_dependencies()
+        # Defer initial check to avoid blocking GUI during tab creation
+        print("⏳ Odkładam sprawdzanie zależności - uruchomię za chwilę...")
+        self.after(500, self.refresh_dependencies)  # Start check after 500ms delay
+        print("✓ DependencyWidget zainicjalizowany")
     
     def setup_widgets(self):
         """Setup the dependency widget UI."""
@@ -104,6 +107,7 @@ class DependencyWidget(ttk.Frame):
         if self.checking:
             return
             
+        print("🔍 Rozpoczynam sprawdzanie zależności...")
         self.checking = True
         self.refresh_btn.config(state="disabled", text="Sprawdzam...")
         self.status_label.config(text="Sprawdzanie zależności...", foreground="blue")
@@ -118,17 +122,21 @@ class DependencyWidget(ttk.Frame):
         
         def check_in_background():
             try:
+                print("📦 Rozpoczynam analizę zależności w wątku tła...")
                 # Get fresh dependency results
                 results = self.dependency_checker.check_all_dependencies()
                 summary = self.dependency_checker.get_summary()
+                print(f"✅ Sprawdzanie zależności zakończone: {summary['message']}")
                 
                 # Update UI in main thread
                 self.after(0, lambda: self._update_ui(results, summary))
             except Exception as e:
+                print(f"❌ Błąd sprawdzania zależności: {e}")
                 self.after(0, lambda: self._handle_error(str(e)))
         
         thread = threading.Thread(target=check_in_background, daemon=True)
         thread.start()
+        print("✓ Wątek sprawdzania zależności uruchomiony")
     
     def _update_ui(self, results: List[Dict], summary: Dict):
         """Update UI with dependency results (called in main thread)."""

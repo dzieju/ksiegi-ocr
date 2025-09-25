@@ -19,10 +19,13 @@ class OCRConfig:
     """Handles OCR configuration persistence and management"""
     
     def __init__(self):
+        print("🔧 Inicjalizacja OCRConfig...")
         self.config = self.load_config()
+        print("✓ OCRConfig załadowany")
     
     def load_config(self):
         """Load OCR configuration from file or create default"""
+        print("📁 Ładowanie konfiguracji OCR...")
         try:
             if os.path.exists(OCR_CONFIG_FILE):
                 with open(OCR_CONFIG_FILE, 'r', encoding='utf-8') as f:
@@ -32,12 +35,15 @@ class OCRConfig:
                         if key not in config:
                             config[key] = default_value
                     log(f"Załadowano konfigurację OCR: {config}")
+                    print("✅ Konfiguracja OCR załadowana z pliku")
                     return config
             else:
                 log("Tworzenie domyślnej konfiguracji OCR")
+                print("📝 Tworzenie domyślnej konfiguracji OCR")
                 return DEFAULT_OCR_CONFIG.copy()
         except Exception as e:
             log(f"Błąd ładowania konfiguracji OCR: {e}, używam domyślnej")
+            print(f"⚠️ Błąd ładowania konfiguracji OCR: {e}, używam domyślnej")
             return DEFAULT_OCR_CONFIG.copy()
     
     def save_config(self):
@@ -90,4 +96,6 @@ class OCRConfig:
         return False
 
 # Global instance
+print("🌍 Tworzenie globalnej instancji OCRConfig...")
 ocr_config = OCRConfig()
+print("✅ Globalna instancja OCRConfig utworzona")
