@@ -81,8 +81,13 @@ class MainWindow(tk.Tk):
             try:
                 from gui.tab_mail_search import MailSearchTab
                 self.mail_search_tab = MailSearchTab(self.notebook)
-                self.notebook.forget(0)  # Remove placeholder
-                self.notebook.insert(0, self.mail_search_tab, text="Przeszukiwanie Poczty")
+                # Safe tab replacement with fallback
+                try:
+                    self.notebook.forget(0)  # Remove placeholder
+                    self.notebook.insert(0, self.mail_search_tab, text="Przeszukiwanie Poczty")
+                except tk.TclError:
+                    # Fallback if insert fails
+                    self.notebook.add(self.mail_search_tab, text="Przeszukiwanie Poczty")
                 print("✓ Zakładka Przeszukiwanie Poczty załadowana")
             except Exception as e:
                 print(f"⚠️  Błąd ładowania zakładki Przeszukiwanie Poczty: {e}")
@@ -94,8 +99,13 @@ class MainWindow(tk.Tk):
             try:
                 from gui.tab_exchange_config import ExchangeConfigTab
                 self.exchange_tab = ExchangeConfigTab(self.notebook)
-                self.notebook.forget(1)  # Remove placeholder
-                self.notebook.insert(1, self.exchange_tab, text="Konfiguracja poczty")
+                # Safe tab replacement with fallback
+                try:
+                    self.notebook.forget(1)  # Remove placeholder
+                    self.notebook.insert(1, self.exchange_tab, text="Konfiguracja poczty")
+                except tk.TclError:
+                    # Fallback if insert fails
+                    self.notebook.add(self.exchange_tab, text="Konfiguracja poczty")
                 print("✓ Zakładka Konfiguracja poczty załadowana")
             except Exception as e:
                 print(f"⚠️  Błąd ładowania zakładki Konfiguracja poczty: {e}")
@@ -111,9 +121,13 @@ class MainWindow(tk.Tk):
                                     font=("Arial", 12), foreground="blue")
             loading_label.pack(expand=True)
             
-            # Temporarily show loading frame
-            self.notebook.forget(2)  # Remove placeholder
-            self.notebook.insert(2, loading_frame, text="Zakupy")
+            # Temporarily show loading frame with safe index handling
+            try:
+                self.notebook.forget(2)  # Remove placeholder
+                self.notebook.insert(2, loading_frame, text="Zakupy")
+            except tk.TclError:
+                # Fallback if insert fails
+                self.notebook.add(loading_frame, text="Zakupy")
             self.notebook.update()  # Force UI update
             
             try:
@@ -121,8 +135,22 @@ class MainWindow(tk.Tk):
                 self.zakupy_tab = ZakupiTab(self.notebook)
                 
                 # Replace loading frame with actual tab
-                self.notebook.forget(2)  # Remove loading frame
-                self.notebook.insert(2, self.zakupy_tab, text="Zakupy")
+                loading_tab_index = None
+                for i in range(self.notebook.index("end")):
+                    if self.notebook.tab(i, "text") == "Zakupy":
+                        loading_tab_index = i
+                        break
+                
+                if loading_tab_index is not None:
+                    self.notebook.forget(loading_tab_index)  # Remove loading frame
+                    try:
+                        self.notebook.insert(loading_tab_index, self.zakupy_tab, text="Zakupy")
+                    except tk.TclError:
+                        # Fallback if insert fails
+                        self.notebook.add(self.zakupy_tab, text="Zakupy")
+                else:
+                    # Fallback if we can't find the loading tab
+                    self.notebook.add(self.zakupy_tab, text="Zakupy")
                 
                 print("✓ Zakładka Zakupy załadowana")
             except Exception as e:
@@ -141,9 +169,13 @@ class MainWindow(tk.Tk):
                                     font=("Arial", 12), foreground="blue")
             loading_label.pack(expand=True)
             
-            # Temporarily show loading frame
-            self.notebook.forget(3)  # Remove placeholder
-            self.notebook.insert(3, loading_frame, text="System")
+            # Temporarily show loading frame with safe index handling
+            try:
+                self.notebook.forget(3)  # Remove placeholder
+                self.notebook.insert(3, loading_frame, text="System")
+            except tk.TclError:
+                # Fallback if insert fails
+                self.notebook.add(loading_frame, text="System")
             self.notebook.update()  # Force UI update
             
             try:
@@ -151,8 +183,22 @@ class MainWindow(tk.Tk):
                 self.system_tab = SystemTab(self.notebook)
                 
                 # Replace loading frame with actual tab
-                self.notebook.forget(3)  # Remove loading frame
-                self.notebook.insert(3, self.system_tab, text="System")
+                loading_tab_index = None
+                for i in range(self.notebook.index("end")):
+                    if self.notebook.tab(i, "text") == "System":
+                        loading_tab_index = i
+                        break
+                
+                if loading_tab_index is not None:
+                    self.notebook.forget(loading_tab_index)  # Remove loading frame
+                    try:
+                        self.notebook.insert(loading_tab_index, self.system_tab, text="System")
+                    except tk.TclError:
+                        # Fallback if insert fails
+                        self.notebook.add(self.system_tab, text="System")
+                else:
+                    # Fallback if we can't find the loading tab
+                    self.notebook.add(self.system_tab, text="System")
                 
                 print("✓ Zakładka System załadowana")
             except Exception as e:
