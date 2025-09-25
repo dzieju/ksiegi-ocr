@@ -1,10 +1,11 @@
 """
 Dependency checklist widget for System tab.
-Displays system dependencies with status indicators.
+Displays system dependencies with status indicators and installation/update links.
 """
 import tkinter as tk
 from tkinter import ttk
 import threading
+import webbrowser
 from typing import List, Dict
 from tools.dependency_checker import get_dependency_checker
 
@@ -137,7 +138,7 @@ class DependencyWidget(ttk.Frame):
         self.checking = False
     
     def _create_dependency_item(self, result: Dict, index: int):
-        """Create a single dependency item widget."""
+        """Create a single dependency item widget with links."""
         item_frame = ttk.Frame(self.scrollable_frame)
         item_frame.pack(fill="x", padx=5, pady=1)
         
@@ -171,18 +172,52 @@ class DependencyWidget(ttk.Frame):
                               font=("Arial", 8), foreground="gray")
         desc_label.grid(row=2, column=1, sticky="w", padx=(0, 5))
         
-        # Add installation hint for missing required dependencies
-        if result['required'] and result['status'] == 'error':
-            hint_text = self._get_installation_hint(result['name'])
-            if hint_text:
-                hint_label = ttk.Label(item_frame, text=f"💡 {hint_text}", 
-                                      font=("Arial", 8), foreground="blue")
-                hint_label.grid(row=3, column=1, sticky="w", padx=(0, 5))
+        # Links frame for install/update links
+        links_frame = ttk.Frame(item_frame)
+        current_row = 3
+        
+        # Add installation/update links based on status
+        if result['status'] == 'error' and result.get('install_link'):
+            # Missing dependency - show install link
+            self._add_link_button(links_frame, "📥 Instaluj", result['install_link'], "blue")
+            current_row += 1
+        elif result['status'] == 'warning' and result.get('update_available') and result.get('update_link'):
+            # Outdated dependency - show update link  
+            self._add_link_button(links_frame, "🔄 Aktualizuj", result['update_link'], "orange")
+            current_row += 1
+        
+        # Add command hint for missing required dependencies
+        if result['required'] and result['status'] == 'error' and result.get('install_cmd'):
+            hint_text = f"💡 Komenda: {result['install_cmd']}"
+            hint_label = ttk.Label(item_frame, text=hint_text, 
+                                  font=("Arial", 8), foreground="purple")
+            hint_label.grid(row=current_row, column=1, sticky="w", padx=(0, 5))
+            current_row += 1
+        
+        # Position links frame if any links were added
+        if links_frame.winfo_children():
+            links_frame.grid(row=current_row, column=1, sticky="w", padx=(0, 5), pady=(2, 0))
         
         # Add separator for visual clarity
         if index < len(self.results) - 1:
             separator = ttk.Separator(self.scrollable_frame, orient="horizontal")
             separator.pack(fill="x", padx=10, pady=2)
+    
+    def _add_link_button(self, parent_frame, text: str, url: str, color: str):
+        """Add a clickable link button."""
+        link_label = ttk.Label(parent_frame, text=text, font=("Arial", 8, "underline"), 
+                              foreground=color, cursor="hand2")
+        link_label.pack(side="left", padx=(0, 10))
+        
+        def open_link(event=None):
+            try:
+                webbrowser.open(url)
+            except Exception as e:
+                print(f"Nie można otworzyć linku {url}: {e}")
+        
+        link_label.bind("<Button-1>", open_link)
+        link_label.bind("<Enter>", lambda e: link_label.config(foreground="darkblue" if color == "blue" else "darkorange"))
+        link_label.bind("<Leave>", lambda e: link_label.config(foreground=color))
     
     def _get_installation_hint(self, dependency_name: str) -> str:
         """Get installation hint for missing dependency."""
@@ -259,11 +294,13 @@ class DependencyWidget(ttk.Frame):
                 report_lines.append(f"   Status: {result['message']}{version_text}")
                 report_lines.append(f"   Opis: {result['description']}")
                 
-                # Add installation hint if needed
-                if result['required'] and result['status'] == 'error':
-                    hint = self._get_installation_hint(result['name'])
-                    if hint:
-                        report_lines.append(f"   Instalacja: {hint}")
+                # Add installation/update information
+                if result['status'] == 'error' and result.get('install_cmd'):
+                    report_lines.append(f"   Instalacja: {result['install_cmd']}")
+                if result.get('install_link'):
+                    report_lines.append(f"   Link instalacji: {result['install_link']}")
+                if result.get('update_available') and result.get('update_link'):
+                    report_lines.append(f"   Link aktualizacji: {result['update_link']}")
                 
                 report_lines.append("")
             
