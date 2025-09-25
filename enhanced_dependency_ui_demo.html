@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Dependency Checklist - KSIEGI-OCR</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .btn:hover {
+            background: #e9e9e9;
+        }
+        .status {
+            color: #0066cc;
+            font-size: 12px;
+        }
+        .dependency-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .dependency-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .dependency-item:last-child {
+            border-bottom: none;
+        }
+        .dep-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .emoji {
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .dep-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .required {
+            color: #cc0000;
+            font-size: 12px;
+        }
+        .dep-info {
+            font-size: 12px;
+            color: #666;
+            margin-left: 26px;
+            margin-bottom: 2px;
+        }
+        .dep-desc {
+            font-size: 12px;
+            color: #888;
+            margin-left: 26px;
+            margin-bottom: 4px;
+        }
+        .dep-links {
+            margin-left: 26px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .link-btn {
+            color: #0066cc;
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .link-btn:hover {
+            color: #004499;
+        }
+        .install-link {
+            color: #0066cc;
+        }
+        .update-link {
+            color: #ff8800;
+        }
+        .command-hint {
+            margin-left: 26px;
+            font-size: 12px;
+            color: #8800cc;
+            font-family: monospace;
+            margin-top: 4px;
+        }
+        .status-ok { color: #008800; }
+        .status-warning { color: #ff8800; }
+        .status-error { color: #cc0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Zależności środowiskowe:</div>
+            <div class="buttons">
+                <button class="btn">Odśwież</button>
+                <button class="btn">Eksportuj</button>
+            </div>
+            <div class="status">❌ Brak 10 wymaganych zależności</div>
+        </div>
+        
+        <div class="dependency-list">
+            <!-- Python - OK with update available -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">✅</span>
+                    <span class="dep-name">Python</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-ok">3.12.3 - Wersja 3.12.3</div>
+                <div class="dep-desc">Interpreter Python (wymagane: 3.8+)</div>
+                <div class="dep-links">
+                    <span class="link-btn update-link">🔄 Aktualizuj</span>
+                </div>
+            </div>
+
+            <!-- Tkinter - Missing -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">❌</span>
+                    <span class="dep-name">Tkinter</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-error">Moduł niedostępny</div>
+                <div class="dep-desc">Interfejs graficzny (część standardowej biblioteki)</div>
+                <div class="dep-links">
+                    <span class="link-btn install-link">📥 Instaluj</span>
+                </div>
+                <div class="command-hint">💡 Komenda: apt-get install python3-tk</div>
+            </div>
+
+            <!-- Tesseract - Missing -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">❌</span>
+                    <span class="dep-name">Tesseract OCR</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-error">Niedostępny: Nie znaleziono w PATH</div>
+                <div class="dep-desc">Silnik OCR Tesseract + moduł Python</div>
+                <div class="dep-links">
+                    <span class="link-btn install-link">📥 Instaluj</span>
+                </div>
+                <div class="command-hint">💡 Komenda: apt-get install tesseract-ocr && pip install pytesseract</div>
+            </div>
+
+            <!-- Poppler - OK -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">✅</span>
+                    <span class="dep-name">Poppler</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-ok">Dostępny i skonfigurowany</div>
+                <div class="dep-desc">Narzędzia PDF (pdfinfo, pdfimages, pdftoppm)</div>
+            </div>
+
+            <!-- PIL/Pillow - OK -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">✅</span>
+                    <span class="dep-name">PIL/Pillow</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-ok">11.3.0 - Dostępny v11.3.0</div>
+                <div class="dep-desc">Biblioteka przetwarzania obrazów</div>
+            </div>
+
+            <!-- pdfplumber - Missing -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">❌</span>
+                    <span class="dep-name">pdfplumber</span>
+                    <span class="required">(WYMAGANE)</span>
+                </div>
+                <div class="dep-info status-error">Moduł niedostępny</div>
+                <div class="dep-desc">Ekstrakcja tekstu z dokumentów PDF</div>
+                <div class="dep-links">
+                    <span class="link-btn install-link">📥 Instaluj</span>
+                </div>
+                <div class="command-hint">💡 Komenda: pip install pdfplumber</div>
+            </div>
+
+            <!-- EasyOCR - Optional, Missing -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">❌</span>
+                    <span class="dep-name">EasyOCR</span>
+                </div>
+                <div class="dep-info status-error">Moduł niedostępny</div>
+                <div class="dep-desc">Silnik OCR AI (obsługuje GPU)</div>
+                <div class="dep-links">
+                    <span class="link-btn install-link">📥 Instaluj</span>
+                </div>
+                <div class="command-hint">💡 Komenda: pip install easyocr</div>
+            </div>
+
+            <!-- PaddleOCR - Optional, Missing -->
+            <div class="dependency-item">
+                <div class="dep-header">
+                    <span class="emoji">❌</span>
+                    <span class="dep-name">PaddleOCR</span>
+                </div>
+                <div class="dep-info status-error">Moduł niedostępny</div>
+                <div class="dep-desc">Silnik OCR AI (obsługuje GPU)</div>
+                <div class="dep-links">
+                    <span class="link-btn install-link">📥 Instaluj</span>
+                </div>
+                <div class="command-hint">💡 Komenda: pip install paddlepaddle paddleocr</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 15px; font-size: 12px; color: #666; text-align: center;">
+            🔗 Kliknij na linki aby otworzyć strony instalacji/aktualizacji w przeglądarce
+        </div>
+    </div>
+
+    <script>
+        // Simulate clicking functionality
+        document.querySelectorAll('.link-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const text = this.textContent;
+                if (text.includes('Instaluj')) {
+                    alert('Otwieram stronę instalacji w przeglądarce...');
+                } else if (text.includes('Aktualizuj')) {
+                    alert('Otwieram stronę aktualizacji w przeglądarce...');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
