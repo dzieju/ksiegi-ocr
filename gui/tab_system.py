@@ -10,9 +10,12 @@ from gui.system_components.dependency_widget import DependencyWidget
 
 
 class SystemTab(ttk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, system_ready_callback=None):
         super().__init__(parent)
         print("⚙️ Inicjalizacja SystemTab...")
+
+        # Store callback to notify when system components are ready
+        self.system_ready_callback = system_ready_callback
 
         # Threading support variables
         self.result_queue = queue.Queue()
@@ -95,8 +98,14 @@ class SystemTab(ttk.Frame):
         """Create dependencies checklist widgets."""
         parent = self.deps_frame
         
-        # Create dependency widget
-        self.dependency_widget = DependencyWidget(parent)
+        # Create dependency widget with completion callback
+        def on_dependency_check_complete(results, summary):
+            """Called when dependency checking completes - notify system ready"""
+            print("🔗 Dependency check complete, notifying system ready callback")
+            if self.system_ready_callback:
+                self.system_ready_callback()
+        
+        self.dependency_widget = DependencyWidget(parent, completion_callback=on_dependency_check_complete)
         self.dependency_widget.pack(fill="both", expand=True, padx=10, pady=10)
     
     def _create_ocr_config_widgets(self):

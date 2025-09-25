@@ -113,8 +113,14 @@ if __name__ == "__main__":
                 print("✅ Sprawdzanie systemu zakończone")
                 print("=" * 60)
                 
+                # Notify GUI that system initialization is complete (thread-safe)
+                # This ensures that loading labels are hidden and proper widgets are shown
+                app.after(0, app.on_system_initialization_complete)
+                
             except Exception as e:
                 print(f"❌ Błąd podczas sprawdzania systemu: {e}")
+                # Even on error, notify GUI to update (show error state)
+                app.after(0, lambda: app.on_system_initialization_complete(error=str(e)))
         
         # Start checks in daemon thread to never block GUI
         system_thread = threading.Thread(target=threaded_system_checks, daemon=True)
