@@ -16,6 +16,16 @@ try:
         print("PDF crop tool: Warning: Poppler not detected, using fallback path")
         POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
         
+# Import poppler utilities for automatic path detection
+try:
+    from tools.poppler_utils import get_poppler_path, check_pdf_file_exists
+    POPPLER_PATH = get_poppler_path()
+    if POPPLER_PATH:
+        print(f"PDF crop tool: Poppler detected at: {POPPLER_PATH}")
+    else:
+        print("PDF crop tool: Warning: Poppler not detected, using fallback path")
+        POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
+        
     # Check if PDF file exists before proceeding
     pdf_exists, pdf_message = check_pdf_file_exists(PDF_PATH)
     if not pdf_exists:
@@ -28,7 +38,19 @@ except ImportError as e:
     print(f"PDF crop tool: Failed to import poppler_utils, using fallback path: {e}")
     POPPLER_PATH = r"C:\poppler\Library\bin"  # Fallback
 
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # zmień ścieżkę jeśli trzeba
+# Import tesseract utilities for automatic path detection
+try:
+    from tools.tesseract_utils import get_tesseract_path
+    TESSERACT_PATH = get_tesseract_path()
+    if TESSERACT_PATH:
+        print(f"PDF crop tool: Tesseract detected at: {TESSERACT_PATH}")
+    else:
+        print("PDF crop tool: Warning: Tesseract not detected, using fallback path")
+        TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
+except ImportError as e:
+    print(f"PDF crop tool: Failed to import tesseract_utils, using fallback path: {e}")
+    TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"  # Fallback
+
 pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 # Współrzędne cropa:

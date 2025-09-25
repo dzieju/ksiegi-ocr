@@ -292,7 +292,11 @@ class DependencyChecker:
         elif dep['type'] == 'executable':
             return self._check_executable(dep['executable'])
         elif dep['type'] == 'executable_and_module':
-            # Check both executable and Python module
+            # Special handling for Tesseract with auto-detection
+            if dep.get('executable') == 'tesseract':
+                return self._check_tesseract_with_autodetection(dep)
+            
+            # Default handling for other executable_and_module dependencies
             exec_result = self._check_executable(dep['executable'])
             module_result = self._check_module(dep['module'])
             
@@ -427,6 +431,79 @@ class DependencyChecker:
                 'message': f'Błąd sprawdzania: {str(e)}'
             }
     
+    def _check_tesseract_with_autodetection(self, dep: Dict) -> Dict:
+        """Check Tesseract with auto-detection support."""
+        # First check if pytesseract module is available
+        module_result = self._check_module(dep['module'])
+        
+        if module_result['status'] != 'ok':
+            return {
+                'status': 'error',
+                'emoji': '❌',
+                'message': f"Moduł pytesseract niedostępny: {module_result['message']}"
+            }
+        
+        # Try to use tesseract_utils for auto-detection
+        try:
+            from tools.tesseract_utils import get_tesseract_manager
+            manager = get_tesseract_manager()
+            
+            if manager.is_detected:
+                # Tesseract detected and configured
+                success, test_message = manager.test_tesseract()
+                if success:
+                    return {
+                        'status': 'ok',
+                        'emoji': '✅',
+                        'message': f"Wykryty automatycznie i skonfigurowany",
+                        'version': manager._get_version() or ''
+                    }
+                else:
+                    return {
+                        'status': 'warning',
+                        'emoji': '⚠️',
+                        'message': f"Wykryty ale test nie powiódł się: {test_message}"
+                    }
+            else:
+                # Auto-detection failed, fall back to standard executable check
+                exec_result = self._check_executable(dep['executable'])
+                if exec_result['status'] == 'ok':
+                    return {
+                        'status': 'ok',
+                        'emoji': '✅',
+                        'message': f"Wykonywalny i moduł Python OK",
+                        'version': exec_result.get('version', '')
+                    }
+                else:
+                    return {
+                        'status': 'warning',
+                        'emoji': '⚠️',
+                        'message': f"Moduł dostępny, ale tesseract nie znaleziony automatycznie ani w PATH"
+                    }
+                    
+        except ImportError:
+            # tesseract_utils not available, fall back to standard check
+            exec_result = self._check_executable(dep['executable'])
+            if exec_result['status'] == 'ok':
+                return {
+                    'status': 'ok',
+                    'emoji': '✅',
+                    'message': f"Wykonywalny i moduł Python OK",
+                    'version': exec_result.get('version', '')
+                }
+            else:
+                return {
+                    'status': 'warning',
+                    'emoji': '⚠️',
+                    'message': f"Częściowo dostępny: {exec_result['message']} / {module_result['message']}"
+                }
+        except Exception as e:
+            return {
+                'status': 'warning',
+                'emoji': '⚠️',
+                'message': f'Błąd sprawdzania Tesseract: {str(e)}'
+            }
+
     def _check_poppler(self) -> Dict:
         """Check Poppler using existing poppler_utils."""
         try:
