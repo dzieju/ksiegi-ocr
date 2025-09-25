@@ -214,30 +214,30 @@ class EmlViewer:
         html_frame = ttk.Frame(self.notebook)
         self.notebook.add(html_frame, text="Treść (HTML)")
         
-        html_frame.grid_rowconfigure(0, weight=1)
+        html_frame.grid_rowconfigure(1, weight=1)
         html_frame.grid_columnconfigure(0, weight=1)
+        
+        # Always show "Open in browser" button for full HTML experience
+        btn_frame = ttk.Frame(html_frame)
+        btn_frame.grid(row=0, column=0, sticky="ew", pady=(5, 5), padx=5)
+        
+        ttk.Button(btn_frame, text="Otwórz w przeglądarce", 
+                  command=lambda: self._open_html_in_browser(html_content)).pack(side="left")
         
         if HTML_VIEWER_AVAILABLE:
             # Use tkhtmlview if available
             try:
                 html_widget = HTMLLabel(html_frame, html=html_content)
-                html_widget.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+                html_widget.grid(row=1, column=0, sticky="nsew", padx=5, pady=(0, 5))
                 return
             except Exception as e:
                 print(f"Error using tkhtmlview: {e}")
         
-        # Fallback: Show HTML source with option to open in browser
+        # Fallback: Show HTML source when tkhtmlview is not available
         fallback_frame = ttk.Frame(html_frame)
-        fallback_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
-        fallback_frame.grid_rowconfigure(1, weight=1)
+        fallback_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=(0, 5))
+        fallback_frame.grid_rowconfigure(0, weight=1)
         fallback_frame.grid_columnconfigure(0, weight=1)
-        
-        # Button to open in browser
-        btn_frame = ttk.Frame(fallback_frame)
-        btn_frame.grid(row=0, column=0, sticky="ew", pady=(0, 5))
-        
-        ttk.Button(btn_frame, text="Otwórz w przeglądarce", 
-                  command=lambda: self._open_html_in_browser(html_content)).pack(side="left")
         
         # HTML source view
         html_text = scrolledtext.ScrolledText(
@@ -246,7 +246,7 @@ class EmlViewer:
             font=('Courier', 9),
             state='normal'
         )
-        html_text.grid(row=1, column=0, sticky="nsew")
+        html_text.grid(row=0, column=0, sticky="nsew")
         html_text.insert('1.0', html_content)
         html_text.config(state='disabled')
     
