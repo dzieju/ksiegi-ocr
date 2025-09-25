@@ -1,5 +1,13 @@
 """
 OCR engine abstraction with multiprocessing support
+
+PERFORMANCE OPTIMIZATIONS:
+- Lazy loading of OCR engines - detection happens only when first needed
+- Lazy import of heavy libraries (easyocr, paddleocr, pytesseract)
+- Poppler path detection deferred until PDF processing is needed
+- Progress indicators for engine detection
+
+This improves startup time by avoiding heavy OCR library imports at application start.
 """
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor

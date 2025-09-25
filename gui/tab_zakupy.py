@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+"""
+Zakupy Tab - PDF OCR Processing with Lazy Loading
+
+PERFORMANCE OPTIMIZATIONS:
+- Heavy libraries (pdf2image, pytesseract, OCR engines) loaded only when OCR is used
+- Poppler detection deferred until PDF processing starts
+- Progress indicators during initialization and processing
+- Background OCR processing to keep GUI responsive
+
+OCR libraries are imported only when user actually performs OCR operations,
+significantly improving tab loading time.
+"""
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
@@ -54,6 +67,10 @@ def _lazy_import_pdf_libraries():
     try:
         import pytesseract
         from pdf2image import convert_from_path
+        
+        # Configure tesseract path when first imported
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+        
         return pytesseract, convert_from_path
     except ImportError as e:
         print(f"⚠️  Błąd importu bibliotek PDF: {e}")
@@ -68,8 +85,6 @@ CROP_TOP, CROP_BOTTOM = 332, 2377
 
 # OCR log file
 OCR_LOG_FILE = "ocr_log.txt"
-
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 
 class ZakupiTab(ttk.Frame):
