@@ -87,6 +87,15 @@ class EmlOpeningDialog:
             'available': True
         })
         
+        # Save file option - NEW
+        options.append({
+            'id': 'save_file',
+            'title': 'Zapisz plik',
+            'description': 'Zapisz plik EML w wybranej lokalizacji\n• Wybierz miejsce zapisu\n• Zachowaj oryginalny format\n• Użyj później wybraną aplikacją',
+            'icon': '💾',
+            'available': True
+        })
+        
         # Open with custom application option
         options.append({
             'id': 'open_with',
@@ -244,6 +253,8 @@ class EmlOpener:
         try:
             if method == 'integrated':
                 return self._open_with_integrated_viewer(eml_content)
+            elif method == 'save_file':
+                return self._save_eml_file(eml_content, source_file)
             elif method == 'open_with':
                 return self._open_with_custom_app(eml_content, source_file)
             elif method == 'system':
@@ -272,6 +283,47 @@ class EmlOpener:
         except ImportError as e:
             messagebox.showerror("Błąd", f"Nie można załadować zintegrowanego czytnika: {str(e)}")
             return False
+    
+    def _save_eml_file(self, eml_content: str, source_file: str = None) -> bool:
+        """Save EML file to user-selected location"""
+        try:
+            # Generate default filename
+            import datetime
+            now = datetime.datetime.now()
+            default_filename = f"email_{now.strftime('%Y%m%d_%H%M%S')}.eml"
+            
+            # If we have a source file, try to use its name
+            if source_file and os.path.exists(source_file):
+                default_filename = os.path.basename(source_file)
+                if not default_filename.lower().endswith('.eml'):
+                    default_filename += '.eml'
+            
+            # Ask user where to save the file
+            filename = filedialog.asksaveasfilename(
+                title="Zapisz plik EML",
+                defaultextension=".eml",
+                initialname=default_filename,
+                filetypes=[
+                    ("Pliki EML", "*.eml"),
+                    ("Wszystkie pliki", "*.*")
+                ]
+            )
+            
+            if not filename:  # User cancelled
+                return False
+            
+            # Write EML content to selected file
+            with open(filename, 'w', encoding='utf-8', newline='\r\n') as f:
+                f.write(eml_content)
+            
+            # Show success message
+            messagebox.showinfo("Zapisano", f"Plik EML został zapisany jako:\n{filename}")
+            return True
+            
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Nie można zapisać pliku EML: {str(e)}")
+            return False
+    
     
     def _open_with_custom_app(self, eml_content: str, source_file: str = None) -> bool:
         """Open EML with user-selected application"""
