@@ -1,0 +1,51 @@
+EML Opening Dialog - UPDATED with Save File Option
+=================================================
+
+The EML opening dialog now includes 4 options instead of 3:
+
+┌─────────────────────────────────────────────────────────────┐
+│  Jak chcesz otworzyć plik EML?                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  📧 Zintegrowany czytnik                                   │
+│     Otworzyć w wbudowanym czytniku aplikacji               │
+│     • Podgląd tekstu i HTML                                │
+│     • Obsługa załączników                                  │
+│     • Bezpieczne przeglądanie                              │
+│                                                             │
+│  💾 Zapisz plik [NEW!]                                     │
+│     Zapisz plik EML w wybranej lokalizacji                 │
+│     • Wybierz miejsce zapisu                               │
+│     • Zachowaj oryginalny format                           │
+│     • Użyj później wybraną aplikacją                       │
+│                                                             │
+│  🔧 Otwórz za pomocą...                                    │
+│     Wybierz aplikację do otwarcia pliku                    │
+│     • Systemowy dialog wyboru                              │
+│     • Dowolna aplikacja                                    │
+│     • Pełna kontrola użytkownika                           │
+│                                                             │
+│  📮 Aplikacja systemowa                                    │
+│     Otworzyć w domyślnej aplikacji pocztowej               │
+│     • Domyślna aplikacja pocztowa                          │
+│     • Pełna funkcjonalność mail                            │
+│     • Integracja z systemem                                │
+│                                                             │
+│                                     [Anuluj]                │
+└─────────────────────────────────────────────────────────────┘
+
+NEW FEATURE: Save File Option
+=============================
+The new "💾 Zapisz plik" option allows users to:
+
+1. Save EML files to any location on their computer
+2. Choose a custom filename (defaults to email_YYYYMMDD_HHMMSS.eml)
+3. Preserve the original EML format for compatibility
+4. Use the saved file later with any email application
+
+Integration:
+- Works seamlessly with mail search results
+- Available in all contexts where EML opening is used
+- Maintains compatibility with existing workflow
+- No GUI changes required for existing users
+
