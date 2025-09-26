@@ -2,14 +2,12 @@
 EML File Opening Utility - Handles different ways to open EML files
 """
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import os
 import platform
-import webbrowser
 import tempfile
 import subprocess
 import shutil
-import html
 from typing import Optional, List, Dict, Callable
 
 
@@ -24,7 +22,7 @@ class EmlOpeningDialog:
     def show_selection_dialog(self, file_path: str = None, eml_content: str = None) -> Optional[str]:
         """
         Show dialog to select how to open EML file
-        Returns: 'integrated', 'browser', 'system', or None if cancelled
+        Returns: 'integrated', 'open_with', 'system', or None if cancelled
         """
         if not file_path and not eml_content:
             return None
@@ -89,12 +87,12 @@ class EmlOpeningDialog:
             'available': True
         })
         
-        # Browser option
+        # Open with custom application option
         options.append({
-            'id': 'browser',
-            'title': 'Przeglądarka internetowa',
-            'description': 'Otworzyć w domyślnej przeglądarce\n• Pełne renderowanie HTML\n• Obsługa stylów CSS\n• Interaktywne linki',
-            'icon': '🌐',
+            'id': 'open_with',
+            'title': 'Otwórz za pomocą...',
+            'description': 'Wybierz aplikację do otwarcia pliku\n• Systemowy dialog wyboru\n• Dowolna aplikacja\n• Pełna kontrola użytkownika',
+            'icon': '🔧',
             'available': True
         })
         
@@ -194,7 +192,7 @@ class EmlOpener:
         
         Args:
             file_path: Path to EML file
-            method: 'integrated', 'browser', 'system', or None for dialog
+            method: 'integrated', 'open_with', 'system', or None for dialog
         
         Returns:
             True if successfully opened
@@ -228,7 +226,7 @@ class EmlOpener:
         
         Args:
             eml_content: EML content as string
-            method: 'integrated', 'browser', 'system', or None for dialog
+            method: 'integrated', 'open_with', 'system', or None for dialog
             source_file: Original file path (optional)
         
         Returns:
@@ -246,8 +244,8 @@ class EmlOpener:
         try:
             if method == 'integrated':
                 return self._open_with_integrated_viewer(eml_content)
-            elif method == 'browser':
-                return self._open_with_browser(eml_content)
+            elif method == 'open_with':
+                return self._open_with_custom_app(eml_content, source_file)
             elif method == 'system':
                 return self._open_with_system_app(eml_content, source_file)
             else:
@@ -275,51 +273,88 @@ class EmlOpener:
             messagebox.showerror("Błąd", f"Nie można załadować zintegrowanego czytnika: {str(e)}")
             return False
     
-    def _open_with_browser(self, eml_content: str) -> bool:
-        """Open EML content in browser"""
+    def _open_with_custom_app(self, eml_content: str, source_file: str = None) -> bool:
+        """Open EML with user-selected application"""
         try:
-            # Parse email to extract HTML content
-            import email
-            import email.policy
+            # Create temporary EML file if source file not available
+            if source_file and os.path.exists(source_file):
+                temp_file = source_file
+                cleanup_temp = False
+            else:
+                # Create temporary EML file
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.eml', delete=False, encoding='utf-8') as f:
+                    f.write(eml_content)
+                    temp_file = f.name
+                cleanup_temp = True
+
+            system = platform.system().lower()
             
-            message = email.message_from_string(eml_content, policy=email.policy.default)
-            html_content = self._extract_html_content(message)
-            
-            if not html_content:
-                # If no HTML content, create HTML from plain text
-                plain_content = self._extract_plain_content(message)
-                html_content = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>{message.get('Subject', 'Email Content')}</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        .header {{ background: #f0f0f0; padding: 10px; margin-bottom: 20px; }}
-        .content {{ white-space: pre-wrap; }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <strong>Od:</strong> {message.get('From', 'Nieznany')}<br>
-        <strong>Temat:</strong> {message.get('Subject', 'Brak tematu')}<br>
-        <strong>Data:</strong> {message.get('Date', 'Nieznana')}
-    </div>
-    <div class="content">{html.escape(plain_content)}</div>
-</body>
-</html>"""
-            
-            # Create temporary HTML file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
-                f.write(html_content)
-                temp_file = f.name
-            
-            # Open in browser
-            webbrowser.open(f'file://{temp_file}')
-            return True
-            
+            if system == "windows":
+                # On Windows, use the "Open with" dialog
+                try:
+                    # Use rundll32 to show "Open with" dialog
+                    subprocess.run([
+                        "rundll32.exe", 
+                        "shell32.dll,OpenAs_RunDLL", 
+                        temp_file
+                    ], check=True)
+                    return True
+                except subprocess.CalledProcessError:
+                    # Fallback: let user select executable
+                    app_path = filedialog.askopenfilename(
+                        title="Wybierz aplikację do otwarcia pliku EML",
+                        filetypes=[
+                            ("Aplikacje", "*.exe"),
+                            ("Wszystkie pliki", "*.*")
+                        ]
+                    )
+                    if app_path:
+                        subprocess.run([app_path, temp_file])
+                        return True
+                    return False
+                    
+            elif system == "darwin":  # macOS
+                # On macOS, use open command with application selection
+                try:
+                    # Show application picker
+                    result = subprocess.run([
+                        "osascript", "-e",
+                        f'set theFile to POSIX file "{temp_file}" as alias\n'
+                        'choose application with prompt "Wybierz aplikację do otwarcia pliku EML:"\n'
+                        'tell application (result as string) to open theFile'
+                    ], capture_output=True, text=True, check=True)
+                    return True
+                except subprocess.CalledProcessError:
+                    # Fallback: show simple dialog
+                    messagebox.showinfo("Info", 
+                        f"Nie można otworzyć systemowego dialogu wyboru.\n"
+                        f"Plik zapisany jako: {temp_file}\n"
+                        f"Możesz otworzyć go ręcznie wybraną aplikacją.")
+                    return True
+                    
+            else:  # Linux and others
+                try:
+                    # Try to use mimeopen if available (allows choosing application)
+                    if shutil.which("mimeopen"):
+                        subprocess.run(["mimeopen", "-a", temp_file], check=True)
+                        return True
+                    else:
+                        # Fallback: show info about manual opening
+                        messagebox.showinfo("Info",
+                            f"Plik EML zapisany jako: {temp_file}\n"
+                            f"Kliknij prawym przyciskiem i wybierz 'Otwórz za pomocą...' "
+                            f"lub użyj menedżera plików do wyboru aplikacji.")
+                        # Open file manager with the file selected
+                        subprocess.run(["xdg-open", os.path.dirname(temp_file)])
+                        return True
+                except subprocess.CalledProcessError:
+                    messagebox.showinfo("Info",
+                        f"Plik EML zapisany jako: {temp_file}\n"
+                        f"Możesz otworzyć go ręcznie wybraną aplikacją.")
+                    return True
+                    
         except Exception as e:
-            messagebox.showerror("Błąd", f"Nie można otworzyć w przeglądarce: {str(e)}")
+            messagebox.showerror("Błąd", f"Nie można otworzyć dialogu wyboru aplikacji: {str(e)}")
             return False
     
     def _open_with_system_app(self, eml_content: str, source_file: str = None) -> bool:
@@ -351,58 +386,7 @@ class EmlOpener:
         except Exception as e:
             messagebox.showerror("Błąd", f"Nie można otworzyć w aplikacji systemowej: {str(e)}")
             return False
-    
-    def _extract_html_content(self, message) -> str:
-        """Extract HTML content from email message"""
-        if message.is_multipart():
-            for part in message.walk():
-                if part.get_content_type() == "text/html":
-                    content_disposition = part.get('Content-Disposition', '')
-                    if 'attachment' not in content_disposition:
-                        try:
-                            return part.get_content()
-                        except:
-                            payload = part.get_payload(decode=True)
-                            if payload:
-                                charset = part.get_content_charset() or 'utf-8'
-                                return payload.decode(charset, errors='ignore')
-        else:
-            if message.get_content_type() == "text/html":
-                try:
-                    return message.get_content()
-                except:
-                    payload = message.get_payload(decode=True)
-                    if payload:
-                        charset = message.get_content_charset() or 'utf-8'
-                        return payload.decode(charset, errors='ignore')
-        
-        return ""
-    
-    def _extract_plain_content(self, message) -> str:
-        """Extract plain text content from email message"""
-        if message.is_multipart():
-            for part in message.walk():
-                if part.get_content_type() == "text/plain":
-                    content_disposition = part.get('Content-Disposition', '')
-                    if 'attachment' not in content_disposition:
-                        try:
-                            return part.get_content()
-                        except:
-                            payload = part.get_payload(decode=True)
-                            if payload:
-                                charset = part.get_content_charset() or 'utf-8'
-                                return payload.decode(charset, errors='ignore')
-        else:
-            if message.get_content_type() == "text/plain":
-                try:
-                    return message.get_content()
-                except:
-                    payload = message.get_payload(decode=True)
-                    if payload:
-                        charset = message.get_content_charset() or 'utf-8'
-                        return payload.decode(charset, errors='ignore')
-        
-        return "Brak zawartości tekstowej"
+
 
 
 def open_eml_file_with_dialog(file_path: str, parent=None) -> bool:
