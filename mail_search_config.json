@@ -45,5 +45,6 @@
     "Zamowienia Woox.pl",
     "mail"
   ],
-  "exclusion_section_visible": true
+  "exclusion_section_visible": true,
+  "pdf_save_directory": "odczyty/Faktury"
 }

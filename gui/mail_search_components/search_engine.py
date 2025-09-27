@@ -441,7 +441,8 @@ class EmailSearchEngine:
             # Setup PDF auto-save if PDF search is enabled
             if has_pdf_search:
                 self.auto_save_pdfs = True
-                self.pdf_save_directory = os.path.join(os.getcwd(), "odczyty", "Faktury")
+                # Use configurable PDF save directory from criteria, fallback to default
+                self.pdf_save_directory = criteria.get('pdf_save_directory') or os.path.join(os.getcwd(), "odczyty", "Faktury")
                 self.saved_pdf_count = 0
                 
                 # Create output directory if it doesn't exist
