@@ -284,19 +284,50 @@ class EmlOpener:
             messagebox.showerror("Błąd", f"Nie można załadować zintegrowanego czytnika: {str(e)}")
             return False
     
+    def _sanitize_filename(self, filename: str) -> str:
+        """Sanitize filename by removing invalid characters"""
+        import re
+        # Remove invalid filename characters
+        invalid_chars = r'[<>:"/\\|?*\x00-\x1f]'
+        sanitized = re.sub(invalid_chars, '', filename)
+        # Remove leading/trailing whitespace and dots
+        sanitized = sanitized.strip(' .')
+        # Limit length to reasonable size (Windows has 255 char limit, leave room for .eml)
+        sanitized = sanitized[:200]
+        return sanitized
+    
     def _save_eml_file(self, eml_content: str, source_file: str = None) -> bool:
         """Save EML file to user-selected location"""
         try:
-            # Generate default filename
+            # Generate default filename from email subject
             import datetime
-            now = datetime.datetime.now()
-            default_filename = f"email_{now.strftime('%Y%m%d_%H%M%S')}.eml"
+            import email
+            import email.policy
             
-            # If we have a source file, try to use its name
-            if source_file and os.path.exists(source_file):
+            default_filename = None
+            
+            # Try to extract subject from EML content
+            try:
+                msg = email.message_from_string(eml_content, policy=email.policy.default)
+                subject = msg.get('Subject', '').strip()
+                if subject:
+                    sanitized_subject = self._sanitize_filename(subject)
+                    if sanitized_subject:  # Only use if sanitization left something
+                        default_filename = f"{sanitized_subject}.eml"
+            except Exception:
+                # If parsing fails, fall back to other methods
+                pass
+            
+            # Fallback 1: If we have a source file, try to use its name
+            if not default_filename and source_file and os.path.exists(source_file):
                 default_filename = os.path.basename(source_file)
                 if not default_filename.lower().endswith('.eml'):
                     default_filename += '.eml'
+            
+            # Fallback 2: Use timestamp-based name
+            if not default_filename:
+                now = datetime.datetime.now()
+                default_filename = f"email_{now.strftime('%Y%m%d_%H%M%S')}.eml"
             
             # Ask user where to save the file
             filename = filedialog.asksaveasfilename(
