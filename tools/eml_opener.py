@@ -302,7 +302,7 @@ class EmlOpener:
             filename = filedialog.asksaveasfilename(
                 title="Zapisz plik EML",
                 defaultextension=".eml",
-                initialname=default_filename,
+                initialfile=default_filename,
                 filetypes=[
                     ("Pliki EML", "*.eml"),
                     ("Wszystkie pliki", "*.*")
