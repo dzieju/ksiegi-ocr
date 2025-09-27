@@ -8,10 +8,11 @@ from tkinter import ttk
 class MailSearchUI:
     """Handles UI creation for mail search tab"""
     
-    def __init__(self, parent, variables, discover_callback):
+    def __init__(self, parent, variables, discover_callback, pdf_folder_callback=None):
         self.parent = parent
         self.vars = variables
         self.discover_callback = discover_callback
+        self.pdf_folder_callback = pdf_folder_callback
         
     def create_search_criteria_widgets(self, save_pdf_callback=None):
         """Create search criteria input widgets"""
@@ -44,6 +45,11 @@ class MailSearchUI:
         
         ttk.Label(self.parent, text="Wyszukaj w pliku PDF (automatyczny zapis):").grid(row=5, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['pdf_search_text'], width=40).grid(row=5, column=1, padx=5, pady=5)
+        
+        # Add PDF folder selection button
+        if self.pdf_folder_callback:
+            pdf_folder_button = ttk.Button(self.parent, text="Wybierz folder", command=self.pdf_folder_callback)
+            pdf_folder_button.grid(row=5, column=2, padx=5, pady=5)
         
         ttk.Label(self.parent, text="Nadawca maila:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5)

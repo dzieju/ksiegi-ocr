@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 import queue
 import threading
 import json
@@ -24,6 +24,7 @@ class MailSearchTab(ttk.Frame):
             'subject_search': tk.StringVar(),
             'body_search': tk.StringVar(),
             'pdf_search_text': tk.StringVar(),
+            'pdf_save_directory': tk.StringVar(value=os.path.join(os.getcwd(), "odczyty", "Faktury")),
             'sender': tk.StringVar(),
             'unread_only': tk.BooleanVar(),
             'attachments_required': tk.BooleanVar(),
@@ -51,7 +52,7 @@ class MailSearchTab(ttk.Frame):
         # Initialize components
         self.connection = ExchangeConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders)
+        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder)
         
         self.create_widgets()
         
@@ -87,6 +88,27 @@ class MailSearchTab(ttk.Frame):
         self.search_engine.cancel_search()
         self.status_label.config(text="Anulowanie...", foreground="orange")
         self.search_button.config(text="Rozpocznij wyszukiwanie")
+    
+    def choose_pdf_save_folder(self):
+        """Open folder selection dialog for PDF save directory"""
+        try:
+            current_directory = self.vars['pdf_save_directory'].get()
+            
+            # Open folder selection dialog
+            selected_folder = filedialog.askdirectory(
+                title="Wybierz folder do zapisu PDFów",
+                initialdir=current_directory if os.path.exists(current_directory) else os.getcwd()
+            )
+            
+            if selected_folder:  # User selected a folder (didn't cancel)
+                self.vars['pdf_save_directory'].set(selected_folder)
+                self._add_progress(f"Wybrano folder do zapisu PDFów: {selected_folder}")
+                
+                # Save to configuration
+                self.save_mail_search_config()
+                
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Błąd wyboru folderu: {e}")
     
     def discover_folders(self):
         """Discover available folders for exclusion in background thread"""
@@ -258,6 +280,10 @@ class MailSearchTab(ttk.Frame):
                 with open(MAIL_SEARCH_CONFIG_FILE, "r", encoding='utf-8') as f:
                     config = json.load(f)
                     self.exclusion_section_visible = config.get("exclusion_section_visible", True)
+                    # Load PDF save directory if available
+                    pdf_save_dir = config.get("pdf_save_directory")
+                    if pdf_save_dir:
+                        self.vars['pdf_save_directory'].set(pdf_save_dir)
                     # Excluded folders will be loaded when folders are discovered
         except Exception as e:
             print(f"Błąd ładowania konfiguracji wyszukiwania: {e}")
@@ -273,7 +299,8 @@ class MailSearchTab(ttk.Frame):
             
             config = {
                 "excluded_folders": excluded_folders,
-                "exclusion_section_visible": self.exclusion_section_visible
+                "exclusion_section_visible": self.exclusion_section_visible,
+                "pdf_save_directory": self.vars['pdf_save_directory'].get()
             }
             
             with open(MAIL_SEARCH_CONFIG_FILE, "w", encoding='utf-8') as f:
