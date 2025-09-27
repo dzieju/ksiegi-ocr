@@ -462,7 +462,7 @@ class EmlViewer:
             from tkinter import filedialog
             filename = filedialog.asksaveasfilename(
                 title="Zapisz załącznik",
-                initialname=attachment['filename'],
+                initialfile=attachment['filename'],
                 defaultextension=""
             )
             
