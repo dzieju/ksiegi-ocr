@@ -495,7 +495,7 @@ print(f"Zużycie pamięci: {process.memory_info().rss / 1024 / 1024:.1f} MB")
 
 ### Konfiguracja poczty (Multi-Account)
 
-Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak i IMAP/SMTP.
+Aplikacja obsługuje wiele kont pocztowych jednocześnie, obsługując Exchange, IMAP/SMTP oraz POP3/SMTP.
 
 #### Przykład konfiguracji multi-account
 
@@ -508,6 +508,7 @@ Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak 
       "email": "user@company.com",
       "username": "user@company.com",
       "password": "hasło",
+      "auth_method": "password",
       "exchange_server": "exchange.company.com",
       "domain": "company.com",
       "imap_server": "",
@@ -515,7 +516,13 @@ Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak 
       "imap_ssl": true,
       "smtp_server": "",
       "smtp_port": 587,
-      "smtp_ssl": true
+      "smtp_ssl": true,
+      "pop3_server": "",
+      "pop3_port": 995,
+      "pop3_ssl": true,
+      "smtp_server_pop3": "",
+      "smtp_port_pop3": 587,
+      "smtp_ssl_pop3": true
     },
     {
       "name": "Konto Gmail",
@@ -523,6 +530,7 @@ Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak 
       "email": "user@gmail.com",
       "username": "user@gmail.com",
       "password": "hasło_aplikacji",
+      "auth_method": "app_password",
       "exchange_server": "",
       "domain": "",
       "imap_server": "imap.gmail.com",
@@ -530,7 +538,35 @@ Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak 
       "imap_ssl": true,
       "smtp_server": "smtp.gmail.com",
       "smtp_port": 587,
-      "smtp_ssl": true
+      "smtp_ssl": true,
+      "pop3_server": "",
+      "pop3_port": 995,
+      "pop3_ssl": true,
+      "smtp_server_pop3": "",
+      "smtp_port_pop3": 587,
+      "smtp_ssl_pop3": true
+    },
+    {
+      "name": "Konto POP3",
+      "type": "pop3_smtp",
+      "email": "user@provider.com",
+      "username": "user@provider.com",
+      "password": "hasło",
+      "auth_method": "password",
+      "exchange_server": "",
+      "domain": "",
+      "imap_server": "",
+      "imap_port": 993,
+      "imap_ssl": true,
+      "smtp_server": "",
+      "smtp_port": 587,
+      "smtp_ssl": true,
+      "pop3_server": "pop3.provider.com",
+      "pop3_port": 995,
+      "pop3_ssl": true,
+      "smtp_server_pop3": "smtp.provider.com",
+      "smtp_port_pop3": 587,
+      "smtp_ssl_pop3": true
     }
   ],
   "main_account_index": 0
@@ -541,13 +577,25 @@ Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak 
 
 1. Otwórz zakładkę **"Konfiguracja poczty"**
 2. Kliknij **"Dodaj konto"** aby utworzyć nowe konto
-3. Wybierz typ konta: **Exchange** lub **IMAP/SMTP**
-4. Wypełnij dane konfiguracyjne:
+3. Wybierz typ konta: **Exchange**, **IMAP/SMTP** lub **POP3/SMTP**
+4. Wybierz metodę uwierzytelniania: **Hasło**, **OAuth2** lub **App Password**
+5. Wypełnij dane konfiguracyjne:
    - **Exchange**: serwer, domena (opcjonalnie)
-   - **IMAP/SMTP**: serwery, porty, SSL/TLS
-5. Kliknij **"Testuj połączenie"** aby sprawdzić konfigurację
-6. Kliknij **"Zapisz konto"** aby zapisać ustawienia
-7. Użyj **"Ustaw jako główne"** aby wybrać główne konto do operacji
+   - **IMAP/SMTP**: serwery IMAP i SMTP, porty, SSL/TLS
+   - **POP3/SMTP**: serwery POP3 i SMTP, porty, SSL/TLS
+6. Kliknij **"Testuj połączenie"** aby sprawdzić konfigurację
+7. Kliknij **"Zapisz konto"** aby zapisać ustawienia
+8. Użyj **"Ustaw jako główne"** aby wybrać główne konto do operacji
+
+**Uwagi dotyczące typów kont:**
+- **Exchange**: Dla serwerów Microsoft Exchange (wspiera foldery, zaawansowane funkcje)
+- **IMAP/SMTP**: Dla standardowych serwerów IMAP (Gmail, Yahoo, itp.) - wspiera foldery
+- **POP3/SMTP**: Dla serwerów POP3 (tylko skrzynka odbiorcza, starszy protokół)
+
+**Metody uwierzytelniania:**
+- **Hasło**: Standardowe uwierzytelnianie hasłem
+- **OAuth2**: Nowoczesne uwierzytelnianie OAuth2 (Gmail, Outlook.com)
+- **App Password**: Hasła aplikacji (dla Gmail z 2FA, Yahoo Mail)
 
 #### Migracja z starej konfiguracji
 
