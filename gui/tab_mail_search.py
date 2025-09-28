@@ -5,7 +5,7 @@ import threading
 import json
 import os
 
-from gui.mail_search_components.exchange_connection import ExchangeConnection
+from gui.mail_search_components.mail_connection import MailConnection
 from gui.mail_search_components.search_engine import EmailSearchEngine
 from gui.mail_search_components.results_display import ResultsDisplay
 from gui.mail_search_components.ui_builder import MailSearchUI
@@ -50,7 +50,7 @@ class MailSearchTab(ttk.Frame):
         self.progress_queue = queue.Queue()
         
         # Initialize components
-        self.connection = ExchangeConnection()
+        self.connection = MailConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
         self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder)
         
@@ -115,7 +115,7 @@ class MailSearchTab(ttk.Frame):
         def _discover():
             try:
                 self._add_progress("Wykrywanie dostępnych folderów...")
-                account = self.connection.get_account()
+                account = self.connection.get_main_account()
                 if account:
                     folder_path = self.vars['folder_path'].get()
                     folders = self.connection.get_available_folders_for_exclusion(account, folder_path)

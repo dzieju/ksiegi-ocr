@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from gui.tab_exchange_config import ExchangeConfigTab
+from gui.mail_config_widget import MailConfigWidget
 from gui.tab_mail_search import MailSearchTab
 from gui.tab_system import SystemTab
 from gui.tab_zakupy import ZakupiTab
@@ -34,8 +34,8 @@ class MainWindow(tk.Tk):
 
         # Zakładka: Konfiguracja poczty
         logger.log("Ładowanie zakładki: Konfiguracja poczty")
-        exchange_tab = ExchangeConfigTab(notebook)
-        notebook.add(exchange_tab, text="Konfiguracja poczty")
+        mail_config_tab = MailConfigWidget(notebook)
+        notebook.add(mail_config_tab, text="Konfiguracja poczty")
         logger.log("Zakładka 'Konfiguracja poczty' załadowana")
 
         # Zakładka: Zakupy

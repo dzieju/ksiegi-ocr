@@ -139,12 +139,21 @@ class EmailSearchEngine:
             log(f"Paginacja: strona {page}, na stronie {per_page}")
             
             # Get account for folder operations
-            account = connection.get_account()
+            account = connection.get_main_account()
             if not account:
                 log("BŁĄD: Nie można nawiązać połączenia z serwerem poczty")
                 raise Exception("Nie można nawiązać połączenia z serwerem poczty")
             
-            log(f"Połączono z kontem: {account.primary_smtp_address}")
+            # Log connection info (works for both Exchange and IMAP)
+            if hasattr(account, 'primary_smtp_address'):
+                log(f"Połączono z kontem Exchange: {account.primary_smtp_address}")
+            else:
+                # For IMAP connections, we need to get the email from connection config
+                config = connection.current_account_config
+                if config:
+                    log(f"Połączono z kontem IMAP: {config.get('email', 'Unknown')}")
+                else:
+                    log("Połączono z kontem pocztowym")
             
             # Get folder path for recursive search
             folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
