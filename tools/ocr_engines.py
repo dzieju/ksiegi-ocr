@@ -64,18 +64,18 @@ class OCREngineManager:
             import easyocr
             engines['easyocr'] = True
             log("EasyOCR dostępny")
-        except ImportError:
+        except (ImportError, OSError, ValueError) as e:
             engines['easyocr'] = False
-            log("EasyOCR niedostępny")
+            log(f"EasyOCR niedostępny: {e}")
         
         # Test PaddleOCR
         try:
             import paddleocr
             engines['paddleocr'] = True
             log("PaddleOCR dostępny")
-        except ImportError:
+        except (ImportError, OSError, ValueError) as e:
             engines['paddleocr'] = False
-            log("PaddleOCR niedostępny")
+            log(f"PaddleOCR niedostępny: {e}")
             
         return engines
     
@@ -205,75 +205,91 @@ class OCREngineManager:
     
     def _ocr_easyocr_gpu(self, image, language):
         """Perform OCR using EasyOCR with GPU"""
-        import easyocr
-        import numpy as np
-        
-        # Convert PIL image to numpy array
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        reader = easyocr.Reader(['en', 'pl'], gpu=True)
-        results = reader.readtext(image)
-        
-        # Combine all text results
-        return '\n'.join([result[1] for result in results])
+        try:
+            import easyocr
+            import numpy as np
+            
+            # Convert PIL image to numpy array
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            reader = easyocr.Reader(['en', 'pl'], gpu=True)
+            results = reader.readtext(image)
+            
+            # Combine all text results
+            return '\n'.join([result[1] for result in results])
+        except Exception as e:
+            log(f"Error in EasyOCR GPU: {e}")
+            raise RuntimeError(f"EasyOCR GPU nie jest dostępny: {e}")
     
     def _ocr_easyocr_cpu(self, image, language):
         """Perform OCR using EasyOCR with CPU"""
-        import easyocr
-        import numpy as np
-        
-        # Convert PIL image to numpy array
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        reader = easyocr.Reader(['en', 'pl'], gpu=False)
-        results = reader.readtext(image)
-        
-        # Combine all text results
-        return '\n'.join([result[1] for result in results])
+        try:
+            import easyocr
+            import numpy as np
+            
+            # Convert PIL image to numpy array
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            reader = easyocr.Reader(['en', 'pl'], gpu=False)
+            results = reader.readtext(image)
+            
+            # Combine all text results
+            return '\n'.join([result[1] for result in results])
+        except Exception as e:
+            log(f"Error in EasyOCR CPU: {e}")
+            raise RuntimeError(f"EasyOCR CPU nie jest dostępny: {e}")
     
     def _ocr_paddleocr_gpu(self, image, language):
         """Perform OCR using PaddleOCR with GPU"""
-        from paddleocr import PaddleOCR
-        import numpy as np
-        
-        # Convert PIL image to numpy array
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
-        results = ocr.ocr(image, cls=True)
-        
-        # Extract text from results
-        texts = []
-        if results and results[0]:
-            for line in results[0]:
-                if line and len(line) > 1:
-                    texts.append(line[1][0])
-        
-        return '\n'.join(texts)
+        try:
+            from paddleocr import PaddleOCR
+            import numpy as np
+            
+            # Convert PIL image to numpy array
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
+            results = ocr.ocr(image, cls=True)
+            
+            # Extract text from results
+            texts = []
+            if results and results[0]:
+                for line in results[0]:
+                    if line and len(line) > 1:
+                        texts.append(line[1][0])
+            
+            return '\n'.join(texts)
+        except Exception as e:
+            log(f"Error in PaddleOCR GPU: {e}")
+            raise RuntimeError(f"PaddleOCR GPU nie jest dostępny: {e}")
     
     def _ocr_paddleocr_cpu(self, image, language):
         """Perform OCR using PaddleOCR with CPU"""
-        from paddleocr import PaddleOCR
-        import numpy as np
-        
-        # Convert PIL image to numpy array
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
-        results = ocr.ocr(image, cls=True)
-        
-        # Extract text from results
-        texts = []
-        if results and results[0]:
-            for line in results[0]:
-                if line and len(line) > 1:
-                    texts.append(line[1][0])
-        
-        return '\n'.join(texts)
+        try:
+            from paddleocr import PaddleOCR
+            import numpy as np
+            
+            # Convert PIL image to numpy array
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
+            results = ocr.ocr(image, cls=True)
+            
+            # Extract text from results
+            texts = []
+            if results and results[0]:
+                for line in results[0]:
+                    if line and len(line) > 1:
+                        texts.append(line[1][0])
+            
+            return '\n'.join(texts)
+        except Exception as e:
+            log(f"Error in PaddleOCR CPU: {e}")
+            raise RuntimeError(f"PaddleOCR CPU nie jest dostępny: {e}")
 
 
 def _ocr_worker(image, language, engine, **kwargs):
@@ -299,43 +315,51 @@ def _ocr_worker(image, language, engine, **kwargs):
         return pytesseract.image_to_string(image, lang=language)
     
     elif engine == 'easyocr':
-        import easyocr
-        import numpy as np
-        
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        # Log warning for any unsupported arguments
-        unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
-        if unsupported_args:
-            log(f"Warning: Nieobsługiwane argumenty dla EasyOCR: {unsupported_args}")
-        
-        reader = easyocr.Reader(['en', 'pl'], gpu=use_gpu)
-        results = reader.readtext(image)
-        return '\n'.join([result[1] for result in results])
+        try:
+            import easyocr
+            import numpy as np
+            
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            # Log warning for any unsupported arguments
+            unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
+            if unsupported_args:
+                log(f"Warning: Nieobsługiwane argumenty dla EasyOCR: {unsupported_args}")
+            
+            reader = easyocr.Reader(['en', 'pl'], gpu=use_gpu)
+            results = reader.readtext(image)
+            return '\n'.join([result[1] for result in results])
+        except Exception as e:
+            log(f"Error in EasyOCR worker: {e}")
+            raise RuntimeError(f"EasyOCR nie jest dostępny: {e}")
     
     elif engine == 'paddleocr':
-        from paddleocr import PaddleOCR
-        import numpy as np
-        
-        if hasattr(image, 'convert'):
-            image = np.array(image.convert('RGB'))
-        
-        # Log warning for any unsupported arguments
-        unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
-        if unsupported_args:
-            log(f"Warning: Nieobsługiwane argumenty dla PaddleOCR: {unsupported_args}")
-        
-        ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=use_gpu)
-        results = ocr.ocr(image, cls=True)
-        
-        texts = []
-        if results and results[0]:
-            for line in results[0]:
-                if line and len(line) > 1:
-                    texts.append(line[1][0])
-        
-        return '\n'.join(texts)
+        try:
+            from paddleocr import PaddleOCR
+            import numpy as np
+            
+            if hasattr(image, 'convert'):
+                image = np.array(image.convert('RGB'))
+            
+            # Log warning for any unsupported arguments
+            unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
+            if unsupported_args:
+                log(f"Warning: Nieobsługiwane argumenty dla PaddleOCR: {unsupported_args}")
+            
+            ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=use_gpu)
+            results = ocr.ocr(image, cls=True)
+            
+            texts = []
+            if results and results[0]:
+                for line in results[0]:
+                    if line and len(line) > 1:
+                        texts.append(line[1][0])
+            
+            return '\n'.join(texts)
+        except Exception as e:
+            log(f"Error in PaddleOCR worker: {e}")
+            raise RuntimeError(f"PaddleOCR nie jest dostępny: {e}")
     
     else:
         raise RuntimeError(f"Nieobsługiwany silnik OCR w worker: {engine}")
