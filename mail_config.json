@@ -1,24 +1,24 @@
 {
   "accounts": [
     {
-      "name": "POP3 Account",
+      "name": "POP3/SMTP Account",
       "type": "pop3_smtp",
-      "email": "user@outlook.com",
-      "username": "user@outlook.com",
-      "password": "password123",
+      "email": "user@pop3_smtp.com",
+      "username": "testuser",
+      "password": "testpass",
       "auth_method": "password",
       "exchange_server": "",
       "domain": "",
       "imap_server": "",
       "imap_port": 993,
       "imap_ssl": true,
-      "smtp_server": "",
+      "smtp_server": "smtp.example.com",
       "smtp_port": 587,
       "smtp_ssl": true,
-      "pop3_server": "outlook.office365.com",
+      "pop3_server": "pop3.example.com",
       "pop3_port": 995,
       "pop3_ssl": true,
-      "smtp_server_pop3": "smtp.office365.com",
+      "smtp_server_pop3": "smtp.example.com",
       "smtp_port_pop3": 587,
       "smtp_ssl_pop3": true
     }
