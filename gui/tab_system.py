@@ -4,6 +4,7 @@ import queue
 import multiprocessing
 from tools import logger, i18n, darkmode
 from tools.ocr_config import ocr_config
+from tools.version_info import format_system_info
 from gui.system_components.backup_handler import BackupHandler
 from gui.system_components.system_operations import SystemOperations
 from gui.system_components.dependency_widget import DependencyWidget
@@ -71,36 +72,54 @@ class SystemTab(ttk.Frame):
         """Create system operations widgets."""
         parent = self.system_frame
         
+        # Version Information Section
+        version_frame = ttk.LabelFrame(parent, text="Informacje o wersji", padding=10)
+        version_frame.grid(row=0, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
+        
+        self.version_info_label = ttk.Label(version_frame, text="", font=("Consolas", 9))
+        self.version_info_label.pack(anchor="w")
+        
+        # Refresh version info button
+        refresh_version_btn = ttk.Button(version_frame, text="Odśwież informacje o wersji", 
+                                        command=self.refresh_version_info)
+        refresh_version_btn.pack(anchor="w", pady=(5, 0))
+        
         # Status label
         self.status_label = ttk.Label(parent, text="Gotowy", foreground="green")
-        self.status_label.grid(row=0, column=2, padx=10, pady=10, sticky="w")
+        self.status_label.grid(row=1, column=2, padx=10, pady=10, sticky="w")
 
         # Backup
         self.backup_btn = ttk.Button(parent, text=i18n.translate("Utwórz backup"), command=self.create_backup)
-        self.backup_btn.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.backup_btn.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         self.restore_btn = ttk.Button(parent, text=i18n.translate("Przywróć backup"), command=self.restore_backup)
-        self.restore_btn.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        self.restore_btn.grid(row=2, column=1, padx=10, pady=10, sticky="w")
 
         # Logi/historia
         log_btn = ttk.Button(parent, text=i18n.translate("Pokaż logi"), command=self.show_logs)
-        log_btn.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        log_btn.grid(row=3, column=0, padx=10, pady=10, sticky="w")
 
         # Aktualizacje
         self.update_btn = ttk.Button(parent, text=i18n.translate("Sprawdź aktualizacje"), command=self.check_update)
-        self.update_btn.grid(row=3, column=0, padx=10, pady=10, sticky="w")
+        self.update_btn.grid(row=4, column=0, padx=10, pady=10, sticky="w")
 
         # Raportowanie
         self.report_btn = ttk.Button(parent, text=i18n.translate("Wyślij raport"), command=self.send_report)
-        self.report_btn.grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        self.report_btn.grid(row=5, column=0, padx=10, pady=10, sticky="w")
 
         # Dark mode
         theme_btn = ttk.Button(parent, text=i18n.translate("Przełącz tryb ciemny/jasny"), command=darkmode.toggle_theme)
-        theme_btn.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        theme_btn.grid(row=6, column=0, padx=10, pady=10, sticky="w")
 
         # Restart
         restart_btn = ttk.Button(parent, text=i18n.translate("Restartuj aplikację"), command=self.restart_app)
-        restart_btn.grid(row=6, column=0, padx=10, pady=10, sticky="w")
+        restart_btn.grid(row=7, column=0, padx=10, pady=10, sticky="w")
+        
+        # Configure column weights for proper stretching
+        parent.columnconfigure(0, weight=1)
+        
+        # Load initial version info
+        self.refresh_version_info()
     
     def _create_dependencies_widgets(self):
         """Create dependencies checklist widgets."""
@@ -539,13 +558,18 @@ class SystemTab(ttk.Frame):
         """Create logs viewing widgets."""
         parent = self.logs_frame
         
-        # Top frame with refresh button
+        # Top frame with refresh and clear buttons
         button_frame = ttk.Frame(parent)
         button_frame.pack(fill="x", padx=10, pady=5)
         
         # Refresh button
         self.refresh_logs_btn = ttk.Button(button_frame, text=i18n.translate("Odśwież logi"), command=self.refresh_logs)
         self.refresh_logs_btn.pack(side="left")
+        
+        # Clear logs button
+        self.clear_logs_btn = ttk.Button(button_frame, text=i18n.translate("Wyczyść logi"), 
+                                        command=self.clear_logs, style="Toolbutton")
+        self.clear_logs_btn.pack(side="left", padx=(10, 0))
         
         # Log info label
         self.log_info_label = ttk.Label(button_frame, text="", foreground="gray")
@@ -600,6 +624,49 @@ class SystemTab(ttk.Frame):
             self.logs_text.insert(1.0, f"Błąd podczas ładowania logów: {str(e)}")
             self.logs_text.config(state="disabled")
             self.log_info_label.config(text="Błąd ładowania logów")
+    
+    def clear_logs(self):
+        """Clear all application log files."""
+        try:
+            # Ask for confirmation
+            result = messagebox.askyesno(
+                "Potwierdzenie", 
+                "Czy na pewno chcesz usunąć wszystkie pliki logów?\n\nTa operacja jest nieodwracalna.",
+                icon="warning"
+            )
+            
+            if result:
+                # Clear the log file by calling logger's clear function
+                if hasattr(logger, 'clear_logs'):
+                    logger.clear_logs()
+                else:
+                    # If clear_logs doesn't exist, manually clear the log file
+                    import os
+                    if os.path.exists(logger.LOG_FILE):
+                        os.remove(logger.LOG_FILE)
+                
+                # Log the clear action (this will create a new log file)
+                logger.log("Wszystkie logi zostały wyczyszczone przez użytkownika")
+                
+                # Refresh the display
+                self.refresh_logs()
+                
+                messagebox.showinfo("Sukces", "Wszystkie logi zostały pomyślnie wyczyszczone.")
+                
+        except Exception as e:
+            logger.log(f"Błąd podczas czyszczenia logów: {str(e)}")
+            messagebox.showerror("Błąd", f"Nie udało się wyczyścić logów:\n{str(e)}")
+    
+    def refresh_version_info(self):
+        """Refresh version information display."""
+        try:
+            version_text = format_system_info()
+            self.version_info_label.config(text=version_text)
+            logger.log("Informacje o wersji zostały odświeżone")
+        except Exception as e:
+            error_text = f"Błąd podczas ładowania informacji o wersji: {str(e)}"
+            self.version_info_label.config(text=error_text)
+            logger.log(f"Błąd odświeżania informacji o wersji: {str(e)}")
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
