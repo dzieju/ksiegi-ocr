@@ -1,8 +1,15 @@
 """
 Multi-account mail configuration widget supporting both Exchange and IMAP/SMTP
 """
-import tkinter as tk
-from tkinter import ttk, messagebox
+try:
+    import tkinter as tk
+    from tkinter import ttk, messagebox
+    HAVE_TKINTER = True
+except ImportError:
+    HAVE_TKINTER = False
+    # This widget requires tkinter
+    raise ImportError("MailConfigWidget requires tkinter")
+
 import json
 import threading
 import queue
