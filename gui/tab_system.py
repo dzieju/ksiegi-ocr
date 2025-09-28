@@ -472,7 +472,7 @@ class SystemTab(ttk.Frame):
     def _on_gpu_change(self):
         """Handle GPU usage change"""
         use_gpu = self.gpu_enabled_var.get()
-        engine = self.ocr_engine_var.get().split(" (")[0]
+        engine = self.ocr_engine_var.get().split(" (")[0]  # Remove availability indicator
         
         # Check GPU support
         if use_gpu and not ocr_config.is_gpu_supported(engine):
@@ -485,20 +485,6 @@ class SystemTab(ttk.Frame):
         if use_gpu and not ocr_config.is_engine_available(engine):
             messagebox.showwarning("Silnik niedostępny", 
                                  f"Silnik {engine} nie jest dostępny. Zainstaluj go aby używać GPU.")
-            self.gpu_enabled_var.set(False)
-            return
-            
-        ocr_config.set_use_gpu(use_gpu)
-        mode = "GPU" if use_gpu else "CPU"
-        self.status_label.config(text=f"Tryb OCR zmieniony na: {mode}", foreground="blue")
-    
-    def _on_gpu_change(self):
-        """Handle GPU usage change"""
-        use_gpu = self.gpu_enabled_var.get()
-        engine = self.ocr_engine_var.get()
-        
-        if use_gpu and engine == "tesseract":
-            messagebox.showwarning("GPU niedostępny", "Tesseract nie obsługuje GPU. Użyj EasyOCR lub PaddleOCR dla obsługi GPU.")
             self.gpu_enabled_var.set(False)
             return
             

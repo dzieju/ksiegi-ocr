@@ -164,10 +164,17 @@ class OCREngineManager:
                     
                     # Only pass use_gpu for engines that support it
                     if current_engine in ['easyocr', 'paddleocr']:
-                        worker_kwargs['use_gpu'] = use_gpu
-                    elif current_engine == 'tesseract' and use_gpu:
-                        # Log warning if GPU was requested for Tesseract
-                        log("Warning: GPU został żądany dla Tesseract, ale nie jest obsługiwany - używam CPU")
+                        # Validate use_gpu parameter before passing
+                        if not isinstance(use_gpu, bool):
+                            log(f"Warning: use_gpu parameter should be boolean, got {type(use_gpu)}: {use_gpu}")
+                            worker_kwargs['use_gpu'] = bool(use_gpu)
+                        else:
+                            worker_kwargs['use_gpu'] = use_gpu
+                    elif current_engine == 'tesseract':
+                        # Tesseract doesn't support use_gpu, don't pass any parameters
+                        if use_gpu:
+                            log("Warning: GPU został żądany dla Tesseract, ale nie jest obsługiwany - używam CPU")
+                        # worker_kwargs remains empty for tesseract
                     
                     future = executor.submit(_ocr_worker, image, language, current_engine, **worker_kwargs)
                     futures.append(future)
@@ -251,7 +258,14 @@ class OCREngineManager:
             if hasattr(image, 'convert'):
                 image = np.array(image.convert('RGB'))
             
-            ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
+            # Create OCR instance with GPU enabled, with fallback to CPU
+            try:
+                ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
+            except Exception as gpu_error:
+                log(f"Warning: PaddleOCR GPU initialization failed: {gpu_error}")
+                log("Falling back to CPU mode")
+                ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
+                
             results = ocr.ocr(image, cls=True)
             
             # Extract text from results
@@ -276,6 +290,7 @@ class OCREngineManager:
             if hasattr(image, 'convert'):
                 image = np.array(image.convert('RGB'))
             
+            # Explicitly create OCR instance with CPU mode
             ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
             results = ocr.ocr(image, cls=True)
             
@@ -307,8 +322,8 @@ def _ocr_worker(image, language, engine, **kwargs):
         if 'use_gpu' in kwargs and use_gpu:
             log("Warning: Tesseract nie obsługuje GPU, parametr use_gpu zostanie zignorowany")
         
-        # Filter out unsupported arguments for Tesseract
-        unsupported_args = [arg for arg in kwargs.keys() if arg != 'use_gpu']
+        # Filter out ALL unsupported arguments for Tesseract (including use_gpu)
+        unsupported_args = list(kwargs.keys())
         if unsupported_args:
             log(f"Warning: Nieobsługiwane argumenty dla Tesseract: {unsupported_args}")
         
@@ -322,12 +337,28 @@ def _ocr_worker(image, language, engine, **kwargs):
             if hasattr(image, 'convert'):
                 image = np.array(image.convert('RGB'))
             
-            # Log warning for any unsupported arguments
+            # Validate use_gpu parameter
+            if not isinstance(use_gpu, bool):
+                log(f"Warning: use_gpu musi być boolean, otrzymano {type(use_gpu)}: {use_gpu}")
+                use_gpu = bool(use_gpu)
+            
+            # Log warning for any unsupported arguments (use_gpu is supported)
             unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
             if unsupported_args:
                 log(f"Warning: Nieobsługiwane argumenty dla EasyOCR: {unsupported_args}")
             
-            reader = easyocr.Reader(['en', 'pl'], gpu=use_gpu)
+            # Create reader with GPU/CPU mode
+            try:
+                reader = easyocr.Reader(['en', 'pl'], gpu=use_gpu)
+            except Exception as reader_error:
+                log(f"Error creating EasyOCR reader with gpu={use_gpu}: {reader_error}")
+                # Fallback to CPU mode if GPU initialization fails
+                if use_gpu:
+                    log("Falling back to CPU mode for EasyOCR")
+                    reader = easyocr.Reader(['en', 'pl'], gpu=False)
+                else:
+                    raise
+                    
             results = reader.readtext(image)
             return '\n'.join([result[1] for result in results])
         except Exception as e:
@@ -342,12 +373,28 @@ def _ocr_worker(image, language, engine, **kwargs):
             if hasattr(image, 'convert'):
                 image = np.array(image.convert('RGB'))
             
-            # Log warning for any unsupported arguments
+            # Validate use_gpu parameter
+            if not isinstance(use_gpu, bool):
+                log(f"Warning: use_gpu musi być boolean, otrzymano {type(use_gpu)}: {use_gpu}")
+                use_gpu = bool(use_gpu)
+            
+            # Log warning for any unsupported arguments (use_gpu is supported)
             unsupported_args = [arg for arg in kwargs.keys() if arg not in ['use_gpu']]
             if unsupported_args:
                 log(f"Warning: Nieobsługiwane argumenty dla PaddleOCR: {unsupported_args}")
             
-            ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=use_gpu)
+            # Only pass supported arguments to PaddleOCR constructor
+            try:
+                ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=use_gpu)
+            except Exception as constructor_error:
+                log(f"Error creating PaddleOCR with use_gpu={use_gpu}: {constructor_error}")
+                # Fallback to CPU mode if GPU initialization fails
+                if use_gpu:
+                    log("Falling back to CPU mode for PaddleOCR")
+                    ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
+                else:
+                    raise
+                    
             results = ocr.ocr(image, cls=True)
             
             texts = []
