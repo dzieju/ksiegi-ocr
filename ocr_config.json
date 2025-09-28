@@ -1,6 +1,6 @@
 {
-  "engine": "tesseract",
-  "use_gpu": false,
+  "engine": "paddleocr",
+  "use_gpu": true,
   "multiprocessing": true,
   "max_workers": null
 }
