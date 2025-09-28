@@ -217,6 +217,95 @@ class TestMailConnectionFolderDetection(unittest.TestCase):
         # The connections should be None due to connection failure
         self.assertIsNone(conn.imap_connection)
         self.assertIsNone(conn.pop3_connection)
+    
+    def test_edge_cases_and_validation(self):
+        """Test edge cases with incomplete configurations and validation"""
+        conn = MailConnection()
+        
+        # Test with no account configuration
+        folders = conn.get_available_folders_for_exclusion(None, "INBOX")
+        self.assertEqual(folders, [])  # Should return empty list
+        
+        # Test with incomplete Exchange config (missing exchange_server)
+        incomplete_config = {
+            "accounts": [{
+                "name": "Incomplete Exchange",
+                "type": "exchange",
+                "email": "test@example.com",
+                "username": "testuser",
+                "password": "testpass",
+                "auth_method": "password",
+                "exchange_server": "",  # Missing server
+                "domain": "example.com",
+                "imap_server": "",
+                "imap_port": 993,
+                "imap_ssl": True
+            }],
+            "main_account_index": 0
+        }
+        
+        with open("mail_config.json", "w") as f:
+            json.dump(incomplete_config, f, indent=2)
+        
+        try:
+            conn.get_main_account()
+        except:
+            pass
+        
+        # Should still have account config set but validation should fail
+        self.assertIsNotNone(conn.current_account_config)
+        self.assertEqual(conn.current_account_config.get("type"), "exchange")
+        
+        # Folder discovery should return empty due to validation failure
+        folders = conn.get_available_folders_for_exclusion(None, "INBOX")
+        self.assertEqual(folders, [])
+        
+        # Test with incomplete IMAP config (missing imap_server)
+        incomplete_imap_config = {
+            "accounts": [{
+                "name": "Incomplete IMAP",
+                "type": "imap_smtp",
+                "email": "test@example.com",
+                "username": "testuser",
+                "password": "testpass",
+                "auth_method": "password",
+                "imap_server": "",  # Missing server
+                "smtp_server": "smtp.example.com"
+            }],
+            "main_account_index": 0
+        }
+        
+        with open("mail_config.json", "w") as f:
+            json.dump(incomplete_imap_config, f, indent=2)
+        
+        try:
+            conn.get_main_account()
+        except:
+            pass
+        
+        # Folder discovery should return empty due to validation failure
+        folders = conn.get_available_folders_for_exclusion(None, "INBOX")
+        self.assertEqual(folders, [])
+        
+    def test_account_info_debugging(self):
+        """Test account info debugging functionality"""
+        conn = MailConnection()
+        
+        # Test with no account
+        info = conn.get_current_account_info()
+        self.assertEqual(info, "No account configured")
+        
+        # Test with configured account
+        self.create_test_config("imap_smtp", "Debug Test Account")
+        try:
+            conn.get_main_account()
+        except:
+            pass
+        
+        info = conn.get_current_account_info()
+        self.assertIn("Debug Test Account", info)
+        self.assertIn("imap_smtp", info)
+        self.assertIn("test@example.com", info)
 
 
 if __name__ == "__main__":
