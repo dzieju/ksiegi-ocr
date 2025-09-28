@@ -15,6 +15,9 @@ from tools.dependency_checker import get_dependencies_summary
 # Import logger for application startup logging
 from tools import logger
 
+# Setup warning filters early to suppress torch/paddle warnings
+logger.setup_warning_filters()
+
 if __name__ == "__main__":
     # Log application startup
     logger.log("=== APLIKACJA KSIEGI-OCR - START ===")

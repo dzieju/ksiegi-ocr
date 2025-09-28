@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import queue
 import multiprocessing
+import webbrowser
 from tools import logger, i18n, darkmode
 from tools.ocr_config import ocr_config
 from tools.version_info import format_system_info
@@ -209,6 +210,10 @@ class SystemTab(ttk.Frame):
         # Refresh engines button  
         refresh_btn = ttk.Button(parent, text="Odśwież silniki", command=self._refresh_ocr_engines)
         refresh_btn.grid(row=7, column=1, padx=10, pady=10, sticky="w")
+        
+        # GPU Test button
+        gpu_test_btn = ttk.Button(parent, text="Testuj dostępność GPU", command=self._test_gpu_availability)
+        gpu_test_btn.grid(row=7, column=2, padx=10, pady=10, sticky="w")
         
         # Initialize the interface
         self._refresh_ocr_engines()
@@ -487,7 +492,35 @@ class SystemTab(ttk.Frame):
                                  f"Silnik {engine} nie jest dostępny. Zainstaluj go aby używać GPU.")
             self.gpu_enabled_var.set(False)
             return
-            
+        
+        # Additional GPU capability check when enabling GPU
+        if use_gpu:
+            try:
+                from tools.gpu_utils import test_gpu_availability
+                gpu_test = test_gpu_availability()
+                
+                if gpu_test['overall_status'] == 'unavailable':
+                    response = messagebox.askyesno(
+                        "GPU/CUDA niedostępne",
+                        "GPU lub CUDA nie zostały wykryte w systemie.\n\n"
+                        "Czy chcesz otworzyć instrukcje instalacji CUDA?\n\n"
+                        "Uwaga: OCR będzie działać w trybie CPU.",
+                        icon="warning"
+                    )
+                    if response:
+                        self._show_cuda_installation_help()
+                    # Allow proceeding but warn it will use CPU
+                    self.status_label.config(text="Uwaga: GPU niedostępne, używam CPU", foreground="orange")
+                elif gpu_test['overall_status'] in ['cuda_only', 'framework_only']:
+                    messagebox.showwarning(
+                        "Problemy z konfiguracją GPU",
+                        f"Wykryto problemy z konfiguracją GPU:\n\n" +
+                        "\n".join(gpu_test['recommendations']) +
+                        "\n\nUżyj przycisku 'Testuj dostępność GPU' aby uzyskać szczegóły."
+                    )
+            except Exception as e:
+                logger.log(f"Error testing GPU during configuration: {e}")
+                
         ocr_config.set_use_gpu(use_gpu)
         mode = "GPU" if use_gpu else "CPU"
         self.status_label.config(text=f"Tryb OCR zmieniony na: {mode}", foreground="blue")
@@ -653,6 +686,204 @@ class SystemTab(ttk.Frame):
             error_text = f"Błąd podczas ładowania informacji o wersji: {str(e)}"
             self.version_info_label.config(text=error_text)
             logger.log(f"Błąd odświeżania informacji o wersji: {str(e)}")
+    
+    def _test_gpu_availability(self):
+        """Test GPU availability and show detailed results"""
+        try:
+            from tools.gpu_utils import test_gpu_availability
+            
+            self.status_label.config(text="Testowanie dostępności GPU...", foreground="blue")
+            self.update()  # Update GUI immediately
+            
+            # Run comprehensive GPU test
+            results = test_gpu_availability()
+            
+            # Create results window
+            self._show_gpu_test_results(results)
+            
+            self.status_label.config(text=f"Test GPU: {results['overall_status']}", foreground="green")
+            
+        except Exception as e:
+            logger.log(f"Error during GPU test: {e}")
+            messagebox.showerror("Błąd testu GPU", f"Nie udało się przetestować GPU:\n{str(e)}")
+            self.status_label.config(text="Błąd testu GPU", foreground="red")
+    
+    def _show_gpu_test_results(self, results):
+        """Show detailed GPU test results in a popup window"""
+        # Create popup window
+        popup = tk.Toplevel(self)
+        popup.title("Wyniki testu dostępności GPU")
+        popup.geometry("600x500")
+        popup.resizable(True, True)
+        
+        # Main frame with scrollbar
+        main_frame = ttk.Frame(popup)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Create scrollable text widget
+        text_frame = ttk.Frame(main_frame)
+        text_frame.pack(fill="both", expand=True)
+        
+        text_widget = tk.Text(text_frame, wrap="word", font=("Consolas", 10), 
+                             state="normal", bg="white", fg="black")
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Format and insert results
+        result_text = self._format_gpu_test_results(results)
+        text_widget.insert("1.0", result_text)
+        text_widget.config(state="disabled")
+        
+        # Button frame
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(fill="x", pady=(10, 0))
+        
+        # Close button
+        close_btn = ttk.Button(button_frame, text="Zamknij", command=popup.destroy)
+        close_btn.pack(side="right")
+        
+        # CUDA installation help button (if needed)
+        if results['overall_status'] in ['unavailable', 'cuda_only']:
+            help_btn = ttk.Button(button_frame, text="Instrukcje instalacji CUDA", 
+                                command=self._show_cuda_installation_help)
+            help_btn.pack(side="right", padx=(0, 10))
+    
+    def _format_gpu_test_results(self, results):
+        """Format GPU test results for display"""
+        lines = []
+        
+        # Overall status
+        status_emojis = {
+            'available': '✅',
+            'cuda_only': '⚠️', 
+            'framework_only': '⚠️',
+            'unavailable': '❌'
+        }
+        
+        emoji = status_emojis.get(results['overall_status'], '❓')
+        lines.append(f"{emoji} OGÓLNY STATUS GPU: {results['overall_status'].upper()}")
+        lines.append("=" * 50)
+        lines.append("")
+        
+        # CUDA System Info
+        cuda = results['cuda_system']
+        lines.append("🔧 SYSTEM CUDA:")
+        if cuda['available']:
+            lines.append(f"   ✅ Status: Dostępna")
+            if cuda['driver_version']:
+                lines.append(f"   📝 Sterownik NVIDIA: {cuda['driver_version']}")
+            if cuda['cuda_version']:
+                lines.append(f"   🏗️  CUDA Version: {cuda['cuda_version']}")
+            lines.append(f"   🔍 Metoda wykrywania: {cuda['method']}")
+        else:
+            lines.append("   ❌ Status: Niedostępna")
+            lines.append("   💡 Sterowniki NVIDIA lub CUDA nie zostały wykryte")
+        lines.append("")
+        
+        # PyTorch Info
+        torch = results['torch']
+        lines.append("🔥 PYTORCH:")
+        if torch['available']:
+            lines.append(f"   ✅ Status: Zainstalowany")
+            lines.append(f"   📦 Wersja: {torch['version']}")
+            if torch['cuda_available']:
+                lines.append(f"   🚀 CUDA: Dostępna (v{torch['cuda_version']})")
+                lines.append(f"   📱 Liczba GPU: {torch['device_count']}")
+                for i, device in enumerate(torch['device_names']):
+                    lines.append(f"      GPU {i}: {device}")
+            else:
+                lines.append("   ❌ CUDA: Niedostępna")
+        else:
+            lines.append("   ❌ Status: Nie zainstalowany")
+            lines.append("   💡 Instalacja: pip install torch")
+        
+        if 'error' in torch:
+            lines.append(f"   ⚠️  Błąd: {torch['error']}")
+        lines.append("")
+        
+        # PaddlePaddle Info
+        paddle = results['paddle']
+        lines.append("🚀 PADDLEPADDLE:")
+        if paddle['available']:
+            lines.append(f"   ✅ Status: Zainstalowany")
+            lines.append(f"   📦 Wersja: {paddle['version']}")
+            if paddle['gpu_available']:
+                lines.append(f"   🚀 GPU: Dostępna")
+                lines.append(f"   📱 Liczba GPU: {paddle['device_count']}")
+                for device in paddle['device_info']:
+                    lines.append(f"      📱 {device}")
+            else:
+                lines.append("   ❌ GPU: Niedostępna")
+        else:
+            lines.append("   ❌ Status: Nie zainstalowany")
+            lines.append("   💡 Instalacja: pip install paddlepaddle paddleocr")
+        
+        if 'error' in paddle:
+            lines.append(f"   ⚠️  Błąd: {paddle['error']}")
+        lines.append("")
+        
+        # Recommendations
+        lines.append("💡 REKOMENDACJE:")
+        for i, rec in enumerate(results['recommendations'], 1):
+            lines.append(f"   {i}. {rec}")
+        
+        return "\n".join(lines)
+    
+    def _show_cuda_installation_help(self):
+        """Show CUDA installation help with links"""
+        try:
+            from tools.gpu_utils import get_cuda_installation_links
+            links = get_cuda_installation_links()
+            
+            # Create help popup
+            help_popup = tk.Toplevel(self)
+            help_popup.title("Instrukcje instalacji CUDA")
+            help_popup.geometry("500x400")
+            
+            # Main frame
+            main_frame = ttk.Frame(help_popup)
+            main_frame.pack(fill="both", expand=True, padx=15, pady=15)
+            
+            # Title
+            title_label = ttk.Label(main_frame, text="Instrukcje instalacji CUDA i GPU support", 
+                                  font=("Arial", 12, "bold"))
+            title_label.pack(anchor="w", pady=(0, 10))
+            
+            # Instructions
+            instructions_frame = ttk.LabelFrame(main_frame, text="Kroki instalacji", padding=10)
+            instructions_frame.pack(fill="both", expand=True, pady=(0, 10))
+            
+            for i, instruction in enumerate(links['instructions'], 1):
+                instr_label = ttk.Label(instructions_frame, text=instruction, wraplength=450)
+                instr_label.pack(anchor="w", pady=2)
+            
+            # Links frame
+            links_frame = ttk.LabelFrame(main_frame, text="Przydatne linki", padding=10)
+            links_frame.pack(fill="x", pady=(0, 10))
+            
+            # Create clickable links
+            link_buttons = [
+                ("CUDA Toolkit", links['cuda_toolkit']),
+                ("Sterowniki NVIDIA", links['nvidia_drivers']),
+                ("PyTorch CUDA", links['pytorch_cuda']),
+                ("PaddlePaddle GPU", links['paddle_gpu'])
+            ]
+            
+            for name, url in link_buttons:
+                btn = ttk.Button(links_frame, text=f"🔗 {name}", 
+                               command=lambda u=url: webbrowser.open(u))
+                btn.pack(fill="x", pady=2)
+            
+            # Close button
+            close_btn = ttk.Button(main_frame, text="Zamknij", command=help_popup.destroy)
+            close_btn.pack(anchor="e")
+            
+        except Exception as e:
+            logger.log(f"Error showing CUDA installation help: {e}")
+            messagebox.showerror("Błąd", f"Nie udało się wyświetlić pomocy:\n{str(e)}")
     
     def destroy(self):
         """Cleanup when widget is destroyed"""
