@@ -115,12 +115,29 @@ class MailSearchTab(ttk.Frame):
         def _discover():
             try:
                 self._add_progress("Wykrywanie dostępnych folderów...")
+                
+                # Add debug logging
+                from tools.logger import log
+                log("[FOLDER DISCOVERY] Starting folder discovery")
+                
                 account = self.connection.get_main_account()
+                log(f"[FOLDER DISCOVERY] Got account: {account is not None}")
+                
                 if account:
                     folder_path = self.vars['folder_path'].get()
+                    log(f"[FOLDER DISCOVERY] Folder path: {folder_path}")
+                    
                     folders = self.connection.get_available_folders_for_exclusion(account, folder_path)
+                    log(f"[FOLDER DISCOVERY] Found {len(folders)} folders: {folders}")
+                    
                     self.after_idle(lambda: self._update_folder_checkboxes(folders))
+                else:
+                    log("[FOLDER DISCOVERY] No account available")
+                    self._add_progress("Brak dostępnego konta pocztowego")
+                    
             except Exception as e:
+                from tools.logger import log
+                log(f"[FOLDER DISCOVERY] Error: {str(e)}")
                 print(f"Błąd wykrywania folderów: {e}")
                 self._add_progress("Błąd wykrywania folderów")
         
@@ -128,15 +145,20 @@ class MailSearchTab(ttk.Frame):
     
     def _update_folder_checkboxes(self, folders):
         """Update folder checkboxes in the UI thread"""
+        from tools.logger import log
+        log(f"[FOLDER UI] Updating folder checkboxes with {len(folders)} folders: {folders}")
+        
         self.available_folders = folders
         self.folder_exclusion_vars = {}
         
         # Clear existing checkboxes
         if self.folder_checkboxes_frame:
+            log("[FOLDER UI] Destroying existing checkboxes frame")
             self.folder_checkboxes_frame.destroy()
         
         # Create new checkboxes frame if we have folders
         if folders:
+            log("[FOLDER UI] Creating new folder checkboxes")
             self.folder_checkboxes_frame, self.folder_section_widgets = self.ui_builder.create_folder_exclusion_checkboxes(
                 folders, 
                 self.folder_exclusion_vars, 
@@ -153,6 +175,8 @@ class MailSearchTab(ttk.Frame):
                 
             # Load saved excluded folders
             self._load_saved_exclusions()
+        else:
+            log("[FOLDER UI] No folders to display")
         
         self._add_progress(f"Wykryto {len(folders)} folderów")
     
