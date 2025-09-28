@@ -107,4 +107,16 @@ def format_system_info():
     if info['pr_number']:
         lines.insert(1, f"PR Number: #{info['pr_number']}")
     
+    # Add GPU/Framework information
+    try:
+        from tools.gpu_utils import format_gpu_status_text
+        gpu_status = format_gpu_status_text()
+        lines.append("")  # Empty line separator
+        lines.append("=== GPU/AI Framework Status ===")
+        lines.extend(gpu_status.split('\n'))
+    except Exception as e:
+        lines.append("")
+        lines.append("=== GPU/AI Framework Status ===")
+        lines.append(f"❌ Error getting GPU info: {e}")
+    
     return "\n".join(lines)
