@@ -230,7 +230,7 @@ class MailConfigWidget(ttk.Frame):
         self.test_button = ttk.Button(action_frame, text="Testuj połączenie", command=self.toggle_test_connection)
         self.test_button.pack(side="left", padx=5)
         
-        ttk.Button(action_frame, text="Zapisz wszystkie", command=self.save_config).pack(side="left", padx=5)
+        ttk.Button(action_frame, text="Zapisz ustawienia", command=self.save_config).pack(side="left", padx=5)
         
         self.status_label = ttk.Label(action_frame, text="Gotowy", foreground="green")
         self.status_label.pack(side="left", padx=10)
