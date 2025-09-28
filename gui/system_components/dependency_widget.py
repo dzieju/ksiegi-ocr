@@ -40,7 +40,7 @@ class DependencyWidget(ttk.Frame):
         self.export_btn = ttk.Button(buttons_frame, text="Eksportuj", command=self.export_status, width=10)
         self.export_btn.pack(side="right", padx=(5, 0))
         
-        self.refresh_btn = ttk.Button(buttons_frame, text="Odśwież", command=self.refresh_dependencies, width=10)
+        self.refresh_btn = ttk.Button(buttons_frame, text="Odśwież zależności", command=self.refresh_dependencies, width=15)
         self.refresh_btn.pack(side="right")
         
         self.status_label = ttk.Label(header_frame, text="Sprawdzanie...", foreground="blue")
@@ -145,7 +145,7 @@ class DependencyWidget(ttk.Frame):
             self._create_dependency_item(result, i)
         
         # Reset button
-        self.refresh_btn.config(state="normal", text="Odśwież")
+        self.refresh_btn.config(state="normal", text="Odśwież zależności")
         self.checking = False
         
         self.results = results
@@ -161,7 +161,7 @@ class DependencyWidget(ttk.Frame):
         error_label.pack(pady=10)
         
         self.status_label.config(text="Błąd sprawdzania zależności", foreground="red")
-        self.refresh_btn.config(state="normal", text="Odśwież")
+        self.refresh_btn.config(state="normal", text="Odśwież zależności")
         self.checking = False
     
     def _create_dependency_item(self, result: Dict, index: int):
