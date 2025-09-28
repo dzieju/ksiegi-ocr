@@ -116,29 +116,59 @@ class SystemTab(ttk.Frame):
         
         # OCR Configuration Section
         ocr_label = ttk.Label(parent, text="Konfiguracja OCR:", font=("Arial", 10, "bold"))
-        ocr_label.grid(row=0, column=0, columnspan=3, padx=10, pady=(10, 5), sticky="w")
+        ocr_label.grid(row=0, column=0, columnspan=4, padx=10, pady=(10, 5), sticky="w")
         
-        # OCR Engine selection
-        ttk.Label(parent, text="Silnik OCR:").grid(row=1, column=0, padx=10, pady=5, sticky="w")
-        ocr_engine_combo = ttk.Combobox(parent, textvariable=self.ocr_engine_var, width=15, state="readonly")
-        ocr_engine_combo['values'] = ("tesseract", "easyocr", "paddleocr")
-        ocr_engine_combo.grid(row=1, column=1, padx=10, pady=5, sticky="w")
-        ocr_engine_combo.bind('<<ComboboxSelected>>', self._on_engine_change)
+        # Validation status label
+        self.ocr_status_label = ttk.Label(parent, text="", foreground="blue", font=("Arial", 8))
+        self.ocr_status_label.grid(row=1, column=0, columnspan=4, padx=10, pady=(0, 5), sticky="w")
         
-        # GPU/CPU selection
-        ttk.Label(parent, text="Tryb GPU:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
-        gpu_checkbox = ttk.Checkbutton(parent, text="Użyj GPU (jeśli dostępny)", variable=self.gpu_enabled_var, command=self._on_gpu_change)
-        gpu_checkbox.grid(row=2, column=1, padx=10, pady=5, sticky="w")
+        # OCR Engine selection with availability indicators
+        ttk.Label(parent, text="Silnik OCR:").grid(row=2, column=0, padx=10, pady=5, sticky="w")
+        
+        engine_frame = ttk.Frame(parent)
+        engine_frame.grid(row=2, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+        
+        self.ocr_engine_combo = ttk.Combobox(engine_frame, textvariable=self.ocr_engine_var, width=15, state="readonly")
+        self.ocr_engine_combo.pack(side="left")
+        self.ocr_engine_combo.bind('<<ComboboxSelected>>', self._on_engine_change)
+        
+        # Engine status indicator
+        self.engine_status_label = ttk.Label(engine_frame, text="", foreground="gray", font=("Arial", 8))
+        self.engine_status_label.pack(side="left", padx=(5, 0))
+        
+        # GPU/CPU selection with compatibility indicator
+        ttk.Label(parent, text="Tryb GPU:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
+        
+        gpu_frame = ttk.Frame(parent)
+        gpu_frame.grid(row=3, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+        
+        self.gpu_checkbox = ttk.Checkbutton(gpu_frame, text="Użyj GPU (jeśli dostępny)", 
+                                          variable=self.gpu_enabled_var, command=self._on_gpu_change)
+        self.gpu_checkbox.pack(side="left")
+        
+        # GPU compatibility indicator
+        self.gpu_status_label = ttk.Label(gpu_frame, text="", foreground="gray", font=("Arial", 8))
+        self.gpu_status_label.pack(side="left", padx=(5, 0))
         
         # Multiprocessing
-        ttk.Label(parent, text="Wieloprocesowość:").grid(row=3, column=0, padx=10, pady=5, sticky="w")
-        mp_checkbox = ttk.Checkbutton(parent, text="Włącz wieloprocesowość OCR", variable=self.multiprocessing_var, command=self._on_multiprocessing_change)
-        mp_checkbox.grid(row=3, column=1, padx=10, pady=5, sticky="w")
+        ttk.Label(parent, text="Wieloprocesowość:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        
+        mp_frame = ttk.Frame(parent)
+        mp_frame.grid(row=4, column=1, columnspan=2, padx=10, pady=5, sticky="w")
+        
+        self.mp_checkbox = ttk.Checkbutton(mp_frame, text="Włącz wieloprocesowość OCR", 
+                                         variable=self.multiprocessing_var, command=self._on_multiprocessing_change)
+        self.mp_checkbox.pack(side="left")
+        
+        # MP info label
+        self.mp_info_label = ttk.Label(mp_frame, text=f"(Zalecane dla > 5 obrazów)", 
+                                     foreground="gray", font=("Arial", 8))
+        self.mp_info_label.pack(side="left", padx=(5, 0))
         
         # Max workers
-        ttk.Label(parent, text="Maks. procesów:").grid(row=4, column=0, padx=10, pady=5, sticky="w")
+        ttk.Label(parent, text="Maks. procesów:").grid(row=5, column=0, padx=10, pady=5, sticky="w")
         workers_frame = ttk.Frame(parent)
-        workers_frame.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+        workers_frame.grid(row=5, column=1, padx=10, pady=5, sticky="w")
         
         self.workers_entry = ttk.Entry(workers_frame, textvariable=self.max_workers_var, width=10)
         self.workers_entry.pack(side="left")
@@ -146,9 +176,23 @@ class SystemTab(ttk.Frame):
         
         ttk.Label(workers_frame, text=f"(Auto = {multiprocessing.cpu_count()})").pack(side="left", padx=(5, 0))
         
+        # Engine information panel
+        info_frame = ttk.LabelFrame(parent, text="Informacje o silniku", padding=10)
+        info_frame.grid(row=6, column=0, columnspan=4, padx=10, pady=10, sticky="ew")
+        
+        self.engine_info_label = ttk.Label(info_frame, text="", font=("Arial", 9), justify="left")
+        self.engine_info_label.pack(anchor="w")
+        
         # Save OCR config button
         save_ocr_btn = ttk.Button(parent, text="Zapisz konfigurację OCR", command=self._save_ocr_config)
-        save_ocr_btn.grid(row=5, column=0, padx=10, pady=10, sticky="w")
+        save_ocr_btn.grid(row=7, column=0, padx=10, pady=10, sticky="w")
+        
+        # Refresh engines button  
+        refresh_btn = ttk.Button(parent, text="Odśwież silniki", command=self._refresh_ocr_engines)
+        refresh_btn.grid(row=7, column=1, padx=10, pady=10, sticky="w")
+        
+        # Initialize the interface
+        self._refresh_ocr_engines()
 
     def create_backup(self):
         """Create backup using threaded handler"""
@@ -266,18 +310,168 @@ class SystemTab(ttk.Frame):
         # Schedule next check
         self.after(100, self._process_progress_queue)
     
+    def _refresh_ocr_engines(self):
+        """Refresh OCR engines list and update interface"""
+        try:
+            # Get available engines
+            available_engines = ocr_config.get_available_engines()
+            all_engines = ["tesseract", "easyocr", "paddleocr"]
+            
+            # Update combobox values with availability indicators
+            engine_values = []
+            for engine in all_engines:
+                if engine in available_engines:
+                    engine_values.append(engine)
+                else:
+                    engine_values.append(f"{engine} (niedostępny)")
+            
+            self.ocr_engine_combo['values'] = engine_values
+            
+            # Validate current configuration
+            issues = ocr_config.validate_configuration()
+            
+            # Update validation status
+            if issues:
+                issue_messages = [issue['message'] for issue in issues]
+                self.ocr_status_label.config(text="⚠️ " + "; ".join(issue_messages), foreground="orange")
+                
+                # Auto-fix if possible
+                for issue in issues:
+                    if issue['type'] == 'engine_unavailable' and available_engines:
+                        # Switch to first available engine
+                        new_engine = available_engines[0]
+                        self.ocr_engine_var.set(new_engine)
+                        ocr_config.set_engine(new_engine)
+                        logger.log(f"Auto-switched OCR engine to {new_engine}")
+                    elif issue['type'] == 'gpu_incompatible':
+                        # Disable GPU
+                        self.gpu_enabled_var.set(False)
+                        ocr_config.set_use_gpu(False)
+                        logger.log("Auto-disabled GPU for incompatible engine")
+            else:
+                self.ocr_status_label.config(text="✅ Konfiguracja prawidłowa", foreground="green")
+            
+            # Update interface based on current engine
+            self._update_engine_interface()
+            
+        except Exception as e:
+            logger.log(f"Error refreshing OCR engines: {e}")
+            self.ocr_status_label.config(text=f"❌ Błąd: {e}", foreground="red")
+    
+    def _update_engine_interface(self):
+        """Update interface elements based on selected engine"""
+        current_engine = self.ocr_engine_var.get()
+        
+        # Clean engine name (remove availability indicators)
+        clean_engine = current_engine.split(" (")[0]
+        
+        # Update engine status
+        is_available = ocr_config.is_engine_available(clean_engine)
+        if is_available:
+            self.engine_status_label.config(text="✅ Dostępny", foreground="green")
+        else:
+            self.engine_status_label.config(text="❌ Niedostępny", foreground="red")
+        
+        # Update GPU compatibility
+        gpu_supported = ocr_config.is_gpu_supported(clean_engine)
+        if gpu_supported and is_available:
+            self.gpu_checkbox.config(state="normal")
+            self.gpu_status_label.config(text="✅ Obsługiwane", foreground="green")
+        else:
+            self.gpu_checkbox.config(state="disabled")
+            if not gpu_supported:
+                self.gpu_status_label.config(text="❌ Nieobsługiwane", foreground="red")
+                # Auto-disable GPU if not supported
+                if self.gpu_enabled_var.get():
+                    self.gpu_enabled_var.set(False)
+                    ocr_config.set_use_gpu(False)
+            else:
+                self.gpu_status_label.config(text="⚠️ Silnik niedostępny", foreground="orange")
+        
+        # Update multiprocessing availability
+        if is_available:
+            self.mp_checkbox.config(state="normal")
+        else:
+            self.mp_checkbox.config(state="disabled")
+        
+        # Update workers entry
+        if is_available and self.multiprocessing_var.get():
+            self.workers_entry.config(state="normal")
+        else:
+            self.workers_entry.config(state="disabled")
+        
+        # Update engine information
+        self._update_engine_info(clean_engine, is_available)
+    
+    def _update_engine_info(self, engine, is_available):
+        """Update engine information panel"""
+        info_texts = {
+            "tesseract": {
+                "available": "• Najstarszy i najbardziej stabilny silnik OCR\n• Tylko tryb CPU\n• Najlepszy dla dokumentów tekstowych\n• Wymaga instalacji zewnętrznej",
+                "unavailable": "• Tesseract nie jest zainstalowany\n• Zainstaluj: apt-get install tesseract-ocr (Linux)\n• Windows: pobierz z UB-Mannheim/tesseract\n• pip install pytesseract"
+            },
+            "easyocr": {
+                "available": "• Nowoczesny silnik AI\n• Obsługuje GPU i CPU\n• Dobry dla obrazów naturalnych\n• Automatyczna detekcja orientacji\n• Instalacja: pip install easyocr",
+                "unavailable": "• EasyOCR nie jest zainstalowany\n• Instalacja: pip install easyocr\n• Wymaga PyTorch\n• Obsługuje GPU CUDA"
+            },
+            "paddleocr": {
+                "available": "• Najnowszy silnik AI od Baidu\n• Obsługuje GPU i CPU\n• Bardzo dokładny dla tekstu azjatyckiego\n• Dobre wyniki dla dokumentów\n• Instalacja: pip install paddlepaddle paddleocr",
+                "unavailable": "• PaddleOCR nie jest zainstalowany\n• Instalacja: pip install paddlepaddle paddleocr\n• Obsługuje GPU CUDA\n• Wymaga więcej pamięci RAM"
+            }
+        }
+        
+        if engine in info_texts:
+            status_key = "available" if is_available else "unavailable"
+            info_text = info_texts[engine][status_key]
+            self.engine_info_label.config(text=info_text)
+        else:
+            self.engine_info_label.config(text="Nieznany silnik OCR")
+    
     def _on_engine_change(self, event=None):
         """Handle OCR engine selection change"""
-        engine = self.ocr_engine_var.get()
-        ocr_config.set_engine(engine)
+        selected = self.ocr_engine_combo.get()
+        engine = selected.split(" (")[0]  # Remove availability indicator
         
-        # Update GPU availability hint based on engine
-        if engine == "tesseract":
-            # Tesseract is CPU-only
+        # Only allow selection of available engines
+        if not ocr_config.is_engine_available(engine):
+            messagebox.showwarning("Silnik niedostępny", 
+                                 f"Silnik {engine} nie jest dostępny. Zainstaluj go lub wybierz inny silnik.")
+            # Revert to current engine
+            self.ocr_engine_var.set(ocr_config.get_engine())
+            return
+        
+        # Set the engine
+        ocr_config.set_engine(engine)
+        self.status_label.config(text=f"Zmieniono silnik OCR na: {engine}", foreground="blue")
+        
+        # Update interface
+        self._update_engine_interface()
+        
+        # Re-validate configuration
+        self._refresh_ocr_engines()
+    
+    def _on_gpu_change(self):
+        """Handle GPU usage change"""
+        use_gpu = self.gpu_enabled_var.get()
+        engine = self.ocr_engine_var.get().split(" (")[0]
+        
+        # Check GPU support
+        if use_gpu and not ocr_config.is_gpu_supported(engine):
+            messagebox.showwarning("GPU nieobsługiwane", 
+                                 f"Silnik {engine} nie obsługuje GPU. Wybierz EasyOCR lub PaddleOCR dla obsługi GPU.")
             self.gpu_enabled_var.set(False)
-            self.status_label.config(text=f"Zmieniono silnik OCR na: {engine} (tylko CPU)", foreground="blue")
-        else:
-            self.status_label.config(text=f"Zmieniono silnik OCR na: {engine}", foreground="blue")
+            return
+        
+        # Check engine availability
+        if use_gpu and not ocr_config.is_engine_available(engine):
+            messagebox.showwarning("Silnik niedostępny", 
+                                 f"Silnik {engine} nie jest dostępny. Zainstaluj go aby używać GPU.")
+            self.gpu_enabled_var.set(False)
+            return
+            
+        ocr_config.set_use_gpu(use_gpu)
+        mode = "GPU" if use_gpu else "CPU"
+        self.status_label.config(text=f"Tryb OCR zmieniony na: {mode}", foreground="blue")
     
     def _on_gpu_change(self):
         """Handle GPU usage change"""
@@ -296,9 +490,24 @@ class SystemTab(ttk.Frame):
     def _on_multiprocessing_change(self):
         """Handle multiprocessing setting change"""
         use_mp = self.multiprocessing_var.get()
+        engine = self.ocr_engine_var.get().split(" (")[0]
+        
+        # Check if engine is available
+        if use_mp and not ocr_config.is_engine_available(engine):
+            messagebox.showwarning("Silnik niedostępny", 
+                                 f"Silnik {engine} nie jest dostępny. Zainstaluj go aby używać wieloprocesowości.")
+            self.multiprocessing_var.set(False)
+            return
+        
         ocr_config.set_multiprocessing(use_mp)
         status = "włączona" if use_mp else "wyłączona"
         self.status_label.config(text=f"Wieloprocesowość OCR {status}", foreground="blue")
+        
+        # Update workers entry state
+        if use_mp:
+            self.workers_entry.config(state="normal")
+        else:
+            self.workers_entry.config(state="disabled")
     
     def _on_workers_change(self, event=None):
         """Handle max workers change"""

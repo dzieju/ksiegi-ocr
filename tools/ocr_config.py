@@ -62,6 +62,54 @@ class OCRConfig:
             return True
         return False
     
+    def get_available_engines(self):
+        """Get list of available OCR engines"""
+        from tools.ocr_engines import ocr_manager
+        return ocr_manager.get_available_engines()
+    
+    def is_engine_available(self, engine):
+        """Check if specific engine is available"""
+        from tools.ocr_engines import ocr_manager
+        return ocr_manager.is_engine_available(engine)
+    
+    def is_gpu_supported(self, engine=None):
+        """Check if GPU is supported by the given engine (or current engine)"""
+        if engine is None:
+            engine = self.get_engine()
+        return engine in ["easyocr", "paddleocr"]
+    
+    def validate_configuration(self):
+        """Validate current configuration and return any issues"""
+        issues = []
+        
+        current_engine = self.get_engine()
+        
+        # Check if current engine is available
+        if not self.is_engine_available(current_engine):
+            available = self.get_available_engines()
+            if available:
+                issues.append({
+                    'type': 'engine_unavailable',
+                    'message': f'Silnik {current_engine} nie jest dostępny. Dostępne: {", ".join(available)}',
+                    'suggestion': f'Zmień silnik na: {available[0]}'
+                })
+            else:
+                issues.append({
+                    'type': 'no_engines',
+                    'message': 'Brak dostępnych silników OCR',
+                    'suggestion': 'Zainstaluj przynajmniej jeden silnik OCR (tesseract, easyocr, paddleocr)'
+                })
+        
+        # Check GPU compatibility
+        if self.get_use_gpu() and not self.is_gpu_supported(current_engine):
+            issues.append({
+                'type': 'gpu_incompatible',
+                'message': f'Silnik {current_engine} nie obsługuje GPU',
+                'suggestion': 'Wyłącz GPU lub wybierz EasyOCR/PaddleOCR'
+            })
+        
+        return issues
+    
     def get_use_gpu(self):
         """Get GPU usage preference"""
         return self.config.get("use_gpu", False)
