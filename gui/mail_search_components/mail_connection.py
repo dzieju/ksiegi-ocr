@@ -120,8 +120,13 @@ class MailConnection:
     
     def _get_account_connection(self, account_config):
         """Get connection for specific account configuration"""
+        # Close any existing connections before creating new ones
+        self.close_connections()
+        
         self.current_account_config = account_config
         account_type = account_config.get("type", "exchange")
+        
+        log(f"[MAIL CONNECTION] Connecting to account type: {account_type}")
         
         try:
             if account_type == "exchange":
@@ -325,12 +330,18 @@ class MailConnection:
     
     def get_available_folders_for_exclusion(self, account, folder_path):
         """Get list of available folders that can be excluded from search"""
+        account_type = self.current_account_config.get("type", "unknown") if self.current_account_config else "unknown"
+        log(f"[MAIL CONNECTION] Getting available folders for account type: {account_type}")
+        
         if self.current_account_config and self.current_account_config.get("type") == "exchange":
+            log("[MAIL CONNECTION] Using Exchange folder detection")
             return self._get_exchange_available_folders(account, folder_path)
         elif self.current_account_config and self.current_account_config.get("type") == "pop3_smtp":
+            log("[MAIL CONNECTION] Using POP3 folder detection")
             # For POP3, only INBOX is available
             return ["INBOX"]
         else:
+            log("[MAIL CONNECTION] Using IMAP folder detection")
             # For IMAP, return a simplified list
             return ["INBOX", "SENT", "DRAFTS", "SPAM"]
     
