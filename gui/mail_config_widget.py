@@ -15,6 +15,7 @@ import threading
 import queue
 import imaplib
 import smtplib
+import poplib
 import ssl
 from exchangelib import Credentials, Account, Configuration, DELEGATE
 
@@ -94,7 +95,9 @@ class MailConfigWidget(ttk.Frame):
         ttk.Radiobutton(type_frame, text="Exchange", variable=self.account_type_var, 
                        value="exchange", command=self.on_account_type_change).pack(side="left", padx=(0, 10))
         ttk.Radiobutton(type_frame, text="IMAP/SMTP", variable=self.account_type_var, 
-                       value="imap_smtp", command=self.on_account_type_change).pack(side="left")
+                       value="imap_smtp", command=self.on_account_type_change).pack(side="left", padx=(0, 10))
+        ttk.Radiobutton(type_frame, text="POP3/SMTP", variable=self.account_type_var, 
+                       value="pop3_smtp", command=self.on_account_type_change).pack(side="left")
         
         # Common fields
         ttk.Label(parent, text="Nazwa konta:").grid(row=1, column=0, sticky="e", padx=5, pady=5)
@@ -113,9 +116,22 @@ class MailConfigWidget(ttk.Frame):
         self.password_var = tk.StringVar()
         ttk.Entry(parent, textvariable=self.password_var, show="*", width=40).grid(row=4, column=1, padx=5, pady=5)
         
+        # Authentication method
+        ttk.Label(parent, text="Metoda uwierzytelniania:").grid(row=5, column=0, sticky="e", padx=5, pady=5)
+        self.auth_method_var = tk.StringVar(value="password")
+        auth_frame = ttk.Frame(parent)
+        auth_frame.grid(row=5, column=1, sticky="w", padx=5, pady=5)
+        
+        ttk.Radiobutton(auth_frame, text="Hasło", variable=self.auth_method_var, 
+                       value="password").pack(side="left", padx=(0, 10))
+        ttk.Radiobutton(auth_frame, text="OAuth2", variable=self.auth_method_var, 
+                       value="oauth2").pack(side="left", padx=(0, 10))
+        ttk.Radiobutton(auth_frame, text="App Password", variable=self.auth_method_var, 
+                       value="app_password").pack(side="left")
+        
         # Exchange specific fields
         self.exchange_frame = ttk.LabelFrame(parent, text="Ustawienia Exchange", padding=5)
-        self.exchange_frame.grid(row=5, column=0, columnspan=2, sticky="ew", padx=5, pady=10)
+        self.exchange_frame.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=10)
         
         ttk.Label(self.exchange_frame, text="Serwer Exchange:").grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.exchange_server_var = tk.StringVar()
@@ -127,7 +143,7 @@ class MailConfigWidget(ttk.Frame):
         
         # IMAP/SMTP specific fields
         self.imap_smtp_frame = ttk.LabelFrame(parent, text="Ustawienia IMAP/SMTP", padding=5)
-        self.imap_smtp_frame.grid(row=6, column=0, columnspan=2, sticky="ew", padx=5, pady=10)
+        self.imap_smtp_frame.grid(row=7, column=0, columnspan=2, sticky="ew", padx=5, pady=10)
         
         # IMAP settings
         imap_frame = ttk.LabelFrame(self.imap_smtp_frame, text="IMAP (odbiór)", padding=5)
@@ -159,15 +175,52 @@ class MailConfigWidget(ttk.Frame):
         self.smtp_ssl_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(smtp_frame, text="SSL/TLS", variable=self.smtp_ssl_var).grid(row=1, column=0, sticky="w", padx=5, pady=2)
         
+        # POP3/SMTP specific fields
+        self.pop3_smtp_frame = ttk.LabelFrame(parent, text="Ustawienia POP3/SMTP", padding=5)
+        self.pop3_smtp_frame.grid(row=8, column=0, columnspan=2, sticky="ew", padx=5, pady=10)
+        
+        # POP3 settings
+        pop3_frame = ttk.LabelFrame(self.pop3_smtp_frame, text="POP3 (odbiór)", padding=5)
+        pop3_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        
+        ttk.Label(pop3_frame, text="Serwer POP3:").grid(row=0, column=0, sticky="e", padx=5, pady=2)
+        self.pop3_server_var = tk.StringVar()
+        ttk.Entry(pop3_frame, textvariable=self.pop3_server_var, width=30).grid(row=0, column=1, padx=5, pady=2)
+        
+        ttk.Label(pop3_frame, text="Port POP3:").grid(row=0, column=2, sticky="e", padx=5, pady=2)
+        self.pop3_port_var = tk.StringVar(value="995")
+        ttk.Entry(pop3_frame, textvariable=self.pop3_port_var, width=10).grid(row=0, column=3, padx=5, pady=2)
+        
+        self.pop3_ssl_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(pop3_frame, text="SSL/TLS", variable=self.pop3_ssl_var).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        
+        # SMTP settings for POP3 (reusing same frame layout)
+        smtp_pop3_frame = ttk.LabelFrame(self.pop3_smtp_frame, text="SMTP (wysyłanie)", padding=5)
+        smtp_pop3_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        
+        ttk.Label(smtp_pop3_frame, text="Serwer SMTP:").grid(row=0, column=0, sticky="e", padx=5, pady=2)
+        self.smtp_server_pop3_var = tk.StringVar()
+        ttk.Entry(smtp_pop3_frame, textvariable=self.smtp_server_pop3_var, width=30).grid(row=0, column=1, padx=5, pady=2)
+        
+        ttk.Label(smtp_pop3_frame, text="Port SMTP:").grid(row=0, column=2, sticky="e", padx=5, pady=2)
+        self.smtp_port_pop3_var = tk.StringVar(value="587")
+        ttk.Entry(smtp_pop3_frame, textvariable=self.smtp_port_pop3_var, width=10).grid(row=0, column=3, padx=5, pady=2)
+        
+        self.smtp_ssl_pop3_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(smtp_pop3_frame, text="SSL/TLS", variable=self.smtp_ssl_pop3_var).grid(row=1, column=0, sticky="w", padx=5, pady=2)
+        
         # Configure grid weights for frames
         self.exchange_frame.grid_columnconfigure(1, weight=1)
         self.imap_smtp_frame.grid_columnconfigure(1, weight=1)
+        self.pop3_smtp_frame.grid_columnconfigure(1, weight=1)
         imap_frame.grid_columnconfigure(1, weight=1)
         smtp_frame.grid_columnconfigure(1, weight=1)
+        pop3_frame.grid_columnconfigure(1, weight=1)
+        smtp_pop3_frame.grid_columnconfigure(1, weight=1)
         
         # Action buttons
         action_frame = ttk.Frame(parent)
-        action_frame.grid(row=7, column=0, columnspan=2, pady=20)
+        action_frame.grid(row=9, column=0, columnspan=2, pady=20)
         
         ttk.Button(action_frame, text="Zapisz konto", command=self.save_current_account).pack(side="left", padx=5)
         
@@ -188,9 +241,15 @@ class MailConfigWidget(ttk.Frame):
         if account_type == "exchange":
             self.exchange_frame.grid()
             self.imap_smtp_frame.grid_remove()
-        else:
+            self.pop3_smtp_frame.grid_remove()
+        elif account_type == "imap_smtp":
             self.exchange_frame.grid_remove()
             self.imap_smtp_frame.grid()
+            self.pop3_smtp_frame.grid_remove()
+        elif account_type == "pop3_smtp":
+            self.exchange_frame.grid_remove()
+            self.imap_smtp_frame.grid_remove()
+            self.pop3_smtp_frame.grid()
     
     def add_account(self):
         """Add a new account"""
@@ -200,6 +259,7 @@ class MailConfigWidget(ttk.Frame):
             "email": "",
             "username": "",
             "password": "",
+            "auth_method": "password",
             "exchange_server": "",
             "domain": "",
             "imap_server": "",
@@ -207,7 +267,13 @@ class MailConfigWidget(ttk.Frame):
             "imap_ssl": True,
             "smtp_server": "",
             "smtp_port": 587,
-            "smtp_ssl": True
+            "smtp_ssl": True,
+            "pop3_server": "",
+            "pop3_port": 995,
+            "pop3_ssl": True,
+            "smtp_server_pop3": "",
+            "smtp_port_pop3": 587,
+            "smtp_ssl_pop3": True
         }
         self.accounts.append(account)
         self.refresh_account_list()
@@ -267,6 +333,7 @@ class MailConfigWidget(ttk.Frame):
             self.email_var.set(account.get("email", ""))
             self.username_var.set(account.get("username", ""))
             self.password_var.set(account.get("password", ""))
+            self.auth_method_var.set(account.get("auth_method", "password"))
             
             # Exchange fields
             self.exchange_server_var.set(account.get("exchange_server", ""))
@@ -280,6 +347,14 @@ class MailConfigWidget(ttk.Frame):
             self.smtp_port_var.set(str(account.get("smtp_port", 587)))
             self.smtp_ssl_var.set(account.get("smtp_ssl", True))
             
+            # POP3/SMTP fields
+            self.pop3_server_var.set(account.get("pop3_server", ""))
+            self.pop3_port_var.set(str(account.get("pop3_port", 995)))
+            self.pop3_ssl_var.set(account.get("pop3_ssl", True))
+            self.smtp_server_pop3_var.set(account.get("smtp_server_pop3", ""))
+            self.smtp_port_pop3_var.set(str(account.get("smtp_port_pop3", 587)))
+            self.smtp_ssl_pop3_var.set(account.get("smtp_ssl_pop3", True))
+            
             self.on_account_type_change()
     
     def clear_form(self):
@@ -288,6 +363,7 @@ class MailConfigWidget(ttk.Frame):
         self.email_var.set("")
         self.username_var.set("")
         self.password_var.set("")
+        self.auth_method_var.set("password")
         self.exchange_server_var.set("")
         self.domain_var.set("")
         self.imap_server_var.set("")
@@ -296,6 +372,12 @@ class MailConfigWidget(ttk.Frame):
         self.smtp_server_var.set("")
         self.smtp_port_var.set("587")
         self.smtp_ssl_var.set(True)
+        self.pop3_server_var.set("")
+        self.pop3_port_var.set("995")
+        self.pop3_ssl_var.set(True)
+        self.smtp_server_pop3_var.set("")
+        self.smtp_port_pop3_var.set("587")
+        self.smtp_ssl_pop3_var.set(True)
     
     def save_current_account(self):
         """Save current form data to selected account"""
@@ -319,6 +401,7 @@ class MailConfigWidget(ttk.Frame):
             "email": self.email_var.get().strip(),
             "username": self.username_var.get().strip(),
             "password": self.password_var.get(),
+            "auth_method": self.auth_method_var.get(),
             "exchange_server": self.exchange_server_var.get().strip(),
             "domain": self.domain_var.get().strip(),
             "imap_server": self.imap_server_var.get().strip(),
@@ -326,7 +409,13 @@ class MailConfigWidget(ttk.Frame):
             "imap_ssl": self.imap_ssl_var.get(),
             "smtp_server": self.smtp_server_var.get().strip(),
             "smtp_port": int(self.smtp_port_var.get()) if self.smtp_port_var.get().isdigit() else 587,
-            "smtp_ssl": self.smtp_ssl_var.get()
+            "smtp_ssl": self.smtp_ssl_var.get(),
+            "pop3_server": self.pop3_server_var.get().strip(),
+            "pop3_port": int(self.pop3_port_var.get()) if self.pop3_port_var.get().isdigit() else 995,
+            "pop3_ssl": self.pop3_ssl_var.get(),
+            "smtp_server_pop3": self.smtp_server_pop3_var.get().strip(),
+            "smtp_port_pop3": int(self.smtp_port_pop3_var.get()) if self.smtp_port_pop3_var.get().isdigit() else 587,
+            "smtp_ssl_pop3": self.smtp_ssl_pop3_var.get()
         })
         
         self.refresh_account_list()
@@ -401,6 +490,7 @@ class MailConfigWidget(ttk.Frame):
                 "email": old_config.get("email", ""),
                 "username": old_config.get("username", ""),
                 "password": old_config.get("password", ""),
+                "auth_method": "password",
                 "exchange_server": old_config.get("server", ""),
                 "domain": old_config.get("domain", ""),
                 "imap_server": "",
@@ -408,7 +498,13 @@ class MailConfigWidget(ttk.Frame):
                 "imap_ssl": True,
                 "smtp_server": "",
                 "smtp_port": 587,
-                "smtp_ssl": True
+                "smtp_ssl": True,
+                "pop3_server": "",
+                "pop3_port": 995,
+                "pop3_ssl": True,
+                "smtp_server_pop3": "",
+                "smtp_port_pop3": 587,
+                "smtp_ssl_pop3": True
             }
             
             self.accounts = [account]
@@ -474,8 +570,10 @@ class MailConfigWidget(ttk.Frame):
             
             if account_type == "exchange":
                 self._test_exchange_connection(account)
-            else:
+            elif account_type == "imap_smtp":
                 self._test_imap_smtp_connection(account)
+            elif account_type == "pop3_smtp":
+                self._test_pop3_smtp_connection(account)
                 
         except Exception as e:
             self.result_queue.put({
@@ -547,6 +645,55 @@ class MailConfigWidget(ttk.Frame):
             self.result_queue.put({
                 'type': 'test_error',
                 'error': f"Błąd połączenia IMAP/SMTP: {str(e)}"
+            })
+    
+    def _test_pop3_smtp_connection(self, account):
+        """Test POP3/SMTP connection"""
+        try:
+            # Test POP3 connection
+            if self.testing_cancelled:
+                self.result_queue.put({'type': 'test_cancelled'})
+                return
+            
+            if account["pop3_ssl"]:
+                pop3 = poplib.POP3_SSL(account["pop3_server"], account["pop3_port"])
+            else:
+                pop3 = poplib.POP3(account["pop3_server"], account["pop3_port"])
+            
+            pop3.user(account["username"])
+            pop3.pass_(account["password"])
+            
+            # Get message count to verify connection
+            msg_count = len(pop3.list()[1])
+            pop3.quit()
+            
+            if self.testing_cancelled:
+                self.result_queue.put({'type': 'test_cancelled'})
+                return
+            
+            # Test SMTP connection (using POP3 SMTP settings)
+            smtp_server = account.get("smtp_server_pop3", account.get("smtp_server", ""))
+            smtp_port = account.get("smtp_port_pop3", account.get("smtp_port", 587))
+            smtp_ssl = account.get("smtp_ssl_pop3", account.get("smtp_ssl", True))
+            
+            if smtp_ssl:
+                smtp = smtplib.SMTP_SSL(smtp_server, smtp_port)
+            else:
+                smtp = smtplib.SMTP(smtp_server, smtp_port)
+                smtp.starttls()
+            
+            smtp.login(account["username"], account["password"])
+            smtp.quit()
+            
+            self.result_queue.put({
+                'type': 'test_success',
+                'message': f"Połączono z kontem POP3/SMTP: {account['email']} ({msg_count} wiadomości)"
+            })
+            
+        except Exception as e:
+            self.result_queue.put({
+                'type': 'test_error',
+                'error': f"Błąd połączenia POP3/SMTP: {str(e)}"
             })
     
     def _process_result_queue(self):

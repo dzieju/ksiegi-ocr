@@ -3,6 +3,7 @@ Multi-account mail connection manager supporting both Exchange and IMAP/SMTP
 """
 import json
 import imaplib
+import poplib
 import email
 from exchangelib import Credentials, Account, Configuration, DELEGATE
 from tools.logger import log
@@ -41,6 +42,7 @@ class MailConnection:
     def __init__(self):
         self.account = None
         self.imap_connection = None
+        self.pop3_connection = None
         self.current_account_config = None
     
     def load_mail_config(self):
@@ -63,6 +65,7 @@ class MailConnection:
                             "email": legacy_config.get("email", ""),
                             "username": legacy_config.get("username", ""),
                             "password": legacy_config.get("password", ""),
+                            "auth_method": "password",
                             "exchange_server": legacy_config.get("server", ""),
                             "domain": legacy_config.get("domain", ""),
                             "imap_server": "",
@@ -70,7 +73,13 @@ class MailConnection:
                             "imap_ssl": True,
                             "smtp_server": "",
                             "smtp_port": 587,
-                            "smtp_ssl": True
+                            "smtp_ssl": True,
+                            "pop3_server": "",
+                            "pop3_port": 995,
+                            "pop3_ssl": True,
+                            "smtp_server_pop3": "",
+                            "smtp_port_pop3": 587,
+                            "smtp_ssl_pop3": True
                         }],
                         "main_account_index": 0
                     }
@@ -117,7 +126,12 @@ class MailConnection:
         try:
             if account_type == "exchange":
                 return self._get_exchange_connection(account_config)
+            elif account_type == "imap_smtp":
+                return self._get_imap_connection(account_config)
+            elif account_type == "pop3_smtp":
+                return self._get_pop3_connection(account_config)
             else:
+                # Default to IMAP for backward compatibility
                 return self._get_imap_connection(account_config)
         except Exception as e:
             log(f"Błąd połączenia z kontem {account_config.get('name', 'Unknown')}: {str(e)}")
@@ -163,10 +177,30 @@ class MailConnection:
         self.imap_connection = imap
         return imap
     
+    def _get_pop3_connection(self, account_config):
+        """Get POP3 connection"""
+        if account_config.get("pop3_ssl", True):
+            pop3 = poplib.POP3_SSL(
+                account_config.get("pop3_server", ""),
+                account_config.get("pop3_port", 995)
+            )
+        else:
+            pop3 = poplib.POP3(
+                account_config.get("pop3_server", ""),
+                account_config.get("pop3_port", 995)
+            )
+        
+        pop3.user(account_config.get("username", ""))
+        pop3.pass_(account_config.get("password", ""))
+        self.pop3_connection = pop3
+        return pop3
+    
     def get_folder_by_path(self, account, folder_path):
-        """Get folder by path - works for both Exchange and IMAP"""
+        """Get folder by path - works for Exchange, IMAP, and POP3"""
         if self.current_account_config and self.current_account_config.get("type") == "exchange":
             return self._get_exchange_folder_by_path(account, folder_path)
+        elif self.current_account_config and self.current_account_config.get("type") == "pop3_smtp":
+            return self._get_pop3_folder_by_path(account, folder_path)
         else:
             return self._get_imap_folder_by_path(account, folder_path)
     
@@ -230,10 +264,19 @@ class MailConnection:
             imap.select("INBOX")
             return "INBOX"
     
+    def _get_pop3_folder_by_path(self, pop3, folder_path):
+        """Get POP3 folder by path - POP3 only supports inbox"""
+        # POP3 only supports the main mailbox (inbox)
+        # All folder paths are treated as the main mailbox
+        return "INBOX"
+    
     def get_folder_with_subfolders(self, account, folder_path, excluded_folders=None):
         """Get folder and all its subfolders recursively"""
         if self.current_account_config and self.current_account_config.get("type") == "exchange":
             return self._get_exchange_folder_with_subfolders(account, folder_path, excluded_folders)
+        elif self.current_account_config and self.current_account_config.get("type") == "pop3_smtp":
+            # For POP3, this is simplified as POP3 only has one mailbox
+            return ["INBOX"]
         else:
             # For IMAP, this is simplified as most IMAP operations work on single folders
             folder = self.get_folder_by_path(account, folder_path)
@@ -284,6 +327,9 @@ class MailConnection:
         """Get list of available folders that can be excluded from search"""
         if self.current_account_config and self.current_account_config.get("type") == "exchange":
             return self._get_exchange_available_folders(account, folder_path)
+        elif self.current_account_config and self.current_account_config.get("type") == "pop3_smtp":
+            # For POP3, only INBOX is available
+            return ["INBOX"]
         else:
             # For IMAP, return a simplified list
             return ["INBOX", "SENT", "DRAFTS", "SPAM"]
@@ -323,6 +369,13 @@ class MailConnection:
             except:
                 pass
             self.imap_connection = None
+        
+        if self.pop3_connection:
+            try:
+                self.pop3_connection.quit()
+            except:
+                pass
+            self.pop3_connection = None
         
         self.account = None
         self.current_account_config = None

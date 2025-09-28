@@ -6,6 +6,7 @@
       "email": "grzegorz.ciekot@woox.pl",
       "username": "grzegorz.ciekot@woox.pl",
       "password": "g503784221Ola",
+      "auth_method": "password",
       "exchange_server": "ex3.mail.ovh.net",
       "domain": "",
       "imap_server": "",
@@ -13,7 +14,13 @@
       "imap_ssl": true,
       "smtp_server": "",
       "smtp_port": 587,
-      "smtp_ssl": true
+      "smtp_ssl": true,
+      "pop3_server": "",
+      "pop3_port": 995,
+      "pop3_ssl": true,
+      "smtp_server_pop3": "",
+      "smtp_port_pop3": 587,
+      "smtp_ssl_pop3": true
     },
     {
       "name": "Recepcja  Woox",
@@ -21,6 +28,7 @@
       "email": "recepcja@woox.pl",
       "username": "recepcja@woox.pl",
       "password": "biznes2wwoox",
+      "auth_method": "password",
       "exchange_server": "",
       "domain": "",
       "imap_server": "ssl0.ovh.net",
@@ -28,7 +36,13 @@
       "imap_ssl": true,
       "smtp_server": "ssl0.ovh.net",
       "smtp_port": 465,
-      "smtp_ssl": true
+      "smtp_ssl": true,
+      "pop3_server": "",
+      "pop3_port": 995,
+      "pop3_ssl": true,
+      "smtp_server_pop3": "",
+      "smtp_port_pop3": 587,
+      "smtp_ssl_pop3": true
     }
   ],
   "main_account_index": 0
