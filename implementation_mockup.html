@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Księgi-OCR GUI Changes Mockup</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .window { 
+            background: white; 
+            border: 2px solid #ccc; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .title-bar { 
+            background: linear-gradient(to bottom, #e6e6e6, #d4d4d4);
+            padding: 8px 15px; 
+            border-bottom: 1px solid #ccc; 
+            font-weight: bold;
+            border-radius: 6px 6px 0 0;
+        }
+        .tab-container { 
+            background: #f8f8f8; 
+            border-bottom: 1px solid #ccc; 
+            padding: 0;
+        }
+        .tab { 
+            display: inline-block; 
+            padding: 8px 15px; 
+            background: #e0e0e0; 
+            border-right: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .tab.active { 
+            background: white; 
+            border-bottom: 2px solid #0078d4;
+        }
+        .tab-content { 
+            padding: 20px; 
+            min-height: 300px;
+        }
+        .version-section {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .version-info {
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+        .btn {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        .btn:hover { background: #e8e8e8; }
+        .btn-group { margin: 10px 0; }
+        .logs-container {
+            border: 1px solid #ccc;
+            height: 200px;
+            background: white;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            padding: 10px;
+            overflow-y: auto;
+            color: #333;
+        }
+        .highlight { background: #fff3cd; padding: 2px 4px; }
+        .new-feature { color: #28a745; font-weight: bold; }
+        .before-after { display: flex; gap: 20px; margin: 20px 0; }
+        .before, .after { flex: 1; }
+        .label { font-weight: bold; color: #666; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Księgi-OCR - GUI Implementation Results</h1>
+    
+    <div class="before-after">
+        <div class="before">
+            <div class="label">BEFORE:</div>
+            <div class="window">
+                <div class="title-bar">Księga Przychodów i Rozchodów</div>
+                <div class="tab-container">
+                    <div class="tab">Przeszukiwanie Poczty</div>
+                    <div class="tab">Konfiguracja poczty</div>
+                    <div class="tab">Zakupy</div>
+                    <div class="tab active">System</div>
+                </div>
+                <div class="tab-content">
+                    <p>Basic system operations without version info...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="after">
+            <div class="label">AFTER:</div>
+            <div class="window">
+                <div class="title-bar"><span class="new-feature">Księgi-OCR - PR#155 - v7bc2581</span></div>
+                <div class="tab-container">
+                    <div class="tab">Przeszukiwanie Poczty</div>
+                    <div class="tab">Konfiguracja poczty</div>
+                    <div class="tab">Zakupy</div>
+                    <div class="tab active">System</div>
+                </div>
+                <div class="tab-content">
+                    <div class="version-section">
+                        <div class="section-title">📋 Informacje o wersji</div>
+                        <div class="version-info">
+                            Program: Księgi-OCR<br>
+                            PR Number: #155<br>
+                            Commit: 7bc2581
+                        </div>
+                        <div class="btn-group">
+                            <span class="btn new-feature">Odśwież informacje o wersji</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <div class="section-title">🔧 Operacje systemowe</div>
+                        <div class="btn-group">
+                            <span class="btn">Utwórz backup</span>
+                            <span class="btn">Przywróć backup</span>
+                        </div>
+                        <div class="btn-group">
+                            <span class="btn">Pokaż logi</span>
+                            <span class="btn">Sprawdź aktualizacje</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="window">
+        <div class="title-bar">System → Logi (Enhanced)</div>
+        <div class="tab-content">
+            <div class="btn-group">
+                <span class="btn">Odśwież logi</span>
+                <span class="btn new-feature highlight">Wyczyść logi</span>
+                <span style="color: #666; font-size: 14px; margin-left: 10px;">Załadowano 25 linii logów</span>
+            </div>
+            
+            <div class="logs-container">
+2025-09-28 01:08:25 | === APLIKACJA KSIEGI-OCR - START ===<br>
+2025-09-28 01:08:25 | Rozpoczynanie inicjalizacji aplikacji<br>
+2025-09-28 01:08:25 | Sprawdzanie zależności systemowych<br>
+2025-09-28 01:08:25 | Status zależności: OK - wszystkie wymagane zależności dostępne<br>
+2025-09-28 01:08:25 | Testowanie integracji Poppler<br>
+2025-09-28 01:08:25 | Poppler OK: Integracja działa poprawnie<br>
+2025-09-28 01:08:25 | Uruchamianie interfejsu graficznego<br>
+2025-09-28 01:08:25 | Tworzenie głównego okna aplikacji<br>
+2025-09-28 01:08:25 | Inicjalizacja MainWindow<br>
+<span class="new-feature">2025-09-28 01:08:25 | Tytuł aplikacji ustawiony: Księgi-OCR - PR#155 - v7bc2581</span><br>
+2025-09-28 01:08:25 | Konfiguracja stylu GUI zakończona<br>
+2025-09-28 01:08:25 | Utworzenie głównego Notebook<br>
+2025-09-28 01:08:25 | Ładowanie zakładki: Przeszukiwanie Poczty<br>
+2025-09-28 01:08:25 | Zakładka 'Przeszukiwanie Poczty' załadowana<br>
+2025-09-28 01:08:25 | Ładowanie zakładki: System<br>
+<span class="new-feature">2025-09-28 01:08:25 | Informacje o wersji zostały odświeżone</span><br>
+2025-09-28 01:08:25 | Zakładka 'System' załadowana<br>
+2025-09-28 01:08:25 | MainWindow - wszystkie komponenty załadowane pomyślnie<br>
+2025-09-28 01:08:25 | === INICJALIZACJA APLIKACJI ZAKOŃCZONA ===
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h2>✅ Implementation Summary</h2>
+        <ul>
+            <li><strong>Title Bar:</strong> Now shows "Księgi-OCR - PR#155 - v7bc2581" instead of static text</li>
+            <li><strong>System Operations Tab:</strong> Added version information section with refresh button</li>
+            <li><strong>Logs Tab:</strong> Added "Clear Logs" button with confirmation dialog</li>
+            <li><strong>Auto-Update:</strong> All version info updates automatically after git operations</li>
+            <li><strong>Error Handling:</strong> Complete with user-friendly messages and logging</li>
+        </ul>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #0078d4;">
+        <h3>🔧 Technical Details</h3>
+        <p><strong>Files Modified:</strong></p>
+        <ul>
+            <li><code>gui/main_window.py</code> - Updated title bar and added refresh method</li>
+            <li><code>gui/tab_system.py</code> - Added version info section and clear logs functionality</li>
+            <li><code>tools/logger.py</code> - Added clear_logs() function</li>
+            <li><code>tools/version_info.py</code> - New utility for version and PR information</li>
+        </ul>
+
+        <p><strong>Key Features:</strong></p>
+        <ul>
+            <li>Git integration for automatic version detection</li>
+            <li>PR number extraction from commit history</li>
+            <li>Safe log clearing with confirmation dialog</li>
+            <li>Minimal code changes with maximum functionality</li>
+        </ul>
+    </div>
+</body>
+</html>
