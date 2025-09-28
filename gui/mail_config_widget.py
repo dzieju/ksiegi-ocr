@@ -18,6 +18,7 @@ import smtplib
 import poplib
 import ssl
 from exchangelib import Credentials, Account, Configuration, DELEGATE
+from tools.logger import log
 
 CONFIG_FILE = "mail_config.json"
 
@@ -127,7 +128,9 @@ class MailConfigWidget(ttk.Frame):
         ttk.Radiobutton(auth_frame, text="OAuth2", variable=self.auth_method_var, 
                        value="oauth2").pack(side="left", padx=(0, 10))
         ttk.Radiobutton(auth_frame, text="App Password", variable=self.auth_method_var, 
-                       value="app_password").pack(side="left")
+                       value="app_password").pack(side="left", padx=(0, 10))
+        ttk.Radiobutton(auth_frame, text="PLAIN/Plain Text", variable=self.auth_method_var, 
+                       value="plain").pack(side="left")
         
         # Exchange specific fields
         self.exchange_frame = ttk.LabelFrame(parent, text="Ustawienia Exchange", padding=5)
@@ -649,25 +652,40 @@ class MailConfigWidget(ttk.Frame):
     
     def _test_pop3_smtp_connection(self, account):
         """Test POP3/SMTP connection"""
+        log(f"[MAIL CONFIG] Rozpoczęcie testu połączenia POP3/SMTP dla konta: {account.get('email', 'nieznane')}")
+        log(f"[MAIL CONFIG] Parametry POP3: serwer={account.get('pop3_server', '')}, port={account.get('pop3_port', 995)}, SSL={account.get('pop3_ssl', True)}")
+        log(f"[MAIL CONFIG] Parametry SMTP: serwer={account.get('smtp_server_pop3', '')}, port={account.get('smtp_port_pop3', 587)}, SSL={account.get('smtp_ssl_pop3', True)}")
+        log(f"[MAIL CONFIG] Metoda uwierzytelniania: {account.get('auth_method', 'password')}")
+        
         try:
             # Test POP3 connection
             if self.testing_cancelled:
+                log("[MAIL CONFIG] Test POP3/SMTP anulowany przez użytkownika")
                 self.result_queue.put({'type': 'test_cancelled'})
                 return
             
+            log("[MAIL CONFIG] Próba nawiązania połączenia POP3...")
             if account["pop3_ssl"]:
+                log("[MAIL CONFIG] Używanie POP3_SSL")
                 pop3 = poplib.POP3_SSL(account["pop3_server"], account["pop3_port"])
             else:
+                log("[MAIL CONFIG] Używanie POP3 bez SSL")
                 pop3 = poplib.POP3(account["pop3_server"], account["pop3_port"])
             
+            log("[MAIL CONFIG] POP3 połączenie nawiązane, próba logowania...")
             pop3.user(account["username"])
             pop3.pass_(account["password"])
+            log("[MAIL CONFIG] POP3 logowanie pomyślne")
             
             # Get message count to verify connection
+            log("[MAIL CONFIG] Pobieranie liczby wiadomości z POP3...")
             msg_count = len(pop3.list()[1])
+            log(f"[MAIL CONFIG] POP3 - znaleziono {msg_count} wiadomości")
             pop3.quit()
+            log("[MAIL CONFIG] POP3 połączenie zamknięte")
             
             if self.testing_cancelled:
+                log("[MAIL CONFIG] Test POP3/SMTP anulowany przez użytkownika po POP3")
                 self.result_queue.put({'type': 'test_cancelled'})
                 return
             
@@ -676,24 +694,37 @@ class MailConfigWidget(ttk.Frame):
             smtp_port = account.get("smtp_port_pop3", account.get("smtp_port", 587))
             smtp_ssl = account.get("smtp_ssl_pop3", account.get("smtp_ssl", True))
             
+            log(f"[MAIL CONFIG] Próba nawiązania połączenia SMTP: {smtp_server}:{smtp_port}, SSL={smtp_ssl}")
+            
             if smtp_ssl:
+                log("[MAIL CONFIG] Używanie SMTP_SSL")
                 smtp = smtplib.SMTP_SSL(smtp_server, smtp_port)
             else:
+                log("[MAIL CONFIG] Używanie SMTP z STARTTLS")
                 smtp = smtplib.SMTP(smtp_server, smtp_port)
                 smtp.starttls()
             
+            log("[MAIL CONFIG] SMTP połączenie nawiązane, próba logowania...")
             smtp.login(account["username"], account["password"])
+            log("[MAIL CONFIG] SMTP logowanie pomyślne")
             smtp.quit()
+            log("[MAIL CONFIG] SMTP połączenie zamknięte")
+            
+            success_message = f"Połączono z kontem POP3/SMTP: {account['email']} ({msg_count} wiadomości)"
+            log(f"[MAIL CONFIG] Test POP3/SMTP zakończony pomyślnie: {success_message}")
             
             self.result_queue.put({
                 'type': 'test_success',
-                'message': f"Połączono z kontem POP3/SMTP: {account['email']} ({msg_count} wiadomości)"
+                'message': success_message
             })
             
         except Exception as e:
+            error_message = f"Błąd połączenia POP3/SMTP: {str(e)}"
+            log(f"[MAIL CONFIG] Test POP3/SMTP zakończony błędem: {error_message}")
+            log(f"[MAIL CONFIG] Szczegóły błędu: {type(e).__name__}: {str(e)}")
             self.result_queue.put({
                 'type': 'test_error',
-                'error': f"Błąd połączenia POP3/SMTP: {str(e)}"
+                'error': error_message
             })
     
     def _process_result_queue(self):
