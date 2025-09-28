@@ -489,8 +489,69 @@ print(f"Zużycie pamięci: {process.memory_info().rss / 1024 / 1024:.1f} MB")
 ### Pliki konfiguracyjne
 
 - `ocr_config.json` - ustawienia OCR
-- `exchange_config.json` - konfiguracja Exchange
+- `mail_config.json` - konfiguracja kont pocztowych (Exchange i IMAP/SMTP)
+- `exchange_config.json` - stara konfiguracja Exchange (automatycznie migrowana)
 - `mail_search_config.json` - ustawienia wyszukiwania email
+
+### Konfiguracja poczty (Multi-Account)
+
+Aplikacja obsługuje wiele kont pocztowych jednocześnie, zarówno Exchange jak i IMAP/SMTP.
+
+#### Przykład konfiguracji multi-account
+
+```json
+{
+  "accounts": [
+    {
+      "name": "Konto Exchange",
+      "type": "exchange",
+      "email": "user@company.com",
+      "username": "user@company.com",
+      "password": "hasło",
+      "exchange_server": "exchange.company.com",
+      "domain": "company.com",
+      "imap_server": "",
+      "imap_port": 993,
+      "imap_ssl": true,
+      "smtp_server": "",
+      "smtp_port": 587,
+      "smtp_ssl": true
+    },
+    {
+      "name": "Konto Gmail",
+      "type": "imap_smtp",
+      "email": "user@gmail.com",
+      "username": "user@gmail.com",
+      "password": "hasło_aplikacji",
+      "exchange_server": "",
+      "domain": "",
+      "imap_server": "imap.gmail.com",
+      "imap_port": 993,
+      "imap_ssl": true,
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "smtp_ssl": true
+    }
+  ],
+  "main_account_index": 0
+}
+```
+
+#### Konfiguracja przez interfejs
+
+1. Otwórz zakładkę **"Konfiguracja poczty"**
+2. Kliknij **"Dodaj konto"** aby utworzyć nowe konto
+3. Wybierz typ konta: **Exchange** lub **IMAP/SMTP**
+4. Wypełnij dane konfiguracyjne:
+   - **Exchange**: serwer, domena (opcjonalnie)
+   - **IMAP/SMTP**: serwery, porty, SSL/TLS
+5. Kliknij **"Testuj połączenie"** aby sprawdzić konfigurację
+6. Kliknij **"Zapisz konto"** aby zapisać ustawienia
+7. Użyj **"Ustaw jako główne"** aby wybrać główne konto do operacji
+
+#### Migracja z starej konfiguracji
+
+Stare pliki `exchange_config.json` są automatycznie migrowane do nowego formatu podczas pierwszego uruchomienia.
 
 ### Przykład konfiguracji OCR
 
