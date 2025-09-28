@@ -1,12 +1,12 @@
 {
   "accounts": [
     {
-      "name": "Exchange Account",
+      "name": "Grzegorz  Ciekot",
       "type": "exchange",
-      "email": "exchange@example.com",
-      "username": "exchange@example.com",
-      "password": "pass1",
-      "exchange_server": "exchange.example.com",
+      "email": "grzegorz.ciekot@woox.pl",
+      "username": "grzegorz.ciekot@woox.pl",
+      "password": "g503784221Ola",
+      "exchange_server": "ex3.mail.ovh.net",
       "domain": "",
       "imap_server": "",
       "imap_port": 993,
@@ -16,18 +16,18 @@
       "smtp_ssl": true
     },
     {
-      "name": "IMAP Account",
+      "name": "Recepcja  Woox",
       "type": "imap_smtp",
-      "email": "imap@example.com",
-      "username": "imap@example.com",
-      "password": "pass2",
+      "email": "recepcja@woox.pl",
+      "username": "recepcja@woox.pl",
+      "password": "biznes2wwoox",
       "exchange_server": "",
       "domain": "",
-      "imap_server": "imap.example.com",
+      "imap_server": "ssl0.ovh.net",
       "imap_port": 993,
       "imap_ssl": true,
-      "smtp_server": "smtp.example.com",
-      "smtp_port": 587,
+      "smtp_server": "ssl0.ovh.net",
+      "smtp_port": 465,
       "smtp_ssl": true
     }
   ],
