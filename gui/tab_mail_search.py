@@ -31,7 +31,8 @@ class MailSearchTab(ttk.Frame):
             'no_attachments_only': tk.BooleanVar(),
             'attachment_name': tk.StringVar(),
             'attachment_extension': tk.StringVar(),
-            'selected_period': tk.StringVar(value="wszystkie")
+            'selected_period': tk.StringVar(value="wszystkie"),
+            'skip_searched_pdfs': tk.BooleanVar()
         }
         
         # Folder exclusion support
@@ -52,7 +53,14 @@ class MailSearchTab(ttk.Frame):
         # Initialize components
         self.connection = MailConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder)
+        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder, self.clear_pdf_history)
+        
+        # Initialize PDF history manager
+        from gui.mail_search_components.pdf_history_manager import PDFHistoryManager
+        self.pdf_history_manager = PDFHistoryManager()
+        
+        # Set PDF history manager in search engine
+        self.search_engine.pdf_history_manager = self.pdf_history_manager
         
         self.create_widgets()
         
@@ -115,6 +123,26 @@ class MailSearchTab(ttk.Frame):
                 
         except Exception as e:
             messagebox.showerror("Błąd", f"Błąd wyboru folderu: {e}")
+    
+    def clear_pdf_history(self):
+        """Clear PDF search history"""
+        try:
+            # Ask for confirmation
+            result = messagebox.askyesno(
+                "Potwierdzenie", 
+                "Czy na pewno chcesz wyczyścić całą historię wyszukiwania PDF?\n\nTa operacja jest nieodwracalna.",
+                icon="warning"
+            )
+            
+            if result:
+                if self.pdf_history_manager.clear_history():
+                    messagebox.showinfo("Sukces", "Historia wyszukiwania PDF została wyczyszczona.")
+                    self._add_progress("Historia PDF została wyczyszczona")
+                else:
+                    messagebox.showerror("Błąd", "Nie udało się wyczyścić historii PDF.")
+                    
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Błąd czyszczenia historii: {e}")
     
     def update_account_info_display(self):
         """Update account and folder information display"""
@@ -388,6 +416,9 @@ class MailSearchTab(ttk.Frame):
                     pdf_save_dir = config.get("pdf_save_directory")
                     if pdf_save_dir:
                         self.vars['pdf_save_directory'].set(pdf_save_dir)
+                    # Load skip searched PDFs setting
+                    skip_searched = config.get("skip_searched_pdfs", False)
+                    self.vars['skip_searched_pdfs'].set(skip_searched)
                     # Excluded folders will be loaded when folders are discovered
         except Exception as e:
             print(f"Błąd ładowania konfiguracji wyszukiwania: {e}")
@@ -404,7 +435,8 @@ class MailSearchTab(ttk.Frame):
             config = {
                 "excluded_folders": excluded_folders,
                 "exclusion_section_visible": self.exclusion_section_visible,
-                "pdf_save_directory": self.vars['pdf_save_directory'].get()
+                "pdf_save_directory": self.vars['pdf_save_directory'].get(),
+                "skip_searched_pdfs": self.vars['skip_searched_pdfs'].get()
             }
             
             with open(MAIL_SEARCH_CONFIG_FILE, "w", encoding='utf-8') as f:

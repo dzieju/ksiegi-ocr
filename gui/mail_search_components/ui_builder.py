@@ -8,11 +8,12 @@ from tkinter import ttk
 class MailSearchUI:
     """Handles UI creation for mail search tab"""
     
-    def __init__(self, parent, variables, discover_callback, pdf_folder_callback=None):
+    def __init__(self, parent, variables, discover_callback, pdf_folder_callback=None, clear_history_callback=None):
         self.parent = parent
         self.vars = variables
         self.discover_callback = discover_callback
         self.pdf_folder_callback = pdf_folder_callback
+        self.clear_history_callback = clear_history_callback
         
     def create_search_criteria_widgets(self, save_pdf_callback=None):
         """Create search criteria input widgets"""
@@ -50,6 +51,28 @@ class MailSearchUI:
         if self.pdf_folder_callback:
             pdf_folder_button = ttk.Button(self.parent, text="Wybierz folder", command=self.pdf_folder_callback)
             pdf_folder_button.grid(row=5, column=2, padx=5, pady=5)
+        
+        # PDF search history controls - create a frame for better layout
+        pdf_history_frame = ttk.Frame(self.parent)
+        pdf_history_frame.grid(row=5, column=3, columnspan=2, padx=5, pady=5, sticky="w")
+        
+        # Checkbox for skipping searched PDFs
+        skip_checkbox = ttk.Checkbutton(
+            pdf_history_frame, 
+            text="Pomijaj już wyszukane PDF-y", 
+            variable=self.vars['skip_searched_pdfs']
+        )
+        skip_checkbox.grid(row=0, column=0, padx=5, sticky="w")
+        
+        # Button for clearing history
+        if self.clear_history_callback:
+            clear_history_button = ttk.Button(
+                pdf_history_frame, 
+                text="Wyczyść historię", 
+                command=self.clear_history_callback,
+                width=15
+            )
+            clear_history_button.grid(row=0, column=1, padx=5, sticky="w")
         
         ttk.Label(self.parent, text="Nadawca maila:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5)

@@ -45,6 +45,9 @@ class EmailSearchEngine:
         self.pdf_save_directory = None
         self.saved_pdf_count = 0
         
+        # PDF history manager (will be set by external components)
+        self.pdf_history_manager = None
+        
         # Cache valid Message field names for validation
         self._valid_fields = self._get_valid_message_fields()
         log(f"Zainicjalizowano wyszukiwarkę z {len(self._valid_fields)} dostępnymi polami Message")
@@ -612,7 +615,8 @@ class EmailSearchEngine:
                     # Check PDF content search if needed
                     pdf_match_info = None
                     if has_pdf_search:
-                        pdf_match_result = self._check_pdf_content(message, pdf_search_text)
+                        skip_searched_pdfs = criteria.get('skip_searched_pdfs', False)
+                        pdf_match_result = self._check_pdf_content(message, pdf_search_text, skip_searched_pdfs)
                         if not pdf_match_result['found']:
                             pdf_search_filtered_out += 1
                             continue
@@ -898,13 +902,14 @@ class EmailSearchEngine:
         
         return False
     
-    def _check_pdf_content(self, message, search_text):
+    def _check_pdf_content(self, message, search_text, skip_searched_pdfs=False):
         """Check if message has PDF attachments containing the search text"""
         if not message.attachments or not search_text:
             return {'found': False, 'matches': [], 'method': 'no_attachments_or_text'}
         
         found_matches = []
         found_attachment_names = []
+        skipped_pdfs_count = 0
         
         for attachment in message.attachments:
             if self.search_cancelled:
@@ -914,6 +919,24 @@ class EmailSearchEngine:
             attachment_name = getattr(attachment, 'name', '') or ''
             if not attachment_name.lower().endswith('.pdf'):
                 continue
+            
+            # Check if we should skip this PDF based on history
+            if skip_searched_pdfs and self.pdf_history_manager:
+                try:
+                    attachment_content = getattr(attachment, 'content', None)
+                    if attachment_content and self.pdf_history_manager.is_pdf_already_searched(
+                        attachment_name, attachment_content, search_text
+                    ):
+                        # Mark as skipped and continue to next attachment
+                        self.pdf_history_manager.mark_pdf_as_skipped(
+                            attachment_name, attachment_content, search_text
+                        )
+                        skipped_pdfs_count += 1
+                        log(f"[PDF HISTORY] Pominięto już przeszukany PDF: {attachment_name}")
+                        continue
+                except Exception as e:
+                    log(f"[PDF HISTORY] Błąd sprawdzania historii dla {attachment_name}: {e}")
+                    # Continue with search if history check fails
             
             # Search in this PDF attachment
             result = self.pdf_processor.search_in_pdf_attachment(attachment, search_text, attachment_name)
@@ -925,6 +948,17 @@ class EmailSearchEngine:
                     'method': result.get('method', 'unknown'),
                     'matches': result.get('matches', [])
                 })
+                
+                # Mark PDF as searched in history
+                if self.pdf_history_manager:
+                    try:
+                        attachment_content = getattr(attachment, 'content', None)
+                        if attachment_content:
+                            self.pdf_history_manager.mark_pdf_as_searched(
+                                attachment_name, attachment_content, search_text, result.get('matches', [])
+                            )
+                    except Exception as e:
+                        log(f"[PDF HISTORY] Błąd oznaczania PDF {attachment_name} jako przeszukany: {e}")
                 
                 # Auto-save PDF if enabled
                 if self.auto_save_pdfs and self.pdf_save_directory:
@@ -973,15 +1007,31 @@ class EmailSearchEngine:
                     except Exception as e:
                         log(f"BŁĄD auto-zapisu PDF {attachment_name}: {e}")
                         # Don't stop processing, just log the error
+            else:
+                # Mark PDF as searched in history even if no matches found
+                if self.pdf_history_manager:
+                    try:
+                        attachment_content = getattr(attachment, 'content', None)
+                        if attachment_content:
+                            self.pdf_history_manager.mark_pdf_as_searched(
+                                attachment_name, attachment_content, search_text, []
+                            )
+                    except Exception as e:
+                        log(f"[PDF HISTORY] Błąd oznaczania PDF {attachment_name} jako przeszukany (bez wyników): {e}")
+        
+        # Log statistics about skipped PDFs
+        if skipped_pdfs_count > 0:
+            log(f"[PDF HISTORY] Pominięto {skipped_pdfs_count} już przeszukanych PDF-ów")
         
         if found_attachment_names:
             return {
                 'found': True,
                 'attachments': found_attachment_names,
-                'all_matches': found_matches
+                'all_matches': found_matches,
+                'skipped_count': skipped_pdfs_count
             }
         
-        return {'found': False, 'matches': [], 'method': 'not_found_in_pdfs'}
+        return {'found': False, 'matches': [], 'method': 'not_found_in_pdfs', 'skipped_count': skipped_pdfs_count}
 
     def _get_imap_messages(self, folder_name, connection, combined_query, criteria, account_type, per_page=500):
         """Retrieve messages from IMAP folder using IMAPClient"""
