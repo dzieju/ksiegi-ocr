@@ -19,7 +19,7 @@ class IMAPDateHandler:
         Parse IMAP date string to datetime object using proper datetime methods.
         
         Args:
-            date_string: Date string from IMAP envelope
+            date_string: Date string from IMAP envelope or datetime object
             
         Returns:
             datetime: Parsed datetime object with timezone
@@ -27,6 +27,13 @@ class IMAPDateHandler:
         try:
             if not date_string:
                 return datetime.now(timezone.utc)
+            
+            # Check if input is already a datetime object - don't re-parse
+            if isinstance(date_string, datetime):
+                # Ensure timezone is set
+                if date_string.tzinfo is None:
+                    return date_string.replace(tzinfo=timezone.utc)
+                return date_string
             
             # Handle bytes to string conversion
             if isinstance(date_string, bytes):
