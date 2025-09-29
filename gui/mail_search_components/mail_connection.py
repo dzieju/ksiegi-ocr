@@ -36,6 +36,55 @@ CONFIG_FILE = "mail_config.json"
 LEGACY_CONFIG_FILE = "exchange_config.json"
 
 
+class FolderNameMapper:
+    """Handles bidirectional mapping between Polish display names and server folder names"""
+    
+    # Mapping from Polish display names to common server folder names
+    POLISH_TO_SERVER = {
+        "skrzynka odbiorcza": "INBOX",
+        "odebrane": "INBOX",
+        "przychodzące": "INBOX",
+        "wysłane": "SENT",
+        "wysłano": "SENT",
+        "robocze": "DRAFTS",
+        "szkice": "DRAFTS",
+        "spam": "SPAM",
+        "junk": "SPAM",
+        "śmieci": "TRASH",
+        "kosz": "TRASH",
+        "archiwum": "ARCHIVE",
+        "ważne": "IMPORTANT",
+        "oznaczone": "FLAGGED"
+    }
+    
+    # Reverse mapping for display purposes
+    SERVER_TO_POLISH = {v: k for k, v in POLISH_TO_SERVER.items()}
+    
+    @classmethod
+    def polish_to_server(cls, polish_name):
+        """Convert Polish folder name to server folder name"""
+        if not polish_name:
+            return "INBOX"
+        return cls.POLISH_TO_SERVER.get(polish_name.lower(), polish_name)
+    
+    @classmethod
+    def server_to_polish(cls, server_name):
+        """Convert server folder name to Polish display name"""
+        if not server_name:
+            return "Skrzynka odbiorcza"
+        return cls.SERVER_TO_POLISH.get(server_name.upper(), server_name)
+    
+    @classmethod
+    def get_folder_display_name(cls, server_name, account_type="imap_smtp"):
+        """Get appropriate display name for folder based on account type"""
+        # For Exchange, we show actual server names
+        # For IMAP/POP, we can show Polish names if available
+        if account_type == "exchange":
+            return server_name
+        else:
+            return cls.server_to_polish(server_name)
+
+
 class MailConnection:
     """Manages mail server connections for both Exchange and IMAP/SMTP"""
     
@@ -243,7 +292,9 @@ class MailConnection:
             path_parts = folder_path.split("/")
             current_folder = account.inbox
             
-            if path_parts[0].lower() in ["inbox", "skrzynka odbiorcza"]:
+            # Check if the first part is a known Polish inbox name
+            first_part_mapped = FolderNameMapper.polish_to_server(path_parts[0] if path_parts else "")
+            if first_part_mapped == "INBOX" or path_parts[0].lower() in ["inbox", "skrzynka odbiorcza"]:
                 path_parts = path_parts[1:]  # Skip inbox part
             
             for part in path_parts:
@@ -266,22 +317,9 @@ class MailConnection:
     def _get_imap_folder_by_path(self, imap, folder_path):
         """Get IMAP folder by path"""
         try:
-            # For IMAP, we need to translate folder names
-            # This is a simplified implementation
-            if folder_path.lower() in ["inbox", "skrzynka odbiorcza"]:
-                folder_name = "INBOX"
-            else:
-                # Try to use the folder path as-is, or map common names
-                folder_mapping = {
-                    "skrzynka odbiorcza": "INBOX",
-                    "sent": "SENT",
-                    "wysłane": "SENT",
-                    "drafts": "DRAFTS",
-                    "robocze": "DRAFTS",
-                    "spam": "SPAM",
-                    "junk": "SPAM"
-                }
-                folder_name = folder_mapping.get(folder_path.lower(), folder_path)
+            # Use the new FolderNameMapper for consistent translation
+            folder_name = FolderNameMapper.polish_to_server(folder_path)
+            log(f"[MAIL CONNECTION] Mapping folder path '{folder_path}' to server name '{folder_name}'")
             
             # Select the folder
             status, messages = imap.select(folder_name)
@@ -433,11 +471,10 @@ class MailConnection:
             return ["INBOX"]
         elif account_type == "imap_smtp":
             log("[MAIL CONNECTION] Using IMAP folder detection")
-            # For IMAP, return a simplified list
-            return ["INBOX", "SENT", "DRAFTS", "SPAM"]
+            return self._get_imap_available_folders(folder_path)
         else:
             log(f"[MAIL CONNECTION] WARNING: Unknown account type '{account_type}', defaulting to IMAP folder detection")
-            return ["INBOX", "SENT", "DRAFTS", "SPAM"]
+            return self._get_imap_available_folders(folder_path)
     
     def _get_exchange_available_folders(self, account, folder_path):
         """Get available Exchange folders for exclusion"""
@@ -465,6 +502,50 @@ class MailConnection:
         except Exception as e:
             log(f"Błąd pobierania listy folderów do wykluczenia: {str(e)}")
             return []
+    
+    def _get_imap_available_folders(self, folder_path):
+        """Get available IMAP folders for exclusion by connecting to server"""
+        try:
+            if not self.current_account_config:
+                log("[MAIL CONNECTION] ERROR: No account configuration available for IMAP folder discovery")
+                return ["SENT", "DRAFTS", "SPAM", "TRASH"]
+            
+            # Get IMAP connection
+            imap = self._get_imap_connection(self.current_account_config)
+            if not imap:
+                log("[MAIL CONNECTION] ERROR: Could not establish IMAP connection for folder discovery")
+                return ["SENT", "DRAFTS", "SPAM", "TRASH"]  # Fallback to basic list
+            
+            # List all folders on the server
+            status, folders = imap.list()
+            if status != 'OK':
+                log(f"[MAIL CONNECTION] ERROR: Could not list IMAP folders: {status}")
+                return ["SENT", "DRAFTS", "SPAM", "TRASH"]
+            
+            folder_names = []
+            for folder in folders:
+                # Parse folder list response: b'(\\HasNoChildren) "/" "INBOX"'
+                if folder:
+                    # Extract folder name from the response
+                    folder_str = folder.decode('utf-8') if isinstance(folder, bytes) else str(folder)
+                    # Split by quotes to get the folder name
+                    parts = folder_str.split('"')
+                    if len(parts) >= 3:
+                        folder_name = parts[-2]  # Last quoted part is the folder name
+                        if folder_name and folder_name != folder_path:  # Exclude the base folder itself
+                            folder_names.append(folder_name)
+            
+            if not folder_names:
+                # If no subfolders found, at least return common ones for exclusion
+                folder_names = ["SENT", "DRAFTS", "SPAM", "TRASH"]
+            
+            log(f"[MAIL CONNECTION] Found {len(folder_names)} IMAP folders: {folder_names}")
+            return folder_names
+            
+        except Exception as e:
+            log(f"[MAIL CONNECTION] ERROR getting IMAP folders: {str(e)}")
+            # Return fallback list
+            return ["SENT", "DRAFTS", "SPAM", "TRASH"]
     
     def close_connections(self):
         """Close all active connections"""
@@ -502,3 +583,38 @@ class MailConnection:
         account_email = self.current_account_config.get("email", "Unknown")
         
         return f"Account: '{account_name}' ({account_email}) - Type: {account_type}"
+    
+    def get_account_and_folder_info(self, current_folder_path=None):
+        """Get combined information about current account and active folder"""
+        if not self.current_account_config:
+            return "Konto: Nieskonfigurowane", "Folder: Brak"
+        
+        account_type = self.current_account_config.get("type", "unknown")
+        account_name = self.current_account_config.get("name", "Nieznane")
+        
+        # Format account info
+        if account_type == "exchange":
+            account_info = f"Exchange: {account_name}"
+        elif account_type == "imap_smtp":
+            account_info = f"IMAP: {account_name}"
+        elif account_type == "pop3_smtp":
+            account_info = f"POP3: {account_name}"
+        else:
+            account_info = f"Nieznany: {account_name}"
+        
+        # Format folder info
+        if current_folder_path:
+            # Show both the user input and what it maps to for server
+            if account_type == "exchange":
+                folder_info = f"Folder: {current_folder_path}"
+            else:
+                # For IMAP/POP, show the mapping
+                server_folder = FolderNameMapper.polish_to_server(current_folder_path)
+                if server_folder != current_folder_path:
+                    folder_info = f"Folder: {current_folder_path} → {server_folder}"
+                else:
+                    folder_info = f"Folder: {current_folder_path}"
+        else:
+            folder_info = "Folder: Brak"
+        
+        return account_info, folder_info

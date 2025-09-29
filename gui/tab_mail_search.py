@@ -56,6 +56,9 @@ class MailSearchTab(ttk.Frame):
         
         self.create_widgets()
         
+        # Add callback to update folder info when folder path changes
+        self.vars['folder_path'].trace('w', self._on_folder_path_change)
+        
         # Load saved settings
         self.load_mail_search_config()
         
@@ -70,7 +73,7 @@ class MailSearchTab(ttk.Frame):
         self.ui_builder.create_search_criteria_widgets()
         self.ui_builder.create_date_period_widgets()
         
-        self.search_button, self.status_label, self.account_info_label = self.ui_builder.create_control_widgets(self.toggle_search)
+        self.search_button, self.status_label, self.account_info_label, self.folder_info_label = self.ui_builder.create_control_widgets(self.toggle_search)
         self.results_frame = self.ui_builder.create_results_widget()
         
         # Initialize results display with the frame
@@ -114,31 +117,42 @@ class MailSearchTab(ttk.Frame):
             messagebox.showerror("Błąd", f"Błąd wyboru folderu: {e}")
     
     def update_account_info_display(self):
-        """Update the account info display with current account details"""
+        """Update account and folder information display"""
         try:
-            if hasattr(self, 'account_info_label'):
-                account_info = self.connection.get_current_account_info()
-                if account_info and account_info != "No account configured":
-                    # Parse account info to show type and name
-                    if "Type: exchange" in account_info:
-                        account_type = "Exchange"
-                        color = "green"
-                    elif "Type: imap_smtp" in account_info:
-                        account_type = "IMAP/SMTP"
-                        color = "blue"
-                    elif "Type: pop3_smtp" in account_info:
-                        account_type = "POP3/SMTP"
-                        color = "purple"
-                    else:
-                        account_type = "Nieznany"
-                        color = "orange"
-                    
-                    self.account_info_label.config(text=f"Konto: {account_type}", foreground=color)
+            if hasattr(self, 'account_info_label') and hasattr(self, 'folder_info_label'):
+                current_folder = self.vars['folder_path'].get()
+                account_info, folder_info = self.connection.get_account_and_folder_info(current_folder)
+                
+                # Update account info with color coding
+                if "Exchange" in account_info:
+                    color = "green"
+                elif "IMAP" in account_info:
+                    color = "blue"
+                elif "POP3" in account_info:
+                    color = "purple"
+                elif "Nieskonfigurowane" in account_info:
+                    color = "red"
                 else:
-                    self.account_info_label.config(text="Konto: Nieskonfigurowane", foreground="red")
+                    color = "orange"
+                
+                self.account_info_label.config(text=account_info, foreground=color)
+                
+                # Update folder info
+                if "→" in folder_info:  # Translation shown
+                    self.folder_info_label.config(text=folder_info, foreground="blue")
+                elif "Brak" in folder_info:
+                    self.folder_info_label.config(text=folder_info, foreground="gray")
+                else:
+                    self.folder_info_label.config(text=folder_info, foreground="green")
         except Exception as e:
             if hasattr(self, 'account_info_label'):
                 self.account_info_label.config(text="Konto: Błąd", foreground="red")
+            if hasattr(self, 'folder_info_label'):
+                self.folder_info_label.config(text="Folder: Błąd", foreground="red")
+
+    def _on_folder_path_change(self, *args):
+        """Called when folder path is changed to update display"""
+        self.update_account_info_display()
 
     def discover_folders(self):
         """Discover available folders for exclusion in background thread"""

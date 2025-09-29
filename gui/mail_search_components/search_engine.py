@@ -157,6 +157,27 @@ class EmailSearchEngine:
             
             log(f"Detected account type: {account_type}")
             
+            # Enhanced account and folder context logging
+            if connection.current_account_config:
+                account_name = connection.current_account_config.get("name", "Unknown")
+                account_email = connection.current_account_config.get("email", "Unknown")
+                log(f"=== KONTEKST WYSZUKIWANIA ===")
+                log(f"Konto: '{account_name}' ({account_email})")
+                log(f"Typ konta: {account_type}")
+                
+                # Show folder mapping for IMAP/POP accounts
+                folder_path = criteria.get('folder_path', 'Skrzynka odbiorcza')
+                if account_type in ["imap_smtp", "pop3_smtp"]:
+                    from gui.mail_search_components.mail_connection import FolderNameMapper
+                    server_folder = FolderNameMapper.polish_to_server(folder_path)
+                    if server_folder != folder_path:
+                        log(f"Folder wyszukiwania: '{folder_path}' → '{server_folder}'")
+                    else:
+                        log(f"Folder wyszukiwania: '{folder_path}'")
+                else:
+                    log(f"Folder wyszukiwania: '{folder_path}'")
+                log("=" * 30)
+            
             # Log connection info (works for both Exchange and IMAP)
             if hasattr(account, 'primary_smtp_address'):
                 log(f"Połączono z kontem Exchange: {account.primary_smtp_address}")
