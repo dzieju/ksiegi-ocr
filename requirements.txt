@@ -1,4 +1,5 @@
 exchangelib
+IMAPClient
 pdfplumber
 pdfminer.six
 tkcalendar

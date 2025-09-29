@@ -13,7 +13,7 @@ except ImportError:
 import json
 import threading
 import queue
-import imaplib
+from imapclient import IMAPClient
 import smtplib
 import poplib
 import ssl
@@ -644,13 +644,15 @@ class MailConfigWidget(ttk.Frame):
                 self.result_queue.put({'type': 'test_cancelled'})
                 return
             
-            if account["imap_ssl"]:
-                imap = imaplib.IMAP4_SSL(account["imap_server"], account["imap_port"])
-            else:
-                imap = imaplib.IMAP4(account["imap_server"], account["imap_port"])
+            # Create IMAPClient connection
+            imap = IMAPClient(
+                account["imap_server"], 
+                port=account["imap_port"],
+                ssl=account["imap_ssl"]
+            )
             
             imap.login(account["username"], account["password"])
-            imap.select("INBOX")
+            imap.select_folder("INBOX")
             imap.logout()
             
             if self.testing_cancelled:
