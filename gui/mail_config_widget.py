@@ -315,7 +315,19 @@ class MailConfigWidget(ttk.Frame):
         if self.accounts and self.selected_account_index >= 0:
             self.main_account_index = self.selected_account_index
             self.refresh_account_list()
-            messagebox.showinfo("Informacja", f"Konto '{self.accounts[self.main_account_index]['name']}' zostało ustawione jako główne.")
+            
+            # Immediately save configuration to make the change persistent
+            config = {
+                "accounts": self.accounts,
+                "main_account_index": self.main_account_index
+            }
+            
+            try:
+                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(config, f, indent=2, ensure_ascii=False)
+                messagebox.showinfo("Informacja", f"Konto '{self.accounts[self.main_account_index]['name']}' zostało ustawione jako główne.")
+            except Exception as e:
+                messagebox.showerror("Błąd", f"Nie można zapisać konfiguracji: {str(e)}")
     
     def on_account_select(self, event):
         """Handle account selection"""
