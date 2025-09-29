@@ -225,8 +225,6 @@ class MailConfigWidget(ttk.Frame):
         action_frame = ttk.Frame(parent)
         action_frame.grid(row=9, column=0, columnspan=2, pady=20)
         
-        ttk.Button(action_frame, text="Zapisz konto", command=self.save_current_account).pack(side="left", padx=5)
-        
         self.test_button = ttk.Button(action_frame, text="Testuj połączenie", command=self.toggle_test_connection)
         self.test_button.pack(side="left", padx=5)
         
@@ -382,48 +380,6 @@ class MailConfigWidget(ttk.Frame):
         self.smtp_port_pop3_var.set("587")
         self.smtp_ssl_pop3_var.set(True)
     
-    def save_current_account(self):
-        """Save current form data to selected account"""
-        if not self.accounts or self.selected_account_index < 0:
-            messagebox.showwarning("Ostrzeżenie", "Brak wybranego konta do zapisania.")
-            return
-        
-        # Validation
-        if not self.account_name_var.get().strip():
-            messagebox.showerror("Błąd", "Nazwa konta nie może być pusta.")
-            return
-        
-        if not self.email_var.get().strip():
-            messagebox.showerror("Błąd", "Adres e-mail nie może być pusty.")
-            return
-        
-        account = self.accounts[self.selected_account_index]
-        account.update({
-            "name": self.account_name_var.get().strip(),
-            "type": self.account_type_var.get(),
-            "email": self.email_var.get().strip(),
-            "username": self.username_var.get().strip(),
-            "password": self.password_var.get(),
-            "auth_method": self.auth_method_var.get(),
-            "exchange_server": self.exchange_server_var.get().strip(),
-            "domain": self.domain_var.get().strip(),
-            "imap_server": self.imap_server_var.get().strip(),
-            "imap_port": int(self.imap_port_var.get()) if self.imap_port_var.get().isdigit() else 993,
-            "imap_ssl": self.imap_ssl_var.get(),
-            "smtp_server": self.smtp_server_var.get().strip(),
-            "smtp_port": int(self.smtp_port_var.get()) if self.smtp_port_var.get().isdigit() else 587,
-            "smtp_ssl": self.smtp_ssl_var.get(),
-            "pop3_server": self.pop3_server_var.get().strip(),
-            "pop3_port": int(self.pop3_port_var.get()) if self.pop3_port_var.get().isdigit() else 995,
-            "pop3_ssl": self.pop3_ssl_var.get(),
-            "smtp_server_pop3": self.smtp_server_pop3_var.get().strip(),
-            "smtp_port_pop3": int(self.smtp_port_pop3_var.get()) if self.smtp_port_pop3_var.get().isdigit() else 587,
-            "smtp_ssl_pop3": self.smtp_ssl_pop3_var.get()
-        })
-        
-        self.refresh_account_list()
-        messagebox.showinfo("Zapisano", "Konto zostało zapisane.")
-    
     def refresh_account_list(self):
         """Refresh the account list display"""
         self.account_listbox.delete(0, tk.END)
@@ -434,11 +390,51 @@ class MailConfigWidget(ttk.Frame):
             self.account_listbox.insert(tk.END, display_name)
     
     def save_config(self):
-        """Save all accounts to config file"""
+        """Save current form data to selected account and all accounts to config file"""
         if not self.accounts:
             messagebox.showwarning("Ostrzeżenie", "Brak kont do zapisania.")
             return
         
+        # First, save current form data to selected account if we have one selected
+        if self.selected_account_index >= 0:
+            # Validation
+            if not self.account_name_var.get().strip():
+                messagebox.showerror("Błąd", "Nazwa konta nie może być pusta.")
+                return
+            
+            if not self.email_var.get().strip():
+                messagebox.showerror("Błąd", "Adres e-mail nie może być pusty.")
+                return
+            
+            # Update the selected account with current form data
+            account = self.accounts[self.selected_account_index]
+            account.update({
+                "name": self.account_name_var.get().strip(),
+                "type": self.account_type_var.get(),
+                "email": self.email_var.get().strip(),
+                "username": self.username_var.get().strip(),
+                "password": self.password_var.get(),
+                "auth_method": self.auth_method_var.get(),
+                "exchange_server": self.exchange_server_var.get().strip(),
+                "domain": self.domain_var.get().strip(),
+                "imap_server": self.imap_server_var.get().strip(),
+                "imap_port": int(self.imap_port_var.get()) if self.imap_port_var.get().isdigit() else 993,
+                "imap_ssl": self.imap_ssl_var.get(),
+                "smtp_server": self.smtp_server_var.get().strip(),
+                "smtp_port": int(self.smtp_port_var.get()) if self.smtp_port_var.get().isdigit() else 587,
+                "smtp_ssl": self.smtp_ssl_var.get(),
+                "pop3_server": self.pop3_server_var.get().strip(),
+                "pop3_port": int(self.pop3_port_var.get()) if self.pop3_port_var.get().isdigit() else 995,
+                "pop3_ssl": self.pop3_ssl_var.get(),
+                "smtp_server_pop3": self.smtp_server_pop3_var.get().strip(),
+                "smtp_port_pop3": int(self.smtp_port_pop3_var.get()) if self.smtp_port_pop3_var.get().isdigit() else 587,
+                "smtp_ssl_pop3": self.smtp_ssl_pop3_var.get()
+            })
+            
+            # Refresh the account list to show any name changes
+            self.refresh_account_list()
+        
+        # Now save all accounts to config file
         config = {
             "accounts": self.accounts,
             "main_account_index": self.main_account_index
@@ -544,9 +540,6 @@ class MailConfigWidget(ttk.Frame):
             messagebox.showwarning("Ostrzeżenie", "Wybierz konto do testowania.")
             return
         
-        # Save current form data to account before testing
-        self.save_current_account()
-        
         # Reset cancellation flag
         self.testing_cancelled = False
         
@@ -568,15 +561,38 @@ class MailConfigWidget(ttk.Frame):
                 self.result_queue.put({'type': 'test_cancelled'})
                 return
             
-            account = self.accounts[self.selected_account_index]
-            account_type = account["type"]
+            # Create a temporary account object with current form data for testing
+            test_account = {
+                "name": self.account_name_var.get().strip(),
+                "type": self.account_type_var.get(),
+                "email": self.email_var.get().strip(),
+                "username": self.username_var.get().strip(),
+                "password": self.password_var.get(),
+                "auth_method": self.auth_method_var.get(),
+                "exchange_server": self.exchange_server_var.get().strip(),
+                "domain": self.domain_var.get().strip(),
+                "imap_server": self.imap_server_var.get().strip(),
+                "imap_port": int(self.imap_port_var.get()) if self.imap_port_var.get().isdigit() else 993,
+                "imap_ssl": self.imap_ssl_var.get(),
+                "smtp_server": self.smtp_server_var.get().strip(),
+                "smtp_port": int(self.smtp_port_var.get()) if self.smtp_port_var.get().isdigit() else 587,
+                "smtp_ssl": self.smtp_ssl_var.get(),
+                "pop3_server": self.pop3_server_var.get().strip(),
+                "pop3_port": int(self.pop3_port_var.get()) if self.pop3_port_var.get().isdigit() else 995,
+                "pop3_ssl": self.pop3_ssl_var.get(),
+                "smtp_server_pop3": self.smtp_server_pop3_var.get().strip(),
+                "smtp_port_pop3": int(self.smtp_port_pop3_var.get()) if self.smtp_port_pop3_var.get().isdigit() else 587,
+                "smtp_ssl_pop3": self.smtp_ssl_pop3_var.get()
+            }
+            
+            account_type = test_account["type"]
             
             if account_type == "exchange":
-                self._test_exchange_connection(account)
+                self._test_exchange_connection(test_account)
             elif account_type == "imap_smtp":
-                self._test_imap_smtp_connection(account)
+                self._test_imap_smtp_connection(test_account)
             elif account_type == "pop3_smtp":
-                self._test_pop3_smtp_connection(account)
+                self._test_pop3_smtp_connection(test_account)
                 
         except Exception as e:
             self.result_queue.put({
