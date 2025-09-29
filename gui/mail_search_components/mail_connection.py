@@ -2,7 +2,7 @@
 Multi-account mail connection manager supporting both Exchange and IMAP/SMTP
 """
 import json
-import imaplib
+from imapclient import IMAPClient
 import poplib
 import email
 from exchangelib import Credentials, Account, Configuration, DELEGATE
@@ -290,16 +290,11 @@ class MailConnection:
     
     def _get_imap_connection(self, account_config):
         """Get IMAP connection"""
-        if account_config.get("imap_ssl", True):
-            imap = imaplib.IMAP4_SSL(
-                account_config.get("imap_server", ""),
-                account_config.get("imap_port", 993)
-            )
-        else:
-            imap = imaplib.IMAP4(
-                account_config.get("imap_server", ""),
-                account_config.get("imap_port", 993)
-            )
+        imap = IMAPClient(
+            account_config.get("imap_server", ""),
+            port=account_config.get("imap_port", 993),
+            ssl=account_config.get("imap_ssl", True)
+        )
         
         imap.login(
             account_config.get("username", ""),
@@ -381,17 +376,17 @@ class MailConnection:
             log(f"[MAIL CONNECTION] Mapping folder path '{folder_path}' to server name '{folder_name}'")
             
             # Select the folder
-            status, messages = imap.select(folder_name)
-            if status == 'OK':
+            try:
+                imap.select_folder(folder_name)
                 return folder_name
-            else:
+            except:
                 # Fallback to INBOX
-                imap.select("INBOX")
+                imap.select_folder("INBOX")
                 return "INBOX"
                 
         except Exception as e:
             log(f"Błąd dostępu do folderu IMAP {folder_path}: {str(e)}")
-            imap.select("INBOX")
+            imap.select_folder("INBOX")
             return "INBOX"
     
     def _get_pop3_folder_by_path(self, pop3, folder_path):
@@ -603,66 +598,30 @@ class MailConnection:
                 return self._get_fallback_folders()
             
             # List all folders on the server
-            status, folders = imap.list()
-            if status != 'OK':
-                log(f"[MAIL CONNECTION] ERROR: Could not list IMAP folders: {status}")
-                return self._get_fallback_folders()
+            folders = imap.list_folders()
             
             folder_names = []
-            for folder in folders:
-                if folder:
+            for folder_info in folders:
+                if folder_info:
                     try:
-                        # Parse folder list response: b'(\\HasNoChildren) "/" "INBOX"'
-                        folder_str = folder.decode('utf-8') if isinstance(folder, bytes) else str(folder)
-                        log(f"[MAIL CONNECTION] Parsing folder response: {folder_str}")
+                        # IMAPClient returns tuple (flags, delimiter, folder_name)
+                        flags, delimiter, folder_name = folder_info
                         
-                        # Handle different folder response formats
-                        # Format 1: (\\HasNoChildren) "/" "INBOX"
-                        # Format 2: (\\HasNoChildren) "." "INBOX"
-                        # Format 3: * LIST (\\HasNoChildren) "/" "INBOX"
+                        log(f"[MAIL CONNECTION] Found folder: {folder_name}")
                         
-                        # Remove leading "* LIST" if present
-                        if folder_str.startswith('* LIST'):
-                            folder_str = folder_str[7:].strip()
+                        # Clean up folder name and decode if bytes
+                        if isinstance(folder_name, bytes):
+                            folder_name = folder_name.decode('utf-8')
                         
-                        # Find the last quoted section which should be the folder name
-                        quote_parts = []
-                        in_quotes = False
-                        current_part = ""
-                        i = 0
-                        while i < len(folder_str):
-                            char = folder_str[i]
-                            if char == '"' and (i == 0 or folder_str[i-1] != '\\'):
-                                if in_quotes:
-                                    quote_parts.append(current_part)
-                                    current_part = ""
-                                    in_quotes = False
-                                else:
-                                    in_quotes = True
-                            elif in_quotes:
-                                current_part += char
-                            i += 1
-                        
-                        if quote_parts:
-                            folder_name = quote_parts[-1]  # Last quoted part should be folder name
-                        else:
-                            # Alternative parsing: split by space and take last part
-                            parts = folder_str.split()
-                            if parts:
-                                folder_name = parts[-1].strip('"')
-                            else:
-                                continue
-                        
-                        # Clean up folder name
                         folder_name = folder_name.strip()
                         
-                        # Skip empty names and the current folder path to avoid self-exclusion
+                        # Skip empty names and the current folder path to avoid self-exclusion  
                         if folder_name and folder_name not in [folder_path, FolderNameMapper.polish_to_server(folder_path)]:
                             folder_names.append(folder_name)
                             log(f"[MAIL CONNECTION] Added folder: {folder_name}")
                         
                     except Exception as folder_parse_error:
-                        log(f"[MAIL CONNECTION] ERROR parsing folder: {folder}, error: {folder_parse_error}")
+                        log(f"[MAIL CONNECTION] ERROR parsing folder: {folder_info}, error: {folder_parse_error}")
                         continue
             
             # Always include common folders even if not found on server

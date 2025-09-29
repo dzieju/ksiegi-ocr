@@ -406,7 +406,7 @@ class EmailSearchEngine:
                         # For IMAP/POP3 - simplified approach since we can't use Exchange-specific filtering
                         log(f"Non-Exchange account type '{account_type}': Using simplified message retrieval for folder '{folder_name}'")
                         log(f"Note: Advanced filtering will be applied manually after message retrieval")
-                        # For IMAP/POP3, we would need to implement message retrieval using imaplib/poplib
+                        # For IMAP/POP3, we would need to implement message retrieval using IMAPClient/poplib
                         # This is a placeholder - actual implementation would depend on the connection type
                         # For now, we'll continue with empty list to avoid crashes
                         messages_list = []
