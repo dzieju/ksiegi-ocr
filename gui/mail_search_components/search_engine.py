@@ -5,8 +5,12 @@ import threading
 import queue
 import os
 import time
+import email
+import email.header
+import email.utils
 from datetime import datetime, timedelta, timezone
 from exchangelib import Q, Message
+from imapclient import IMAPClient
 from tools.logger import log
 from .pdf_processor import PDFProcessor
 
@@ -403,14 +407,10 @@ class EmailSearchEngine:
                                 pass  # Continue with empty list
                     
                     else:
-                        # For IMAP/POP3 - simplified approach since we can't use Exchange-specific filtering
-                        log(f"Non-Exchange account type '{account_type}': Using simplified message retrieval for folder '{folder_name}'")
-                        log(f"Note: Advanced filtering will be applied manually after message retrieval")
-                        # For IMAP/POP3, we would need to implement message retrieval using IMAPClient/poplib
-                        # This is a placeholder - actual implementation would depend on the connection type
-                        # For now, we'll continue with empty list to avoid crashes
-                        messages_list = []
-                        log(f"IMAP/POP3 message retrieval not yet implemented - continuing with empty results")
+                        # IMAP/POP3 implementation using IMAPClient
+                        log(f"Non-Exchange account type '{account_type}': Using IMAPClient message retrieval for folder '{folder_name}'")
+                        messages_list = self._get_imap_messages(search_folder, connection, combined_query, criteria, account_type)
+                        log(f"IMAP/POP3 retrieval completed: found {len(messages_list)} messages")
                     
                     # Apply per-folder limit
                     original_count = len(messages_list)
@@ -956,3 +956,624 @@ class EmailSearchEngine:
             }
         
         return {'found': False, 'matches': [], 'method': 'not_found_in_pdfs'}
+
+    def _get_imap_messages(self, folder_name, connection, combined_query, criteria, account_type):
+        """Retrieve messages from IMAP folder using IMAPClient"""
+        try:
+            if account_type == "pop3_smtp":
+                return self._get_pop3_messages(connection, criteria)
+            
+            # For IMAP accounts, use the existing IMAP connection
+            imap = connection.imap_connection
+            if not imap:
+                log("[IMAP] ERROR: No IMAP connection available")
+                return []
+            
+            # Select the folder
+            try:
+                if isinstance(folder_name, str):
+                    imap.select_folder(folder_name)
+                    log(f"[IMAP] Selected folder: {folder_name}")
+                else:
+                    # Should not happen for IMAP, but fallback to INBOX
+                    imap.select_folder("INBOX")
+                    log(f"[IMAP] Fallback to INBOX folder")
+            except Exception as folder_error:
+                log(f"[IMAP] ERROR selecting folder {folder_name}: {str(folder_error)}")
+                try:
+                    imap.select_folder("INBOX")
+                    log("[IMAP] Fallback to INBOX after folder selection error")
+                except Exception as inbox_error:
+                    log(f"[IMAP] ERROR: Cannot even select INBOX: {str(inbox_error)}")
+                    return []
+            
+            # Build IMAP search criteria
+            search_criteria = self._build_imap_search_criteria(criteria)
+            log(f"[IMAP] Search criteria: {search_criteria}")
+            
+            # Search for message UIDs
+            try:
+                message_uids = imap.search(search_criteria)
+                log(f"[IMAP] Found {len(message_uids)} messages matching criteria")
+            except Exception as search_error:
+                log(f"[IMAP] Search failed: {str(search_error)}, falling back to ALL")
+                try:
+                    message_uids = imap.search(['ALL'])
+                    log(f"[IMAP] Fallback search found {len(message_uids)} messages")
+                except Exception as fallback_error:
+                    log(f"[IMAP] ERROR: Even fallback search failed: {str(fallback_error)}")
+                    return []
+            
+            if not message_uids:
+                log("[IMAP] No messages found")
+                return []
+            
+            # Limit the number of messages for performance
+            limited_uids = message_uids[-500:]  # Get most recent 500 messages
+            if len(limited_uids) < len(message_uids):
+                log(f"[IMAP] Limited to {len(limited_uids)} most recent messages (from {len(message_uids)} total)")
+            
+            # Fetch message data
+            log(f"[IMAP] Fetching message data for {len(limited_uids)} messages...")
+            messages_list = self._fetch_imap_messages(imap, limited_uids, criteria)
+            
+            log(f"[IMAP] Successfully retrieved {len(messages_list)} message objects")
+            return messages_list
+            
+        except Exception as e:
+            log(f"[IMAP] ERROR in _get_imap_messages: {str(e)}")
+            return []
+    
+    def _build_imap_search_criteria(self, criteria):
+        """Build IMAP search criteria from GUI criteria"""
+        search_terms = ['ALL']  # Start with all messages
+        
+        # Subject search
+        if criteria.get('subject_search'):
+            search_terms = ['SUBJECT', criteria['subject_search']]
+            log(f"[IMAP] Adding subject search: {criteria['subject_search']}")
+        
+        # Body search
+        if criteria.get('body_search'):
+            if search_terms == ['ALL']:
+                search_terms = ['BODY', criteria['body_search']]
+            else:
+                # Combine with existing criteria
+                search_terms = ['AND', search_terms, ['BODY', criteria['body_search']]]
+            log(f"[IMAP] Adding body search: {criteria['body_search']}")
+        
+        # Sender search
+        if criteria.get('sender'):
+            sender_criteria = ['FROM', criteria['sender']]
+            if search_terms == ['ALL']:
+                search_terms = sender_criteria
+            else:
+                search_terms = ['AND', search_terms, sender_criteria]
+            log(f"[IMAP] Adding sender search: {criteria['sender']}")
+        
+        # Unread only
+        if criteria.get('unread_only'):
+            unread_criteria = ['UNSEEN']
+            if search_terms == ['ALL']:
+                search_terms = unread_criteria
+            else:
+                search_terms = ['AND', search_terms, unread_criteria]
+            log("[IMAP] Adding unread only filter")
+        
+        # Date period filter
+        if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
+            start_date = self._get_period_start_date(criteria['selected_period'])
+            if start_date:
+                # Format date for IMAP (DD-MMM-YYYY)
+                date_str = start_date.strftime("%d-%b-%Y")
+                date_criteria = ['SINCE', date_str]
+                if search_terms == ['ALL']:
+                    search_terms = date_criteria
+                else:
+                    search_terms = ['AND', search_terms, date_criteria]
+                log(f"[IMAP] Adding date filter: since {date_str}")
+        
+        return search_terms
+    
+    def _fetch_imap_messages(self, imap, message_uids, criteria):
+        """Fetch and parse IMAP messages"""
+        messages_list = []
+        
+        try:
+            # Fetch message data in batches
+            batch_size = 50
+            for i in range(0, len(message_uids), batch_size):
+                if self.search_cancelled:
+                    log("[IMAP] Message fetching cancelled")
+                    break
+                
+                batch_uids = message_uids[i:i + batch_size]
+                log(f"[IMAP] Fetching batch {i//batch_size + 1}: UIDs {len(batch_uids)} messages")
+                
+                try:
+                    # Fetch headers and basic info
+                    response = imap.fetch(batch_uids, ['ENVELOPE', 'FLAGS', 'RFC822.SIZE', 'BODYSTRUCTURE'])
+                    
+                    for uid in batch_uids:
+                        if self.search_cancelled:
+                            break
+                        
+                        if uid in response:
+                            try:
+                                message_obj = self._parse_imap_message(imap, uid, response[uid], criteria)
+                                if message_obj:
+                                    messages_list.append(message_obj)
+                            except Exception as parse_error:
+                                log(f"[IMAP] Error parsing message UID {uid}: {str(parse_error)}")
+                                continue
+                
+                except Exception as batch_error:
+                    log(f"[IMAP] Error fetching batch: {str(batch_error)}")
+                    continue
+        
+        except Exception as e:
+            log(f"[IMAP] ERROR in _fetch_imap_messages: {str(e)}")
+        
+        return messages_list
+    
+    def _parse_imap_message(self, imap, uid, message_data, criteria):
+        """Parse IMAP message data into a message-like object"""
+        try:
+            envelope = message_data.get(b'ENVELOPE')
+            flags = message_data.get(b'FLAGS', [])
+            bodystructure = message_data.get(b'BODYSTRUCTURE')
+            size = message_data.get(b'RFC822.SIZE', 0)
+            
+            if not envelope:
+                log(f"[IMAP] No envelope data for UID {uid}")
+                return None
+            
+            # Parse envelope data
+            subject = self._decode_imap_header(envelope.subject) if envelope.subject else "Brak tematu"
+            sender_info = envelope.sender[0] if envelope.sender and len(envelope.sender) > 0 else None
+            from_info = envelope.from_[0] if envelope.from_ and len(envelope.from_) > 0 else None
+            
+            # Get sender email and name
+            sender_email = None
+            sender_name = None
+            if sender_info:
+                sender_email = self._decode_imap_header(sender_info.mailbox) + "@" + self._decode_imap_header(sender_info.host)
+                sender_name = self._decode_imap_header(sender_info.name) if sender_info.name else None
+            elif from_info:
+                sender_email = self._decode_imap_header(from_info.mailbox) + "@" + self._decode_imap_header(from_info.host)
+                sender_name = self._decode_imap_header(from_info.name) if from_info.name else None
+            
+            sender_display = sender_name if sender_name else (sender_email if sender_email else "Nieznany")
+            
+            # Parse date
+            date_received = None
+            if envelope.date:
+                try:
+                    # Parse IMAP date format
+                    date_received = email.utils.parsedate_to_datetime(envelope.date.decode() if isinstance(envelope.date, bytes) else envelope.date)
+                    if date_received.tzinfo is None:
+                        date_received = date_received.replace(tzinfo=timezone.utc)
+                except Exception as date_error:
+                    log(f"[IMAP] Error parsing date for UID {uid}: {str(date_error)}")
+                    date_received = datetime.now(timezone.utc)
+            else:
+                date_received = datetime.now(timezone.utc)
+            
+            # Determine if message is read
+            is_read = b'\\Seen' in flags
+            
+            # Check for attachments
+            has_attachments = self._check_imap_attachments(bodystructure)
+            
+            # Create a message-like object
+            message_obj = IMAPMessage(
+                uid=uid,
+                subject=subject,
+                sender=IMAPSender(sender_display, sender_email),
+                datetime_received=date_received,
+                is_read=is_read,
+                has_attachments=has_attachments,
+                imap_connection=imap,
+                size=size,
+                bodystructure=bodystructure
+            )
+            
+            return message_obj
+            
+        except Exception as e:
+            log(f"[IMAP] ERROR parsing message UID {uid}: {str(e)}")
+            return None
+    
+    def _decode_imap_header(self, header_value):
+        """Decode IMAP header value"""
+        if not header_value:
+            return ""
+        
+        try:
+            if isinstance(header_value, bytes):
+                header_value = header_value.decode('utf-8', errors='ignore')
+            
+            # Decode RFC2047 encoded headers
+            decoded_parts = email.header.decode_header(str(header_value))
+            decoded_string = ""
+            
+            for part, encoding in decoded_parts:
+                if isinstance(part, bytes):
+                    if encoding:
+                        try:
+                            part = part.decode(encoding)
+                        except:
+                            part = part.decode('utf-8', errors='ignore')
+                    else:
+                        part = part.decode('utf-8', errors='ignore')
+                decoded_string += part
+            
+            return decoded_string.strip()
+            
+        except Exception as e:
+            log(f"[IMAP] Error decoding header: {str(e)}")
+            return str(header_value) if header_value else ""
+    
+    def _check_imap_attachments(self, bodystructure):
+        """Check if IMAP message has attachments based on bodystructure"""
+        if not bodystructure:
+            return False
+        
+        try:
+            # Recursively check bodystructure for attachments
+            return self._has_attachments_recursive(bodystructure)
+        except Exception as e:
+            log(f"[IMAP] Error checking attachments: {str(e)}")
+            return False
+    
+    def _has_attachments_recursive(self, structure):
+        """Recursively check bodystructure for attachments"""
+        if not structure:
+            return False
+        
+        try:
+            # If it's a tuple/list and has multiple parts
+            if isinstance(structure, (tuple, list)) and len(structure) > 0:
+                # Check if this is a multipart structure
+                if isinstance(structure[0], (tuple, list)):
+                    # Multipart - check each part
+                    for part in structure:
+                        if isinstance(part, (tuple, list)) and self._has_attachments_recursive(part):
+                            return True
+                else:
+                    # Single part - check disposition
+                    if len(structure) > 8:
+                        disposition = structure[8] if len(structure) > 8 else None
+                        if disposition and isinstance(disposition, (tuple, list)) and len(disposition) > 0:
+                            if disposition[0] and b'attachment' in disposition[0].lower():
+                                return True
+            
+            return False
+            
+        except Exception as e:
+            log(f"[IMAP] Error in recursive attachment check: {str(e)}")
+            return False
+    
+    def _get_pop3_messages(self, connection, criteria):
+        """Retrieve messages from POP3 connection"""
+        try:
+            pop3 = connection.pop3_connection
+            if not pop3:
+                log("[POP3] ERROR: No POP3 connection available")
+                return []
+            
+            log("[POP3] Retrieving message list...")
+            messages_list = []
+            
+            # Get message count
+            num_messages = len(pop3.list()[1])
+            log(f"[POP3] Found {num_messages} messages")
+            
+            # Limit messages for performance
+            max_messages = min(num_messages, 100)
+            start_index = max(1, num_messages - max_messages + 1)
+            
+            log(f"[POP3] Retrieving {max_messages} most recent messages (from {start_index} to {num_messages})")
+            
+            for i in range(start_index, num_messages + 1):
+                if self.search_cancelled:
+                    log("[POP3] Message retrieval cancelled")
+                    break
+                
+                try:
+                    # Get message headers
+                    response = pop3.top(i, 0)  # Get headers only
+                    if response:
+                        header_lines = response[1]
+                        header_text = b'\n'.join(header_lines).decode('utf-8', errors='ignore')
+                        
+                        # Parse headers
+                        msg = email.message_from_string(header_text)
+                        
+                        # Create message object
+                        message_obj = self._create_pop3_message_object(i, msg, pop3)
+                        if message_obj:
+                            messages_list.append(message_obj)
+                
+                except Exception as msg_error:
+                    log(f"[POP3] Error retrieving message {i}: {str(msg_error)}")
+                    continue
+            
+            log(f"[POP3] Successfully retrieved {len(messages_list)} messages")
+            return messages_list
+            
+        except Exception as e:
+            log(f"[POP3] ERROR in _get_pop3_messages: {str(e)}")
+            return []
+    
+    def _create_pop3_message_object(self, message_num, email_msg, pop3_connection):
+        """Create a message-like object from POP3 email"""
+        try:
+            # Extract basic info
+            subject = self._decode_imap_header(email_msg.get('Subject', 'Brak tematu'))
+            from_header = email_msg.get('From', 'Nieznany')
+            sender_display = self._decode_imap_header(from_header)
+            date_header = email_msg.get('Date')
+            
+            # Parse date
+            date_received = datetime.now(timezone.utc)
+            if date_header:
+                try:
+                    date_received = email.utils.parsedate_to_datetime(date_header)
+                    if date_received.tzinfo is None:
+                        date_received = date_received.replace(tzinfo=timezone.utc)
+                except:
+                    pass
+            
+            # POP3 messages are always considered read
+            is_read = True
+            
+            # Check for attachments by examining Content-Type
+            has_attachments = email_msg.is_multipart()
+            
+            # Create message object
+            message_obj = POP3Message(
+                message_num=message_num,
+                subject=subject,
+                sender=IMAPSender(sender_display, from_header),
+                datetime_received=date_received,
+                is_read=is_read,
+                has_attachments=has_attachments,
+                pop3_connection=pop3_connection,
+                email_message=email_msg
+            )
+            
+            return message_obj
+            
+        except Exception as e:
+            log(f"[POP3] Error creating message object: {str(e)}")
+            return None
+
+
+class IMAPSender:
+    """Simple sender object compatible with Exchange sender interface"""
+    def __init__(self, display_name, email_address):
+        self.name = display_name
+        self.email_address = email_address
+    
+    def __str__(self):
+        return self.name if self.name else self.email_address
+
+
+class IMAPMessage:
+    """Message object for IMAP messages, compatible with Exchange Message interface"""
+    def __init__(self, uid, subject, sender, datetime_received, is_read, has_attachments, 
+                 imap_connection, size=0, bodystructure=None):
+        self.id = uid
+        self.uid = uid
+        self.subject = subject
+        self.sender = sender
+        self.datetime_received = datetime_received
+        self.datetime_sent = datetime_received  # Use received time as sent time approximation
+        self.datetime_created = datetime_received
+        self.is_read = is_read
+        self.has_attachments = has_attachments
+        self.size = size
+        self.bodystructure = bodystructure
+        self._imap_connection = imap_connection
+        self._attachments = None
+        self._body = None
+    
+    @property
+    def attachments(self):
+        """Lazy load attachments when requested"""
+        if self._attachments is None:
+            self._attachments = self._load_attachments()
+        return self._attachments
+    
+    @property
+    def body(self):
+        """Lazy load message body when requested"""
+        if self._body is None:
+            self._body = self._load_body()
+        return self._body
+    
+    def _load_attachments(self):
+        """Load attachments from IMAP message"""
+        try:
+            if not self.has_attachments:
+                return []
+            
+            log(f"[IMAP] Loading attachments for message UID {self.uid}")
+            
+            # Fetch the full message to get attachments
+            response = self._imap_connection.fetch([self.uid], ['RFC822'])
+            if self.uid not in response:
+                log(f"[IMAP] Could not fetch full message for UID {self.uid}")
+                return []
+            
+            raw_message = response[self.uid][b'RFC822']
+            email_msg = email.message_from_bytes(raw_message)
+            
+            attachments = []
+            for part in email_msg.walk():
+                if part.get_content_disposition() == 'attachment':
+                    filename = part.get_filename()
+                    if filename:
+                        content = part.get_payload(decode=True)
+                        if content:
+                            attachment = IMAPAttachment(filename, content)
+                            attachments.append(attachment)
+                            log(f"[IMAP] Found attachment: {filename}")
+            
+            log(f"[IMAP] Loaded {len(attachments)} attachments for UID {self.uid}")
+            return attachments
+            
+        except Exception as e:
+            log(f"[IMAP] Error loading attachments for UID {self.uid}: {str(e)}")
+            return []
+    
+    def _load_body(self):
+        """Load message body from IMAP message"""
+        try:
+            log(f"[IMAP] Loading body for message UID {self.uid}")
+            
+            # Try to get just the text parts first
+            response = self._imap_connection.fetch([self.uid], ['BODY[TEXT]'])
+            if self.uid in response and b'BODY[TEXT]' in response[self.uid]:
+                body_text = response[self.uid][b'BODY[TEXT]']
+                if isinstance(body_text, bytes):
+                    return body_text.decode('utf-8', errors='ignore')
+                return str(body_text)
+            
+            # Fallback to full message
+            response = self._imap_connection.fetch([self.uid], ['RFC822'])
+            if self.uid not in response:
+                return ""
+            
+            raw_message = response[self.uid][b'RFC822']
+            email_msg = email.message_from_bytes(raw_message)
+            
+            # Extract text content
+            body_text = ""
+            for part in email_msg.walk():
+                if part.get_content_type() == "text/plain":
+                    charset = part.get_content_charset() or 'utf-8'
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        try:
+                            body_text += payload.decode(charset, errors='ignore')
+                        except:
+                            body_text += payload.decode('utf-8', errors='ignore')
+                        body_text += "\n"
+            
+            return body_text.strip()
+            
+        except Exception as e:
+            log(f"[IMAP] Error loading body for UID {self.uid}: {str(e)}")
+            return ""
+
+
+class IMAPAttachment:
+    """Attachment object for IMAP messages"""
+    def __init__(self, name, content):
+        self.name = name
+        self.content = content
+        self.size = len(content) if content else 0
+    
+    def __str__(self):
+        return f"IMAPAttachment(name={self.name}, size={self.size})"
+
+
+class POP3Message:
+    """Message object for POP3 messages, compatible with Exchange Message interface"""
+    def __init__(self, message_num, subject, sender, datetime_received, is_read, has_attachments,
+                 pop3_connection, email_message):
+        self.id = message_num
+        self.message_num = message_num
+        self.subject = subject
+        self.sender = sender
+        self.datetime_received = datetime_received
+        self.datetime_sent = datetime_received
+        self.datetime_created = datetime_received
+        self.is_read = is_read
+        self.has_attachments = has_attachments
+        self._pop3_connection = pop3_connection
+        self._email_message = email_message
+        self._attachments = None
+        self._body = None
+    
+    @property
+    def attachments(self):
+        """Lazy load attachments when requested"""
+        if self._attachments is None:
+            self._attachments = self._load_attachments()
+        return self._attachments
+    
+    @property
+    def body(self):
+        """Lazy load message body when requested"""
+        if self._body is None:
+            self._body = self._load_body()
+        return self._body
+    
+    def _load_attachments(self):
+        """Load attachments from POP3 message"""
+        try:
+            if not self.has_attachments:
+                return []
+            
+            log(f"[POP3] Loading attachments for message {self.message_num}")
+            
+            # Get full message
+            response = self._pop3_connection.retr(self.message_num)
+            if not response:
+                return []
+            
+            full_message = b'\n'.join(response[1])
+            email_msg = email.message_from_bytes(full_message)
+            
+            attachments = []
+            for part in email_msg.walk():
+                if part.get_content_disposition() == 'attachment':
+                    filename = part.get_filename()
+                    if filename:
+                        content = part.get_payload(decode=True)
+                        if content:
+                            attachment = IMAPAttachment(filename, content)
+                            attachments.append(attachment)
+                            log(f"[POP3] Found attachment: {filename}")
+            
+            log(f"[POP3] Loaded {len(attachments)} attachments for message {self.message_num}")
+            return attachments
+            
+        except Exception as e:
+            log(f"[POP3] Error loading attachments for message {self.message_num}: {str(e)}")
+            return []
+    
+    def _load_body(self):
+        """Load message body from POP3 message"""
+        try:
+            log(f"[POP3] Loading body for message {self.message_num}")
+            
+            # Get full message
+            response = self._pop3_connection.retr(self.message_num)
+            if not response:
+                return ""
+            
+            full_message = b'\n'.join(response[1])
+            email_msg = email.message_from_bytes(full_message)
+            
+            # Extract text content
+            body_text = ""
+            for part in email_msg.walk():
+                if part.get_content_type() == "text/plain":
+                    charset = part.get_content_charset() or 'utf-8'
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        try:
+                            body_text += payload.decode(charset, errors='ignore')
+                        except:
+                            body_text += payload.decode('utf-8', errors='ignore')
+                        body_text += "\n"
+            
+            return body_text.strip()
+            
+        except Exception as e:
+            log(f"[POP3] Error loading body for message {self.message_num}: {str(e)}")
+            return ""
