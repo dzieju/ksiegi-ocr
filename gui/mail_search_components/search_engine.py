@@ -1025,39 +1025,27 @@ class EmailSearchEngine:
             return []
     
     def _build_imap_search_criteria(self, criteria):
-        """Build IMAP search criteria from GUI criteria"""
-        search_terms = ['ALL']  # Start with all messages
+        """Build IMAP search criteria from GUI criteria as flat list"""
+        search_terms = []
         
         # Subject search
         if criteria.get('subject_search'):
-            search_terms = ['SUBJECT', criteria['subject_search']]
+            search_terms.extend(['SUBJECT', criteria['subject_search']])
             log(f"[IMAP] Adding subject search: {criteria['subject_search']}")
         
         # Body search
         if criteria.get('body_search'):
-            if search_terms == ['ALL']:
-                search_terms = ['BODY', criteria['body_search']]
-            else:
-                # Combine with existing criteria
-                search_terms = ['AND', search_terms, ['BODY', criteria['body_search']]]
+            search_terms.extend(['BODY', criteria['body_search']])
             log(f"[IMAP] Adding body search: {criteria['body_search']}")
         
         # Sender search
         if criteria.get('sender'):
-            sender_criteria = ['FROM', criteria['sender']]
-            if search_terms == ['ALL']:
-                search_terms = sender_criteria
-            else:
-                search_terms = ['AND', search_terms, sender_criteria]
+            search_terms.extend(['FROM', criteria['sender']])
             log(f"[IMAP] Adding sender search: {criteria['sender']}")
         
         # Unread only
         if criteria.get('unread_only'):
-            unread_criteria = ['UNSEEN']
-            if search_terms == ['ALL']:
-                search_terms = unread_criteria
-            else:
-                search_terms = ['AND', search_terms, unread_criteria]
+            search_terms.append('UNSEEN')
             log("[IMAP] Adding unread only filter")
         
         # Date period filter
@@ -1066,12 +1054,12 @@ class EmailSearchEngine:
             if start_date:
                 # Format date for IMAP (DD-MMM-YYYY)
                 date_str = start_date.strftime("%d-%b-%Y")
-                date_criteria = ['SINCE', date_str]
-                if search_terms == ['ALL']:
-                    search_terms = date_criteria
-                else:
-                    search_terms = ['AND', search_terms, date_criteria]
+                search_terms.extend(['SINCE', date_str])
                 log(f"[IMAP] Adding date filter: since {date_str}")
+        
+        # If no criteria specified, return ALL
+        if not search_terms:
+            search_terms = ['ALL']
         
         return search_terms
     
