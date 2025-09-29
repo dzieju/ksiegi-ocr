@@ -8,6 +8,7 @@ import time
 import email
 import email.header
 import email.utils
+import re
 from datetime import datetime, timedelta, timezone
 from exchangelib import Q, Message
 from imapclient import IMAPClient
@@ -47,6 +48,16 @@ class EmailSearchEngine:
         # Cache valid Message field names for validation
         self._valid_fields = self._get_valid_message_fields()
         log(f"Zainicjalizowano wyszukiwarkę z {len(self._valid_fields)} dostępnymi polami Message")
+    
+    def _is_email_address(self, text):
+        """Check if text looks like a complete email address"""
+        if not text or not isinstance(text, str):
+            return False
+        
+        text = text.strip()
+        # Simple but effective email pattern
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(email_pattern, text) is not None
     
     def _get_valid_message_fields(self):
         """Get set of valid field names from exchangelib Message class"""
@@ -238,14 +249,20 @@ class EmailSearchEngine:
                 else:
                     log(f"POMINIĘTO nieprawidłowy filtr treści")
             
-            # Sender filter
+            # Sender filter - use IMAP FROM filter only for full email addresses
             if criteria.get('sender'):
-                sender_filter = self._create_safe_filter('sender', criteria['sender'], 'icontains')
-                if sender_filter:
-                    query_filters.append(sender_filter)
-                    log(f"Dodano filtr nadawcy (case-insensitive): '{criteria['sender']}'")
+                sender_value = criteria['sender']
+                if self._is_email_address(sender_value):
+                    # Full email address - use Exchange query filter
+                    sender_filter = self._create_safe_filter('sender', sender_value, 'icontains')
+                    if sender_filter:
+                        query_filters.append(sender_filter)
+                        log(f"Dodano filtr nadawcy Exchange (full email): '{sender_value}'")
+                    else:
+                        log(f"POMINIĘTO nieprawidłowy filtr nadawcy")
                 else:
-                    log(f"POMINIĘTO nieprawidłowy filtr nadawcy")
+                    # Fragment - skip Exchange filter, will filter locally later
+                    log(f"Fragment nadawcy wykryty: '{sender_value}' - zostanie zastosowany lokalny filtr")
             
             # Unread filter
             if criteria.get('unread_only'):
@@ -553,6 +570,37 @@ class EmailSearchEngine:
                         if subject_search not in message_subject:
                             subject_filtered_out += 1
                             continue
+                    
+                    # Manual sender filtering for fragments (case-insensitive)
+                    if criteria.get('sender'):
+                        sender_value = criteria['sender']
+                        if not self._is_email_address(sender_value):
+                            # This is a fragment, do local filtering
+                            sender_fragment = sender_value.lower()
+                            message_sender_matches = False
+                            
+                            # Check sender display name/email
+                            if message.sender:
+                                # For Exchange messages
+                                if hasattr(message.sender, 'email_address') and message.sender.email_address:
+                                    sender_email = message.sender.email_address.lower()
+                                    if sender_fragment in sender_email:
+                                        message_sender_matches = True
+                                
+                                # Check sender name if available
+                                if hasattr(message.sender, 'name') and message.sender.name:
+                                    sender_name = message.sender.name.lower()
+                                    if sender_fragment in sender_name:
+                                        message_sender_matches = True
+                                
+                                # For IMAP messages or fallback
+                                sender_str = str(message.sender).lower()
+                                if sender_fragment in sender_str:
+                                    message_sender_matches = True
+                            
+                            if not message_sender_matches:
+                                subject_filtered_out += 1  # Use same counter for simplicity
+                                continue
                     
                     # Check attachment filters if needed
                     if has_attachment_filter:
@@ -1015,10 +1063,16 @@ class EmailSearchEngine:
             search_terms.extend(['BODY', criteria['body_search']])
             log(f"[IMAP] Adding body search: {criteria['body_search']}")
         
-        # Sender search
+        # Sender search - use IMAP FROM filter only for full email addresses
         if criteria.get('sender'):
-            search_terms.extend(['FROM', criteria['sender']])
-            log(f"[IMAP] Adding sender search: {criteria['sender']}")
+            sender_value = criteria['sender']
+            if self._is_email_address(sender_value):
+                # Full email address - use IMAP FROM filter
+                search_terms.extend(['FROM', sender_value])
+                log(f"[IMAP] Adding sender search (full email): {sender_value}")
+            else:
+                # Fragment - skip IMAP filter, will filter locally later
+                log(f"[IMAP] Sender fragment detected: '{sender_value}' - skipping IMAP FROM filter, will use local filtering")
         
         # Unread only
         if criteria.get('unread_only'):
