@@ -72,8 +72,18 @@ class FolderNameMapper:
         "skrzynka nadawcza": "OUTBOX"
     }
     
-    # Reverse mapping for display purposes
-    SERVER_TO_POLISH = {v: k for k, v in POLISH_TO_SERVER.items()}
+    # Manual reverse mapping for display purposes (using preferred Polish names)
+    SERVER_TO_POLISH = {
+        "INBOX": "skrzynka odbiorcza",
+        "SENT": "wysłane",
+        "DRAFTS": "robocze",
+        "SPAM": "spam",
+        "TRASH": "śmieci",
+        "ARCHIVE": "archiwum",
+        "IMPORTANT": "ważne",
+        "FLAGGED": "oznaczone",
+        "OUTBOX": "skrzynka nadawcza"
+    }
     
     @classmethod
     def polish_to_server(cls, polish_name):
@@ -93,7 +103,7 @@ class FolderNameMapper:
     def server_to_polish(cls, server_name):
         """Convert server folder name to Polish display name"""
         if not server_name:
-            return "Skrzynka odbiorcza"
+            return "skrzynka odbiorcza"
         
         # Try exact uppercase match first
         upper_name = server_name.upper()
