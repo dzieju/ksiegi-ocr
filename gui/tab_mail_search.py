@@ -137,18 +137,34 @@ class MailSearchTab(ttk.Frame):
                 
                 self.account_info_label.config(text=account_info, foreground=color)
                 
-                # Update folder info
+                # Update folder info with enhanced information
                 if "→" in folder_info:  # Translation shown
                     self.folder_info_label.config(text=folder_info, foreground="blue")
                 elif "Brak" in folder_info:
                     self.folder_info_label.config(text=folder_info, foreground="gray")
                 else:
                     self.folder_info_label.config(text=folder_info, foreground="green")
+                
+                # Add folder validation status if connection is available
+                if self.connection.current_account_config:
+                    account_type = self.connection.current_account_config.get("type", "unknown")
+                    if account_type in ["imap_smtp", "pop3_smtp", "exchange"]:
+                        # Show additional validation info for folder existence
+                        from gui.mail_search_components.mail_connection import FolderNameMapper
+                        server_folder = FolderNameMapper.polish_to_server(current_folder)
+                        if server_folder != current_folder:
+                            validation_info = f" (Mapowanie: {server_folder})"
+                            current_text = self.folder_info_label.cget("text")
+                            if "Mapowanie:" not in current_text:
+                                self.folder_info_label.config(text=current_text + validation_info)
+                        
         except Exception as e:
             if hasattr(self, 'account_info_label'):
-                self.account_info_label.config(text="Konto: Błąd", foreground="red")
+                self.account_info_label.config(text="Konto: Błąd konfiguracji", foreground="red")
             if hasattr(self, 'folder_info_label'):
-                self.folder_info_label.config(text="Folder: Błąd", foreground="red")
+                self.folder_info_label.config(text="Folder: Błąd dostępu", foreground="red")
+            from tools.logger import log
+            log(f"[ACCOUNT INFO] Error updating display: {str(e)}")
 
     def _on_folder_path_change(self, *args):
         """Called when folder path is changed to update display"""
@@ -177,7 +193,16 @@ class MailSearchTab(ttk.Frame):
                     folders = self.connection.get_available_folders_for_exclusion(account, folder_path)
                     log(f"[FOLDER DISCOVERY] Found {len(folders)} folders: {folders}")
                     
-                    self.after_idle(lambda: self._update_folder_checkboxes(folders))
+                    if folders:
+                        self.after_idle(lambda: self._update_folder_checkboxes(folders))
+                        self._add_progress(f"Wykryto {len(folders)} folderów")
+                    else:
+                        # Show user-friendly message when no folders are discovered
+                        self._add_progress("Nie udało się pobrać listy folderów z serwera")
+                        # Still show fallback folders for user convenience
+                        fallback_folders = ["SENT", "Sent", "DRAFTS", "Drafts", "SPAM", "Junk", "TRASH", "Trash"]
+                        self.after_idle(lambda: self._update_folder_checkboxes(fallback_folders))
+                        log("[FOLDER DISCOVERY] Using fallback folders due to discovery failure")
                 else:
                     log("[FOLDER DISCOVERY] No account available")
                     self._add_progress("Brak dostępnego konta pocztowego")
@@ -186,7 +211,10 @@ class MailSearchTab(ttk.Frame):
                 from tools.logger import log
                 log(f"[FOLDER DISCOVERY] Error: {str(e)}")
                 print(f"Błąd wykrywania folderów: {e}")
-                self._add_progress("Błąd wykrywania folderów")
+                self._add_progress("Błąd wykrywania folderów - sprawdź konfigurację konta")
+                # Provide fallback folders even on error
+                fallback_folders = ["SENT", "Sent", "DRAFTS", "Drafts", "SPAM", "Junk", "TRASH", "Trash"] 
+                self.after_idle(lambda: self._update_folder_checkboxes(fallback_folders))
         
         threading.Thread(target=_discover, daemon=True).start()
     
@@ -222,10 +250,15 @@ class MailSearchTab(ttk.Frame):
                 
             # Load saved excluded folders
             self._load_saved_exclusions()
+            
+            # Show success message with folder count
+            self._add_progress(f"Pomyślnie załadowano {len(folders)} folderów")
         else:
             log("[FOLDER UI] No folders to display")
+            self._add_progress("Brak folderów do wyświetlenia")
         
-        self._add_progress(f"Wykryto {len(folders)} folderów")
+        # Update account display to show current status
+        self.update_account_info_display()
     
     def _get_excluded_folders_from_checkboxes(self):
         """Get list of excluded folders from checkboxes"""

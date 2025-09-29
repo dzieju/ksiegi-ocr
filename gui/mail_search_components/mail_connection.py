@@ -44,35 +44,74 @@ class FolderNameMapper:
         "skrzynka odbiorcza": "INBOX",
         "odebrane": "INBOX",
         "przychodzące": "INBOX",
+        "inbox": "INBOX",
         "wysłane": "SENT",
         "wysłano": "SENT",
+        "sent items": "SENT",
+        "sent": "SENT",
         "robocze": "DRAFTS",
         "szkice": "DRAFTS",
+        "drafts": "DRAFTS",
+        "wersje robocze": "DRAFTS",
         "spam": "SPAM",
         "junk": "SPAM",
+        "junk email": "SPAM",
+        "wiadomości-śmieci": "SPAM",
         "śmieci": "TRASH",
         "kosz": "TRASH",
+        "trash": "TRASH",
+        "deleted items": "TRASH",
+        "elementy usunięte": "TRASH",
         "archiwum": "ARCHIVE",
+        "archive": "ARCHIVE",
         "ważne": "IMPORTANT",
-        "oznaczone": "FLAGGED"
+        "important": "IMPORTANT",
+        "oznaczone": "FLAGGED",
+        "flagged": "FLAGGED",
+        "outbox": "OUTBOX",
+        "skrzynka nadawcza": "OUTBOX"
     }
     
-    # Reverse mapping for display purposes
-    SERVER_TO_POLISH = {v: k for k, v in POLISH_TO_SERVER.items()}
+    # Manual reverse mapping for display purposes (using preferred Polish names)
+    SERVER_TO_POLISH = {
+        "INBOX": "skrzynka odbiorcza",
+        "SENT": "wysłane",
+        "DRAFTS": "robocze",
+        "SPAM": "spam",
+        "TRASH": "śmieci",
+        "ARCHIVE": "archiwum",
+        "IMPORTANT": "ważne",
+        "FLAGGED": "oznaczone",
+        "OUTBOX": "skrzynka nadawcza"
+    }
     
     @classmethod
     def polish_to_server(cls, polish_name):
         """Convert Polish folder name to server folder name"""
         if not polish_name:
             return "INBOX"
-        return cls.POLISH_TO_SERVER.get(polish_name.lower(), polish_name)
+        
+        # First try exact lowercase match
+        lower_name = polish_name.lower().strip()
+        if lower_name in cls.POLISH_TO_SERVER:
+            return cls.POLISH_TO_SERVER[lower_name]
+        
+        # If no match found, return the original name (it might be a server name already)
+        return polish_name
     
     @classmethod
     def server_to_polish(cls, server_name):
         """Convert server folder name to Polish display name"""
         if not server_name:
-            return "Skrzynka odbiorcza"
-        return cls.SERVER_TO_POLISH.get(server_name.upper(), server_name)
+            return "skrzynka odbiorcza"
+        
+        # Try exact uppercase match first
+        upper_name = server_name.upper()
+        if upper_name in cls.SERVER_TO_POLISH:
+            return cls.SERVER_TO_POLISH[upper_name]
+        
+        # If no match found, return the original server name
+        return server_name
     
     @classmethod
     def get_folder_display_name(cls, server_name, account_type="imap_smtp"):
@@ -83,6 +122,26 @@ class FolderNameMapper:
             return server_name
         else:
             return cls.server_to_polish(server_name)
+    
+    @classmethod
+    def validate_folder_exists(cls, folder_list, target_folder):
+        """Check if a target folder exists in the folder list (case-insensitive)"""
+        if not folder_list or not target_folder:
+            return False
+        
+        target_lower = target_folder.lower()
+        for folder in folder_list:
+            if folder.lower() == target_lower:
+                return True
+        
+        # Also check if target is a Polish name that maps to a server folder
+        server_name = cls.polish_to_server(target_folder)
+        if server_name != target_folder:
+            for folder in folder_list:
+                if folder.upper() == server_name.upper():
+                    return True
+        
+        return False
 
 
 class MailConnection:
@@ -449,7 +508,16 @@ class MailConnection:
         # Enhanced validation and logging
         if not self.current_account_config:
             log("[MAIL CONNECTION] ERROR: No account configuration available for folder discovery")
-            return []
+            log("[MAIL CONNECTION] Attempting to load main account configuration...")
+            # Try to load the account if not already loaded
+            try:
+                account = self.get_main_account() 
+                if not account:
+                    log("[MAIL CONNECTION] Could not load main account")
+                    return self._get_fallback_folders()
+            except Exception as e:
+                log(f"[MAIL CONNECTION] Error loading main account: {str(e)}")
+                return self._get_fallback_folders()
         
         account_type = self.current_account_config.get("type", "unknown")
         account_name = self.current_account_config.get("name", "Unknown Account")
@@ -460,92 +528,176 @@ class MailConnection:
         # Validate account configuration before proceeding
         if not self._validate_account_config_for_folder_discovery(account_type):
             log(f"[MAIL CONNECTION] ERROR: Invalid or incomplete configuration for account type: {account_type}")
-            return []
+            # Return fallback folders for GUI to show something useful
+            return self._get_fallback_folders()
         
-        if account_type == "exchange":
-            log("[MAIL CONNECTION] Using Exchange folder detection")
-            return self._get_exchange_available_folders(account, folder_path)
-        elif account_type == "pop3_smtp":
-            log("[MAIL CONNECTION] Using POP3 folder detection")
-            # For POP3, only INBOX is available
-            return ["INBOX"]
-        elif account_type == "imap_smtp":
-            log("[MAIL CONNECTION] Using IMAP folder detection")
-            return self._get_imap_available_folders(folder_path)
-        else:
-            log(f"[MAIL CONNECTION] WARNING: Unknown account type '{account_type}', defaulting to IMAP folder detection")
-            return self._get_imap_available_folders(folder_path)
+        try:
+            if account_type == "exchange":
+                log("[MAIL CONNECTION] Using Exchange folder detection")
+                return self._get_exchange_available_folders(account, folder_path)
+            elif account_type == "pop3_smtp":
+                log("[MAIL CONNECTION] Using POP3 folder detection")
+                # For POP3, only INBOX is available
+                return ["INBOX"]
+            elif account_type == "imap_smtp":
+                log("[MAIL CONNECTION] Using IMAP folder detection")
+                return self._get_imap_available_folders(folder_path)
+            else:
+                log(f"[MAIL CONNECTION] WARNING: Unknown account type '{account_type}', defaulting to IMAP folder detection")
+                return self._get_imap_available_folders(folder_path)
+        except Exception as e:
+            log(f"[MAIL CONNECTION] ERROR during folder discovery: {str(e)}")
+            # Provide fallback folders when discovery fails
+            return self._get_fallback_folders()
     
     def _get_exchange_available_folders(self, account, folder_path):
         """Get available Exchange folders for exclusion"""
         try:
             folder = self.get_folder_by_path(account, folder_path)
             if not folder:
-                return []
+                log("[MAIL CONNECTION] ERROR: Could not access Exchange folder for discovery")
+                return self._get_fallback_folders()
             
             folder_names = []
             
             def collect_folder_names(f, prefix=""):
-                for child in f.children:
-                    full_name = f"{prefix}{child.name}" if prefix else child.name
-                    folder_names.append(full_name)
-                    collect_folder_names(child, f"{full_name}/")
+                try:
+                    for child in f.children:
+                        full_name = f"{prefix}{child.name}" if prefix else child.name
+                        folder_names.append(full_name)
+                        # Recursively collect subfolders
+                        collect_folder_names(child, f"{full_name}/")
+                except Exception as e:
+                    log(f"[MAIL CONNECTION] ERROR collecting folder names from {f.name if hasattr(f, 'name') else 'Unknown'}: {str(e)}")
             
             collect_folder_names(folder)
             
-            log(f"Znalezione foldery do wykluczenia ({len(folder_names)}):")
+            # Add common Exchange folders if not found
+            exchange_common = ["Sent Items", "Drafts", "Deleted Items", "Junk Email", "Outbox"]
+            for common_folder in exchange_common:
+                if common_folder not in folder_names:
+                    folder_names.append(common_folder)
+            
+            log(f"[MAIL CONNECTION] Found Exchange folders for exclusion ({len(folder_names)}):")
             for i, name in enumerate(folder_names, 1):
                 log(f"  {i}. {name}")
             
             return folder_names
             
         except Exception as e:
-            log(f"Błąd pobierania listy folderów do wykluczenia: {str(e)}")
-            return []
+            log(f"[MAIL CONNECTION] ERROR getting Exchange folders for exclusion: {str(e)}")
+            return self._get_fallback_folders()
     
     def _get_imap_available_folders(self, folder_path):
         """Get available IMAP folders for exclusion by connecting to server"""
+        imap = None
         try:
             if not self.current_account_config:
                 log("[MAIL CONNECTION] ERROR: No account configuration available for IMAP folder discovery")
-                return ["SENT", "DRAFTS", "SPAM", "TRASH"]
+                return self._get_fallback_folders()
             
             # Get IMAP connection
             imap = self._get_imap_connection(self.current_account_config)
             if not imap:
                 log("[MAIL CONNECTION] ERROR: Could not establish IMAP connection for folder discovery")
-                return ["SENT", "DRAFTS", "SPAM", "TRASH"]  # Fallback to basic list
+                return self._get_fallback_folders()
             
             # List all folders on the server
             status, folders = imap.list()
             if status != 'OK':
                 log(f"[MAIL CONNECTION] ERROR: Could not list IMAP folders: {status}")
-                return ["SENT", "DRAFTS", "SPAM", "TRASH"]
+                return self._get_fallback_folders()
             
             folder_names = []
             for folder in folders:
-                # Parse folder list response: b'(\\HasNoChildren) "/" "INBOX"'
                 if folder:
-                    # Extract folder name from the response
-                    folder_str = folder.decode('utf-8') if isinstance(folder, bytes) else str(folder)
-                    # Split by quotes to get the folder name
-                    parts = folder_str.split('"')
-                    if len(parts) >= 3:
-                        folder_name = parts[-2]  # Last quoted part is the folder name
-                        if folder_name and folder_name != folder_path:  # Exclude the base folder itself
+                    try:
+                        # Parse folder list response: b'(\\HasNoChildren) "/" "INBOX"'
+                        folder_str = folder.decode('utf-8') if isinstance(folder, bytes) else str(folder)
+                        log(f"[MAIL CONNECTION] Parsing folder response: {folder_str}")
+                        
+                        # Handle different folder response formats
+                        # Format 1: (\\HasNoChildren) "/" "INBOX"
+                        # Format 2: (\\HasNoChildren) "." "INBOX"
+                        # Format 3: * LIST (\\HasNoChildren) "/" "INBOX"
+                        
+                        # Remove leading "* LIST" if present
+                        if folder_str.startswith('* LIST'):
+                            folder_str = folder_str[7:].strip()
+                        
+                        # Find the last quoted section which should be the folder name
+                        quote_parts = []
+                        in_quotes = False
+                        current_part = ""
+                        i = 0
+                        while i < len(folder_str):
+                            char = folder_str[i]
+                            if char == '"' and (i == 0 or folder_str[i-1] != '\\'):
+                                if in_quotes:
+                                    quote_parts.append(current_part)
+                                    current_part = ""
+                                    in_quotes = False
+                                else:
+                                    in_quotes = True
+                            elif in_quotes:
+                                current_part += char
+                            i += 1
+                        
+                        if quote_parts:
+                            folder_name = quote_parts[-1]  # Last quoted part should be folder name
+                        else:
+                            # Alternative parsing: split by space and take last part
+                            parts = folder_str.split()
+                            if parts:
+                                folder_name = parts[-1].strip('"')
+                            else:
+                                continue
+                        
+                        # Clean up folder name
+                        folder_name = folder_name.strip()
+                        
+                        # Skip empty names and the current folder path to avoid self-exclusion
+                        if folder_name and folder_name not in [folder_path, FolderNameMapper.polish_to_server(folder_path)]:
                             folder_names.append(folder_name)
+                            log(f"[MAIL CONNECTION] Added folder: {folder_name}")
+                        
+                    except Exception as folder_parse_error:
+                        log(f"[MAIL CONNECTION] ERROR parsing folder: {folder}, error: {folder_parse_error}")
+                        continue
             
-            if not folder_names:
-                # If no subfolders found, at least return common ones for exclusion
-                folder_names = ["SENT", "DRAFTS", "SPAM", "TRASH"]
+            # Always include common folders even if not found on server
+            common_folders = ["SENT", "Sent", "DRAFTS", "Drafts", "SPAM", "Junk", "TRASH", "Trash", "Deleted"]
+            for common_folder in common_folders:
+                if common_folder not in folder_names:
+                    folder_names.append(common_folder)
             
-            log(f"[MAIL CONNECTION] Found {len(folder_names)} IMAP folders: {folder_names}")
-            return folder_names
+            # Remove duplicates while preserving order
+            unique_folders = []
+            seen = set()
+            for folder in folder_names:
+                if folder.lower() not in seen:
+                    unique_folders.append(folder)
+                    seen.add(folder.lower())
+            
+            log(f"[MAIL CONNECTION] Found {len(unique_folders)} IMAP folders: {unique_folders}")
+            return unique_folders
             
         except Exception as e:
             log(f"[MAIL CONNECTION] ERROR getting IMAP folders: {str(e)}")
             # Return fallback list
-            return ["SENT", "DRAFTS", "SPAM", "TRASH"]
+            return self._get_fallback_folders()
+        finally:
+            # Always clean up the temporary IMAP connection used for folder discovery
+            if imap and imap != self.imap_connection:
+                try:
+                    imap.logout()
+                    log("[MAIL CONNECTION] Closed temporary IMAP connection for folder discovery")
+                except:
+                    pass
+    
+    def _get_fallback_folders(self):
+        """Get fallback folder list when discovery fails"""
+        return ["SENT", "Sent", "DRAFTS", "Drafts", "SPAM", "Junk", "TRASH", "Trash", "Deleted"]
     
     def close_connections(self):
         """Close all active connections"""
@@ -587,33 +739,52 @@ class MailConnection:
     def get_account_and_folder_info(self, current_folder_path=None):
         """Get combined information about current account and active folder"""
         if not self.current_account_config:
-            return "Konto: Nieskonfigurowane", "Folder: Brak"
+            return "Konto: Nieskonfigurowane", "Folder: Brak konfiguracji"
         
         account_type = self.current_account_config.get("type", "unknown")
         account_name = self.current_account_config.get("name", "Nieznane")
+        account_email = self.current_account_config.get("email", "")
         
-        # Format account info
+        # Format account info with more details
         if account_type == "exchange":
-            account_info = f"Exchange: {account_name}"
+            server = self.current_account_config.get("exchange_server", "")
+            account_info = f"Exchange: {account_name} ({account_email}) @ {server}"
         elif account_type == "imap_smtp":
-            account_info = f"IMAP: {account_name}"
+            server = self.current_account_config.get("imap_server", "")
+            account_info = f"IMAP: {account_name} ({account_email}) @ {server}"
         elif account_type == "pop3_smtp":
-            account_info = f"POP3: {account_name}"
+            server = self.current_account_config.get("pop3_server", "")
+            account_info = f"POP3: {account_name} ({account_email}) @ {server}"
         else:
-            account_info = f"Nieznany: {account_name}"
+            account_info = f"Nieznany typ: {account_name} ({account_email})"
         
-        # Format folder info
+        # Format folder info with validation
         if current_folder_path:
             # Show both the user input and what it maps to for server
             if account_type == "exchange":
                 folder_info = f"Folder: {current_folder_path}"
             else:
-                # For IMAP/POP, show the mapping
+                # For IMAP/POP, show the mapping and validation
                 server_folder = FolderNameMapper.polish_to_server(current_folder_path)
                 if server_folder != current_folder_path:
                     folder_info = f"Folder: {current_folder_path} → {server_folder}"
                 else:
                     folder_info = f"Folder: {current_folder_path}"
+                
+                # Add validation info if we can check folder existence
+                try:
+                    # Try to get a list of folders to validate against
+                    available_folders = self.get_available_folders_for_exclusion(
+                        self.account or self.imap_connection or self.pop3_connection, 
+                        current_folder_path
+                    )
+                    if available_folders and len(available_folders) > 1:  # More than just fallback
+                        if FolderNameMapper.validate_folder_exists(available_folders, current_folder_path):
+                            folder_info += " ✓"
+                        else:
+                            folder_info += " ⚠"
+                except:
+                    pass  # Don't show validation if we can't check
         else:
             folder_info = "Folder: Brak"
         
