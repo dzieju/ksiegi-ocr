@@ -45,5 +45,5 @@
       "smtp_ssl_pop3": true
     }
   ],
-  "main_account_index": 0
+  "main_account_index": 1
 }
