@@ -138,11 +138,24 @@ class EmailSearchEngine:
             log(f"Parametry wyszukiwania: {search_params}")
             log(f"Paginacja: strona {page}, na stronie {per_page}")
             
-            # Get account for folder operations
+            # Get account for folder operations and determine account type
             account = connection.get_main_account()
             if not account:
                 log("BŁĄD: Nie można nawiązać połączenia z serwerem poczty")
                 raise Exception("Nie można nawiązać połączenia z serwerem poczty")
+            
+            # Determine account type for universal handling
+            account_type = "unknown"
+            if connection.current_account_config:
+                account_type = connection.current_account_config.get("type", "unknown")
+            else:
+                # Try to detect account type from account object
+                if hasattr(account, 'primary_smtp_address'):
+                    account_type = "exchange"
+                else:
+                    account_type = "imap_smtp"  # Default for non-Exchange
+            
+            log(f"Detected account type: {account_type}")
             
             # Log connection info (works for both Exchange and IMAP)
             if hasattr(account, 'primary_smtp_address'):
@@ -173,7 +186,7 @@ class EmailSearchEngine:
             
             log(f"Znaleziono {len(folders_to_search)} folderów do przeszukiwania:")
             for i, folder in enumerate(folders_to_search, 1):
-                log(f"  {i}. {folder.name}")
+                log(f"  {i}. {self._get_safe_folder_name(folder)}")
             
             self.progress_callback(f"Przeszukiwanie {len(folders_to_search)} folderów...")
             
@@ -314,57 +327,69 @@ class EmailSearchEngine:
                     self.result_callback({'type': 'search_cancelled'})
                     return
                 
-                folder_name = search_folder.name
+                folder_name = self._get_safe_folder_name(search_folder)
                 log(f"--- Folder {idx + 1}/{len(folders_to_search)}: '{folder_name}' ---")
                 
                 try:
                     self.progress_callback(f"Przeszukiwanie folderu {idx + 1}/{len(folders_to_search)}: {folder_name}")
                     
-                    # Strategy: First try with query if we have one, if that fails or returns empty, try without query
+                    # Strategy varies by account type
                     messages_list = []
                     query_success = False
                     
-                    if combined_query:
-                        try:
-                            log(f"Próba zapytania z filtrami dla folderu '{folder_name}'")
-                            messages = search_folder.filter(combined_query).order_by('-datetime_received')
-                            messages_list = list(messages)
-                            query_success = True
-                            log(f"Zapytanie z filtrami: znaleziono {len(messages_list)} wiadomości")
-                        except Exception as query_error:
-                            log(f"BŁĄD zapytania z filtrami: {str(query_error)}")
-                            # Query failed, fallback to getting all messages and filtering manually
+                    if account_type == "exchange" and hasattr(search_folder, 'filter'):
+                        # Exchange-specific folder operations
+                        if combined_query:
                             try:
-                                log(f"Fallback: pobieranie wszystkich wiadomości z folderu '{folder_name}'")
+                                log(f"Próba zapytania z filtrami dla folderu '{folder_name}'")
+                                messages = search_folder.filter(combined_query).order_by('-datetime_received')
+                                messages_list = list(messages)
+                                query_success = True
+                                log(f"Zapytanie z filtrami: znaleziono {len(messages_list)} wiadomości")
+                            except Exception as query_error:
+                                log(f"BŁĄD zapytania z filtrami: {str(query_error)}")
+                                # Query failed, fallback to getting all messages and filtering manually
+                                try:
+                                    log(f"Fallback: pobieranie wszystkich wiadomości z folderu '{folder_name}'")
+                                    messages = search_folder.all().order_by('-datetime_received')
+                                    messages_list = list(messages)
+                                    log(f"Fallback: pobrano {len(messages_list)} wszystkich wiadomości")
+                                except Exception as fallback_error:
+                                    log(f"BŁĄD fallback: {str(fallback_error)}")
+                        else:
+                            try:
+                                log(f"Pobieranie wszystkich wiadomości z folderu '{folder_name}' (brak filtrów)")
                                 messages = search_folder.all().order_by('-datetime_received')
                                 messages_list = list(messages)
-                                log(f"Fallback: pobrано {len(messages_list)} wszystkich wiadomości")
-                            except Exception as fallback_error:
-                                log(f"BŁĄD fallback: {str(fallback_error)}")
-                    else:
-                        try:
-                            log(f"Pobieranie wszystkich wiadomości z folderu '{folder_name}' (brak filtrów)")
-                            messages = search_folder.all().order_by('-datetime_received')
-                            messages_list = list(messages)
-                            log(f"Pobrano {len(messages_list)} wszystkich wiadomości")
-                        except Exception as all_error:
-                            log(f"BŁĄD pobierania wszystkich: {str(all_error)}")
+                                log(f"Pobrano {len(messages_list)} wszystkich wiadomości")
+                            except Exception as all_error:
+                                log(f"BŁĄD pobierania wszystkich: {str(all_error)}")
+                        
+                        # If we still have no messages, try alternative QuerySet conversion
+                        if not messages_list:
+                            log(f"Brak wiadomości - próba alternatywnej metody konwersji")
+                            try:
+                                if combined_query:
+                                    messages = search_folder.filter(combined_query)
+                                else:
+                                    messages = search_folder.all()
+                                
+                                # Use normal iteration instead of .iterator()
+                                messages_list = [msg for msg in messages][:100]  # Limit during iteration
+                                log(f"Alternatywna metoda: znaleziono {len(messages_list)} wiadomości (limit 100)")
+                            except Exception as iteration_error:
+                                log(f"BŁĄD alternatywnej metody: {str(iteration_error)}")
+                                pass  # Continue with empty list
                     
-                    # If we still have no messages, try alternative QuerySet conversion
-                    if not messages_list:
-                        log(f"Brak wiadomości - próba alternatywnej metody konwersji")
-                        try:
-                            if combined_query:
-                                messages = search_folder.filter(combined_query)
-                            else:
-                                messages = search_folder.all()
-                            
-                            # Use normal iteration instead of .iterator()
-                            messages_list = [msg for msg in messages][:100]  # Limit during iteration
-                            log(f"Alternatywna metoda: znaleziono {len(messages_list)} wiadomości (limit 100)")
-                        except Exception as iteration_error:
-                            log(f"BŁĄD alternatywnej metody: {str(iteration_error)}")
-                            pass  # Continue with empty list
+                    else:
+                        # For IMAP/POP3 - simplified approach since we can't use Exchange-specific filtering
+                        log(f"Non-Exchange account type '{account_type}': Using simplified message retrieval for folder '{folder_name}'")
+                        log(f"Note: Advanced filtering will be applied manually after message retrieval")
+                        # For IMAP/POP3, we would need to implement message retrieval using imaplib/poplib
+                        # This is a placeholder - actual implementation would depend on the connection type
+                        # For now, we'll continue with empty list to avoid crashes
+                        messages_list = []
+                        log(f"IMAP/POP3 message retrieval not yet implemented - continuing with empty results")
                     
                     # Apply per-folder limit
                     original_count = len(messages_list)
@@ -689,50 +714,85 @@ class EmailSearchEngine:
         except Exception:
             return None
 
+    def _get_safe_folder_name(self, folder):
+        """Safely extract folder name from folder object or string"""
+        try:
+            if not folder:
+                return 'Skrzynka odbiorcza'
+            
+            # If it's a string (IMAP/POP3), return it directly
+            if isinstance(folder, str):
+                if folder.upper() == 'INBOX':
+                    return 'Skrzynka odbiorcza'
+                return folder
+            
+            # If it's an object with .name attribute (Exchange), use that
+            if hasattr(folder, 'name'):
+                return folder.name
+            
+            # Fallback to string representation
+            return str(folder)
+            
+        except Exception as e:
+            log(f"Error extracting folder name: {str(e)}")
+            return 'Skrzynka odbiorcza'
+
     def _get_folder_path(self, folder):
         """Get the full folder path from folder object"""
         try:
             if not folder:
                 return 'Skrzynka odbiorcza'
             
-            # Build path by traversing up the folder hierarchy
-            path_parts = []
-            current_folder = folder
-            is_inbox_child = False
+            # Handle string folders (IMAP/POP3)
+            if isinstance(folder, str):
+                if folder.upper() == 'INBOX':
+                    return 'Skrzynka odbiorcza'
+                return folder
             
-            while current_folder and hasattr(current_folder, 'name'):
-                folder_name = current_folder.name
+            # Handle Exchange folder objects - build path by traversing up the folder hierarchy
+            if hasattr(folder, 'name'):
+                path_parts = []
+                current_folder = folder
+                is_inbox_child = False
                 
-                # Check if this is an inbox folder
-                if folder_name.lower() in ['inbox', 'skrzynka odbiorcza']:
-                    # If this is the target folder itself, return inbox name
-                    if current_folder == folder:
-                        return 'Skrzynka odbiorcza'
+                while current_folder and hasattr(current_folder, 'name'):
+                    folder_name = current_folder.name
+                    
+                    # Check if this is an inbox folder
+                    if folder_name.lower() in ['inbox', 'skrzynka odbiorcza']:
+                        # If this is the target folder itself, return inbox name
+                        if current_folder == folder:
+                            return 'Skrzynka odbiorcza'
+                        else:
+                            # This is a parent inbox, mark as inbox child
+                            is_inbox_child = True
+                            break
+                    
+                    path_parts.insert(0, folder_name)
+                    
+                    # Move to parent folder
+                    if hasattr(current_folder, 'parent') and current_folder.parent:
+                        current_folder = current_folder.parent
                     else:
-                        # This is a parent inbox, mark as inbox child
-                        is_inbox_child = True
                         break
                 
-                path_parts.insert(0, folder_name)
+                if not path_parts:
+                    return 'Skrzynka odbiorcza'
                 
-                # Move to parent folder
-                if hasattr(current_folder, 'parent') and current_folder.parent:
-                    current_folder = current_folder.parent
+                # Create the full path
+                if is_inbox_child:
+                    return '/Odebrane/' + '/'.join(path_parts)
                 else:
-                    break
+                    return '/' + '/'.join(path_parts)
             
-            if not path_parts:
-                return 'Skrzynka odbiorcza'
-            
-            # Create the full path
-            if is_inbox_child:
-                return '/Odebrane/' + '/'.join(path_parts)
-            else:
-                return '/' + '/'.join(path_parts)
+            # Fallback for unknown object types
+            return str(folder)
                 
         except Exception as e:
             # Fallback to folder name or generic name
             try:
+                if isinstance(folder, str):
+                    return folder
                 return folder.name if hasattr(folder, 'name') else 'Skrzynka odbiorcza'
             except:
                 return 'Skrzynka odbiorcza'

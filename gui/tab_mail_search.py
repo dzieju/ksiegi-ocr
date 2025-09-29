@@ -59,6 +59,9 @@ class MailSearchTab(ttk.Frame):
         # Load saved settings
         self.load_mail_search_config()
         
+        # Update account info display
+        self.update_account_info_display()
+        
         # Start processing queues
         self._process_queues()
         
@@ -67,7 +70,7 @@ class MailSearchTab(ttk.Frame):
         self.ui_builder.create_search_criteria_widgets()
         self.ui_builder.create_date_period_widgets()
         
-        self.search_button, self.status_label = self.ui_builder.create_control_widgets(self.toggle_search)
+        self.search_button, self.status_label, self.account_info_label = self.ui_builder.create_control_widgets(self.toggle_search)
         self.results_frame = self.ui_builder.create_results_widget()
         
         # Initialize results display with the frame
@@ -110,6 +113,33 @@ class MailSearchTab(ttk.Frame):
         except Exception as e:
             messagebox.showerror("Błąd", f"Błąd wyboru folderu: {e}")
     
+    def update_account_info_display(self):
+        """Update the account info display with current account details"""
+        try:
+            if hasattr(self, 'account_info_label'):
+                account_info = self.connection.get_current_account_info()
+                if account_info and account_info != "No account configured":
+                    # Parse account info to show type and name
+                    if "Type: exchange" in account_info:
+                        account_type = "Exchange"
+                        color = "green"
+                    elif "Type: imap_smtp" in account_info:
+                        account_type = "IMAP/SMTP"
+                        color = "blue"
+                    elif "Type: pop3_smtp" in account_info:
+                        account_type = "POP3/SMTP"
+                        color = "purple"
+                    else:
+                        account_type = "Nieznany"
+                        color = "orange"
+                    
+                    self.account_info_label.config(text=f"Konto: {account_type}", foreground=color)
+                else:
+                    self.account_info_label.config(text="Konto: Nieskonfigurowane", foreground="red")
+        except Exception as e:
+            if hasattr(self, 'account_info_label'):
+                self.account_info_label.config(text="Konto: Błąd", foreground="red")
+
     def discover_folders(self):
         """Discover available folders for exclusion in background thread"""
         def _discover():
@@ -122,6 +152,9 @@ class MailSearchTab(ttk.Frame):
                 
                 account = self.connection.get_main_account()
                 log(f"[FOLDER DISCOVERY] Got account: {account is not None}")
+                
+                # Update account info display after getting account
+                self.after_idle(self.update_account_info_display)
                 
                 if account:
                     folder_path = self.vars['folder_path'].get()
