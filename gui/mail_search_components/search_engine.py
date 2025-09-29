@@ -427,7 +427,7 @@ class EmailSearchEngine:
                     else:
                         # IMAP/POP3 implementation using IMAPClient
                         log(f"Non-Exchange account type '{account_type}': Using IMAPClient message retrieval for folder '{folder_name}'")
-                        messages_list = self._get_imap_messages(search_folder, connection, combined_query, criteria, account_type)
+                        messages_list = self._get_imap_messages(search_folder, connection, combined_query, criteria, account_type, per_page)
                         log(f"IMAP/POP3 retrieval completed: found {len(messages_list)} messages")
                     
                     # Apply per-folder limit
@@ -494,13 +494,14 @@ class EmailSearchEngine:
             end_idx = start_idx + per_page
             log(f"Paginacja: indeksy {start_idx}-{end_idx}")
             
-            # Limit total messages for performance (500 total across all folders)
+            # Limit total messages for performance (use multiple of per_page to allow proper pagination)
+            max_total_messages = max(per_page * 10, 1000)  # At least 10 pages worth, minimum 1000
             original_total = len(all_messages)
-            total_messages = all_messages[:500]
+            total_messages = all_messages[:max_total_messages]
             total_count = len(total_messages)
             
-            if original_total > 500:
-                log(f"Ograniczono wiadomości z {original_total} do {total_count} (limit wydajności)")
+            if original_total > max_total_messages:
+                log(f"Ograniczono wiadomości z {original_total} do {total_count} (limit wydajności: {max_total_messages})")
             else:
                 log(f"Przetwarzanie {total_count} wiadomości (bez ograniczeń)")
             
@@ -982,11 +983,11 @@ class EmailSearchEngine:
         
         return {'found': False, 'matches': [], 'method': 'not_found_in_pdfs'}
 
-    def _get_imap_messages(self, folder_name, connection, combined_query, criteria, account_type):
+    def _get_imap_messages(self, folder_name, connection, combined_query, criteria, account_type, per_page=500):
         """Retrieve messages from IMAP folder using IMAPClient"""
         try:
             if account_type == "pop3_smtp":
-                return self._get_pop3_messages(connection, criteria)
+                return self._get_pop3_messages(connection, criteria, per_page)
             
             # For IMAP accounts, use the existing IMAP connection
             imap = connection.imap_connection
@@ -1034,7 +1035,7 @@ class EmailSearchEngine:
                 return []
             
             # Limit the number of messages for performance
-            limited_uids = message_uids[-500:]  # Get most recent 500 messages
+            limited_uids = message_uids[-per_page:]  # Get most recent messages up to per_page limit
             if len(limited_uids) < len(message_uids):
                 log(f"[IMAP] Limited to {len(limited_uids)} most recent messages (from {len(message_uids)} total)")
             
@@ -1266,7 +1267,7 @@ class EmailSearchEngine:
             log(f"[IMAP] Error in recursive attachment check: {str(e)}")
             return False
     
-    def _get_pop3_messages(self, connection, criteria):
+    def _get_pop3_messages(self, connection, criteria, per_page=500):
         """Retrieve messages from POP3 connection"""
         try:
             pop3 = connection.pop3_connection
@@ -1282,7 +1283,7 @@ class EmailSearchEngine:
             log(f"[POP3] Found {num_messages} messages")
             
             # Limit messages for performance
-            max_messages = min(num_messages, 100)
+            max_messages = min(num_messages, per_page)
             start_index = max(1, num_messages - max_messages + 1)
             
             log(f"[POP3] Retrieving {max_messages} most recent messages (from {start_index} to {num_messages})")
