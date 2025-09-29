@@ -401,8 +401,8 @@ class EmailSearchEngine:
                                     messages = search_folder.all()
                                 
                                 # Use normal iteration instead of .iterator()
-                                messages_list = [msg for msg in messages][:100]  # Limit during iteration
-                                log(f"Alternatywna metoda: znaleziono {len(messages_list)} wiadomości (limit 100)")
+                                messages_list = [msg for msg in messages][:per_page]  # Limit during iteration
+                                log(f"Alternatywna metoda: znaleziono {len(messages_list)} wiadomości (limit {per_page})")
                             except Exception as iteration_error:
                                 log(f"BŁĄD alternatywnej metody: {str(iteration_error)}")
                                 pass  # Continue with empty list
@@ -415,9 +415,9 @@ class EmailSearchEngine:
                     
                     # Apply per-folder limit
                     original_count = len(messages_list)
-                    folder_messages = messages_list[:100]  # Limit per folder after converting to list
-                    if original_count > 100:
-                        log(f"Ograniczono z {original_count} do {len(folder_messages)} wiadomości (limit na folder)")
+                    folder_messages = messages_list[:per_page]  # Limit per folder after converting to list
+                    if original_count > per_page:
+                        log(f"Ograniczono z {original_count} do {len(folder_messages)} wiadomości (limit na folder: {per_page})")
                     
                     log(f"Folder '{folder_name}' - szczegóły wiadomości:")
                     log(f"  - Znalezione wiadomości: {original_count}")
