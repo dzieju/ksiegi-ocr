@@ -1,7 +1,5 @@
 {
-  "excluded_folders": [
-    "Junk"
-  ],
+  "excluded_folders": [],
   "exclusion_section_visible": true,
   "pdf_save_directory": "D:/!Nextcloud SSL/Faktury/Ksiegowa/Faktury"
 }
