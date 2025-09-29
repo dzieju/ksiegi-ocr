@@ -104,7 +104,11 @@ class MailSearchUI:
         status_label = ttk.Label(search_frame, text="Gotowy", foreground="green")
         status_label.pack(side="left", padx=10)
         
-        return search_button, status_label
+        # Add account type indicator
+        account_info_label = ttk.Label(search_frame, text="Konto: Sprawdzanie...", foreground="blue", font=("Arial", 9, "italic"))
+        account_info_label.pack(side="right", padx=10)
+        
+        return search_button, status_label, account_info_label
     
     def create_results_widget(self):
         """Create results area widget - now returns a frame for the new ResultsDisplay"""
