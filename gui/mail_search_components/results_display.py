@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import os
 import threading
+from .datetime_utils import IMAPDateHandler
 
 
 class ResultsDisplay:
@@ -130,7 +131,8 @@ class ResultsDisplay:
         
         # Insert results
         for i, result in enumerate(results):
-            date_str = result['datetime_received'].strftime('%Y-%m-%d %H:%M') if result['datetime_received'] else 'Brak daty'
+            # Use IMAPDateHandler for consistent date formatting - no split() operations
+            date_str = IMAPDateHandler.format_display_date(result['datetime_received'])
             folder_path = result.get('folder_path', 'Skrzynka odbiorcza')  # New folder column
             sender = result['sender'][:35] if len(result['sender']) > 35 else result['sender']
             subject = result['subject'][:55] if len(result['subject']) > 55 else result['subject']
@@ -273,10 +275,16 @@ class ResultsDisplay:
         # Start with basic headers
         eml_lines = []
         
-        # Required headers
+        # Required headers - use proper datetime formatting methods
         eml_lines.append(f"From: {result['sender']}")
         eml_lines.append(f"Subject: {result['subject']}")
-        eml_lines.append(f"Date: {formatdate(localtime=True)}")
+        
+        # Use IMAPDateHandler for proper email date formatting - no split()
+        if result.get('datetime_received'):
+            formatted_date = IMAPDateHandler.format_email_header_date(result['datetime_received'])
+        else:
+            formatted_date = IMAPDateHandler.format_email_header_date(None)  # Uses current time
+        eml_lines.append(f"Date: {formatted_date}")
         
         # Additional headers if available
         if hasattr(message, 'to_recipients') and message.to_recipients:

@@ -13,6 +13,7 @@ from exchangelib import Q, Message
 from imapclient import IMAPClient
 from tools.logger import log
 from .pdf_processor import PDFProcessor
+from .datetime_utils import IMAPDateHandler
 
 # Handle optional tkinter import
 try:
@@ -714,26 +715,8 @@ class EmailSearchEngine:
             })
     
     def _get_period_start_date(self, period):
-        """Get start date for the selected period"""
-        try:
-            now = datetime.now(timezone.utc)
-            
-            if period == "ostatni_tydzien":
-                return now - timedelta(days=7)
-            elif period == "ostatnie_2_tygodnie":
-                return now - timedelta(days=14)
-            elif period == "ostatni_miesiac":
-                return now - timedelta(days=30)
-            elif period == "ostatnie_3_miesiace":
-                return now - timedelta(days=90)
-            elif period == "ostatnie_6_miesiecy":
-                return now - timedelta(days=180)
-            elif period == "ostatni_rok":
-                return now - timedelta(days=365)
-            else:
-                return None
-        except Exception:
-            return None
+        """Get start date for the selected period using proper datetime methods"""
+        return IMAPDateHandler.get_period_start_date(period)
 
     def _get_safe_folder_name(self, folder):
         """Safely extract folder name from folder object or string"""
@@ -819,19 +802,12 @@ class EmailSearchEngine:
                 return 'Skrzynka odbiorcza'
 
     def _get_monthly_folder_path(self, base_directory, email_date):
-        """Create monthly folder path based on email date (MM.YYYY format)"""
+        """Create monthly folder path based on email date using proper datetime methods"""
         try:
-            if not email_date:
-                # If no date, use current date as fallback
-                from datetime import datetime
-                email_date = datetime.now()
-            
-            # Format: MM.YYYY (e.g., 09.2025)
-            month_year = email_date.strftime("%m.%Y")
+            # Use IMAPDateHandler for proper date formatting - no split() operations
+            month_year = IMAPDateHandler.format_monthly_folder(email_date)
             monthly_folder = os.path.join(base_directory, month_year)
-            
             return monthly_folder
-            
         except Exception as e:
             log(f"BŁĄD przy tworzeniu ścieżki miesięcznego folderu: {e}")
             return base_directory  # Fallback to base directory
@@ -925,14 +901,15 @@ class EmailSearchEngine:
                         with open(output_path, 'wb') as f:
                             f.write(attachment.content)
                         
-                        # Set file modification time to match email date
+                        # Set file modification time to match email date using proper methods
                         if message.datetime_received:
                             try:
-                                # Convert datetime to timestamp for os.utime
-                                email_timestamp = message.datetime_received.timestamp()
-                                # Set both access time and modification time to email date
-                                os.utime(output_path, (email_timestamp, email_timestamp))
-                                log(f"Ustawiono datę modyfikacji pliku {safe_filename} na: {message.datetime_received}")
+                                # Use IMAPDateHandler for timestamp conversion - no split()
+                                email_timestamp = IMAPDateHandler.convert_to_timestamp(message.datetime_received)
+                                if email_timestamp:
+                                    # Set both access time and modification time to email date
+                                    os.utime(output_path, (email_timestamp, email_timestamp))
+                                    log(f"Ustawiono datę modyfikacji pliku {safe_filename} na: {message.datetime_received}")
                             except Exception as e:
                                 log(f"OSTRZEŻENIE: Nie można ustawić daty modyfikacji pliku {safe_filename}: {e}")
                         
@@ -1052,10 +1029,11 @@ class EmailSearchEngine:
         if criteria.get('selected_period') and criteria['selected_period'] != 'wszystkie':
             start_date = self._get_period_start_date(criteria['selected_period'])
             if start_date:
-                # Format date for IMAP (DD-MMM-YYYY)
-                date_str = start_date.strftime("%d-%b-%Y")
-                search_terms.extend(['SINCE', date_str])
-                log(f"[IMAP] Adding date filter: since {date_str}")
+                # Format date for IMAP using proper datetime methods - no split()
+                date_str = IMAPDateHandler.format_imap_search_date(start_date)
+                if date_str:
+                    search_terms.extend(['SINCE', date_str])
+                    log(f"[IMAP] Adding date filter: since {date_str}")
         
         # If no criteria specified, return ALL
         if not search_terms:
@@ -1133,17 +1111,9 @@ class EmailSearchEngine:
             
             sender_display = sender_name if sender_name else (sender_email if sender_email else "Nieznany")
             
-            # Parse date
-            date_received = None
+            # Parse date using robust datetime handler - no split() operations
             if envelope.date:
-                try:
-                    # Parse IMAP date format
-                    date_received = email.utils.parsedate_to_datetime(envelope.date.decode() if isinstance(envelope.date, bytes) else envelope.date)
-                    if date_received.tzinfo is None:
-                        date_received = date_received.replace(tzinfo=timezone.utc)
-                except Exception as date_error:
-                    log(f"[IMAP] Error parsing date for UID {uid}: {str(date_error)}")
-                    date_received = datetime.now(timezone.utc)
+                date_received = IMAPDateHandler.parse_imap_date(envelope.date)
             else:
                 date_received = datetime.now(timezone.utc)
             
@@ -1303,15 +1273,8 @@ class EmailSearchEngine:
             sender_display = self._decode_imap_header(from_header)
             date_header = email_msg.get('Date')
             
-            # Parse date
-            date_received = datetime.now(timezone.utc)
-            if date_header:
-                try:
-                    date_received = email.utils.parsedate_to_datetime(date_header)
-                    if date_received.tzinfo is None:
-                        date_received = date_received.replace(tzinfo=timezone.utc)
-                except:
-                    pass
+            # Parse date using robust datetime handler - no split() operations
+            date_received = IMAPDateHandler.parse_imap_date(date_header)
             
             # POP3 messages are always considered read
             is_read = True
