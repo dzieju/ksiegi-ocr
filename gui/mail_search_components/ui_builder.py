@@ -79,6 +79,8 @@ class MailSearchUI:
         # Period selection buttons
         periods = [
             ("wszystkie", "Wszystkie"),
+            ("ostatni_tydzien", "Ostatni tydzień"),
+            ("ostatnie_2_tygodnie", "Ostatnie 2 tygodnie"),
             ("ostatni_miesiac", "Ostatni miesiąc"),
             ("ostatnie_3_miesiace", "Ostatnie 3 miesiące"),
             ("ostatnie_6_miesiecy", "Ostatnie 6 miesięcy"),
