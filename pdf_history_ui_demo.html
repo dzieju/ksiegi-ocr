@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Search History Management - UI Changes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #007acc;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .before-after {
+            display: flex;
+            gap: 20px;
+        }
+        .before, .after {
+            flex: 1;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .before {
+            background-color: #fff5f5;
+            border: 1px solid #ffcccc;
+        }
+        .after {
+            background-color: #f5fff5;
+            border: 1px solid #ccffcc;
+        }
+        .ui-element {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 5px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .label {
+            min-width: 250px;
+            font-weight: bold;
+            color: #555;
+        }
+        .input {
+            flex: 1;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: white;
+        }
+        .button {
+            padding: 6px 12px;
+            margin-left: 8px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .checkbox {
+            margin-right: 8px;
+        }
+        .new-feature {
+            background-color: #e6f3ff !important;
+            border: 2px solid #007acc !important;
+            font-weight: bold;
+        }
+        .feature-list {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .feature-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin: 5px 0;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 PDF Search History Management - UI Implementation</h1>
+        
+        <div class="section">
+            <h2>🎯 Implementation Overview</h2>
+            <div class="feature-list">
+                <p><strong>New Features Added:</strong></p>
+                <ul>
+                    <li>✅ Checkbox "Pomijaj już wyszukane PDF-y" next to PDF search input</li>
+                    <li>✅ Button "Wyczyść historię" for clearing search history</li>
+                    <li>✅ PDF history tracking using content hashes for reliable identification</li>
+                    <li>✅ Automatic skipping of previously searched PDFs when checkbox is enabled</li>
+                    <li>✅ History persistence in <code>pdf_search_history.json</code></li>
+                    <li>✅ Configuration persistence in <code>mail_search_config.json</code></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🖥️ UI Changes - Mail Search Tab</h2>
+            
+            <div class="before-after">
+                <div class="before">
+                    <h3>BEFORE</h3>
+                    <div class="ui-element">
+                        <span class="label">Wyszukaj w pliku PDF (automatyczny zapis):</span>
+                        <input class="input" type="text" placeholder="np. numer faktury" />
+                        <button class="button">Wybierz folder</button>
+                    </div>
+                </div>
+                
+                <div class="after">
+                    <h3>AFTER</h3>
+                    <div class="ui-element">
+                        <span class="label">Wyszukaj w pliku PDF (automatyczny zapis):</span>
+                        <input class="input" type="text" placeholder="np. numer faktury" />
+                        <button class="button">Wybierz folder</button>
+                    </div>
+                    <div class="ui-element new-feature">
+                        <input type="checkbox" class="checkbox" checked /> 
+                        <span style="margin-right: 15px;">Pomijaj już wyszukane PDF-y</span>
+                        <button class="button">Wyczyść historię</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 Technical Implementation</h2>
+            
+            <h3>📁 New Files Created:</h3>
+            <div class="code-block">
+gui/mail_search_components/pdf_history_manager.py
+├── PDFHistoryManager class
+├── History tracking with SHA256 content hashes
+├── JSON persistence (pdf_search_history.json)
+└── Statistics and clear functionality
+            </div>
+
+            <h3>📝 Modified Files:</h3>
+            <div class="code-block">
+gui/tab_mail_search.py
+├── Added skip_searched_pdfs variable
+├── Added clear_pdf_history() method
+├── Integrated PDFHistoryManager instance
+└── Configuration save/load for new setting
+
+gui/mail_search_components/ui_builder.py
+├── Added PDF history controls frame
+├── Added checkbox for skip option
+├── Added clear history button
+└── Updated constructor for callback
+
+gui/mail_search_components/search_engine.py
+├── Modified _check_pdf_content() method
+├── Added history checking before PDF processing
+├── Added automatic history tracking
+└── Skip logic with logging
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ How It Works</h2>
+            
+            <div class="feature-list">
+                <h3>🔍 PDF Search Process:</h3>
+                <ol>
+                    <li><strong>User enters search text</strong> and optionally enables "Pomijaj już wyszukane PDF-y"</li>
+                    <li><strong>For each PDF attachment:</strong>
+                        <ul>
+                            <li>Generate unique identifier (name + SHA256 content hash)</li>
+                            <li>Check if PDF was already searched with this search term</li>
+                            <li>If skip option enabled and PDF already searched → mark as skipped</li>
+                            <li>Otherwise → perform normal PDF search and mark as searched</li>
+                        </ul>
+                    </li>
+                    <li><strong>History tracking:</strong>
+                        <ul>
+                            <li>Track searched PDFs with timestamps and match results</li>
+                            <li>Track skipped PDFs with skip counts</li>
+                            <li>Save history to <code>pdf_search_history.json</code></li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 History File Structure</h2>
+            <div class="code-block">
+{
+  "searched_pdfs": {
+    "invoice_001.pdf_686e762e": {
+      "attachment_name": "invoice_001.pdf",
+      "first_searched": "2025-09-29T22:38:49.169158",
+      "searches": {
+        "numer faktury": {
+          "last_searched": "2025-09-29T22:38:49.169168",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    }
+  },
+  "skipped_pdfs": {
+    "invoice_001.pdf_686e762e": {
+      "attachment_name": "invoice_001.pdf",
+      "first_skipped": "2025-09-29T22:38:49.170596",
+      "skip_count": 2,
+      "last_skipped": "2025-09-29T22:38:49.171695",
+      "last_search_text": "numer faktury"
+    }
+  }
+}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Testing Results</h2>
+            <div class="feature-list">
+                <h3>Validation Completed:</h3>
+                <ul>
+                    <li>✅ PDF History Manager unit tests pass</li>
+                    <li>✅ Application starts successfully with new components</li>
+                    <li>✅ All Python syntax validation passed</li>
+                    <li>✅ Integration with existing mail search workflow confirmed</li>
+                    <li>✅ Configuration persistence working correctly</li>
+                    <li>✅ History tracking and skipping logic functional</li>
+                    <li>✅ Clear history feature with confirmation dialog</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🚀 Performance Benefits</h2>
+            <div class="feature-list">
+                <ul>
+                    <li><strong>Reduced Processing Time:</strong> Skip previously processed PDFs</li>
+                    <li><strong>Bandwidth Savings:</strong> Avoid re-downloading and re-processing</li>
+                    <li><strong>Better User Experience:</strong> Faster search results on repeated searches</li>
+                    <li><strong>Resource Efficiency:</strong> Lower CPU and memory usage</li>
+                    <li><strong>Smart Tracking:</strong> Content-based identification prevents false positives</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
