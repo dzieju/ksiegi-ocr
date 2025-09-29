@@ -98,7 +98,7 @@ class PDFHistoryManager:
             log(f"[PDF HISTORY] Błąd sprawdzania historii PDF: {e}")
             return False  # In case of error, don't skip
     
-    def mark_pdf_as_searched(self, attachment_name, attachment_content, search_text, found_matches=None):
+    def mark_pdf_as_searched(self, attachment_name, attachment_content, search_text, found_matches=None, sender_email=None):
         """
         Mark PDF as searched with given search text
         
@@ -107,6 +107,7 @@ class PDFHistoryManager:
             attachment_content: Binary content of the PDF
             search_text: Text that was searched for
             found_matches: List of matches found (optional)
+            sender_email: Email address of the sender (optional)
         """
         try:
             pdf_id = self._get_pdf_identifier(attachment_name, attachment_content)
@@ -116,8 +117,13 @@ class PDFHistoryManager:
                 searched_pdfs[pdf_id] = {
                     "attachment_name": attachment_name,
                     "first_searched": datetime.now().isoformat(),
+                    "sender_email": sender_email,
                     "searches": {}
                 }
+            else:
+                # Update sender email if provided and not already set
+                if sender_email and not searched_pdfs[pdf_id].get("sender_email"):
+                    searched_pdfs[pdf_id]["sender_email"] = sender_email
             
             search_key = search_text.lower().strip()
             searched_pdfs[pdf_id]["searches"][search_key] = {
@@ -202,3 +208,45 @@ class PDFHistoryManager:
         except Exception as e:
             log(f"[PDF HISTORY] Błąd pobierania statystyk: {e}")
             return {"unique_searched_pdfs": 0, "unique_skipped_pdfs": 0, "total_searches": 0, "total_skips": 0}
+    
+    def get_history_for_display(self):
+        """
+        Get history data formatted for display in table
+        
+        Returns:
+            list: List of dictionaries with keys: filename, date, sender_email
+        """
+        try:
+            history_entries = []
+            searched_pdfs = self.history_data.get("searched_pdfs", {})
+            
+            for pdf_data in searched_pdfs.values():
+                filename = pdf_data.get("attachment_name", "Nieznany")
+                first_searched = pdf_data.get("first_searched", "")
+                sender_email = pdf_data.get("sender_email", "Brak danych")
+                
+                # Format date for display
+                try:
+                    if first_searched:
+                        # Parse ISO format and format for display
+                        dt = datetime.fromisoformat(first_searched.replace('Z', '+00:00'))
+                        formatted_date = dt.strftime("%Y-%m-%d %H:%M:%S")
+                    else:
+                        formatted_date = "Brak danych"
+                except Exception:
+                    formatted_date = first_searched
+                
+                history_entries.append({
+                    "filename": filename,
+                    "date": formatted_date,
+                    "sender_email": sender_email
+                })
+            
+            # Sort by date (newest first)
+            history_entries.sort(key=lambda x: x["date"], reverse=True)
+            
+            return history_entries
+            
+        except Exception as e:
+            log(f"[PDF HISTORY] Błąd pobierania historii do wyświetlenia: {e}")
+            return []

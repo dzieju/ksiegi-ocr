@@ -1,0 +1,41 @@
+{
+  "searched_pdfs": {
+    "invoice_001.pdf_abc123": {
+      "attachment_name": "invoice_001.pdf",
+      "first_searched": "2024-01-15T10:30:00",
+      "sender_email": "kontrahent@example.com",
+      "searches": {
+        "numer faktury": {
+          "last_searched": "2024-01-15T10:30:00",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "oferta_123.pdf_def456": {
+      "attachment_name": "oferta_123.pdf",
+      "first_searched": "2024-01-20T14:15:00",
+      "sender_email": "sprzedawca@firma.pl",
+      "searches": {
+        "cena": {
+          "last_searched": "2024-01-20T14:15:00",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "umowa_xyz.pdf_ghi789": {
+      "attachment_name": "umowa_xyz.pdf",
+      "first_searched": "2024-02-05T09:45:00",
+      "sender_email": "prawnik@kancelaria.com",
+      "searches": {
+        "termin": {
+          "last_searched": "2024-02-05T09:45:00",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    }
+  },
+  "skipped_pdfs": {}
+}
