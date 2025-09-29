@@ -104,11 +104,19 @@ class MailSearchUI:
         status_label = ttk.Label(search_frame, text="Gotowy", foreground="green")
         status_label.pack(side="left", padx=10)
         
-        # Add account type indicator
-        account_info_label = ttk.Label(search_frame, text="Konto: Sprawdzanie...", foreground="blue", font=("Arial", 9, "italic"))
-        account_info_label.pack(side="right", padx=10)
+        # Create info frame for account and folder information
+        info_frame = ttk.Frame(search_frame)
+        info_frame.pack(side="right", padx=10)
         
-        return search_button, status_label, account_info_label
+        # Add account type indicator
+        account_info_label = ttk.Label(info_frame, text="Konto: Sprawdzanie...", foreground="blue", font=("Arial", 9, "italic"))
+        account_info_label.pack(anchor="e")
+        
+        # Add folder info indicator
+        folder_info_label = ttk.Label(info_frame, text="Folder: Brak", foreground="gray", font=("Arial", 9, "italic"))
+        folder_info_label.pack(anchor="e")
+        
+        return search_button, status_label, account_info_label, folder_info_label
     
     def create_results_widget(self):
         """Create results area widget - now returns a frame for the new ResultsDisplay"""
