@@ -267,7 +267,6 @@ class ResultsDisplay:
         """Create proper EML format content for email with attachments"""
         import base64
         import uuid
-        from email.utils import formatdate
         
         # Generate boundary for multipart content
         boundary = f"----=_Part_{uuid.uuid4().hex}"
