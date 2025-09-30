@@ -8,12 +8,13 @@ from tkinter import ttk
 class MailSearchUI:
     """Handles UI creation for mail search tab"""
     
-    def __init__(self, parent, variables, discover_callback, pdf_folder_callback=None, clear_history_callback=None):
+    def __init__(self, parent, variables, discover_callback, pdf_folder_callback=None, clear_history_callback=None, show_history_callback=None):
         self.parent = parent
         self.vars = variables
         self.discover_callback = discover_callback
         self.pdf_folder_callback = pdf_folder_callback
         self.clear_history_callback = clear_history_callback
+        self.show_history_callback = show_history_callback
         
     def create_search_criteria_widgets(self, save_pdf_callback=None):
         """Create search criteria input widgets"""
@@ -73,6 +74,16 @@ class MailSearchUI:
                 width=15
             )
             clear_history_button.grid(row=0, column=1, padx=5, sticky="w")
+        
+        # Button for showing history
+        if self.show_history_callback:
+            show_history_button = ttk.Button(
+                pdf_history_frame, 
+                text="Pokaż Historię", 
+                command=self.show_history_callback,
+                width=15
+            )
+            show_history_button.grid(row=0, column=2, padx=5, sticky="w")
         
         ttk.Label(self.parent, text="Nadawca maila:").grid(row=6, column=0, sticky="e", padx=5, pady=5)
         ttk.Entry(self.parent, textvariable=self.vars['sender'], width=40).grid(row=6, column=1, padx=5, pady=5)

@@ -53,7 +53,7 @@ class MailSearchTab(ttk.Frame):
         # Initialize components
         self.connection = MailConnection()
         self.search_engine = EmailSearchEngine(self._add_progress, self._add_result)
-        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder, self.clear_pdf_history)
+        self.ui_builder = MailSearchUI(self, self.vars, self.discover_folders, self.choose_pdf_save_folder, self.clear_pdf_history, self.show_pdf_history)
         
         # Initialize PDF history manager
         from gui.mail_search_components.pdf_history_manager import PDFHistoryManager
@@ -143,6 +143,18 @@ class MailSearchTab(ttk.Frame):
                     
         except Exception as e:
             messagebox.showerror("Błąd", f"Błąd czyszczenia historii: {e}")
+    
+    def show_pdf_history(self):
+        """Show PDF search history in a modal window"""
+        try:
+            from gui.mail_search_components.pdf_history_display import PDFHistoryDisplayWindow
+            
+            # Create and show the history display window
+            history_window = PDFHistoryDisplayWindow(self, self.pdf_history_manager)
+            history_window.show()
+            
+        except Exception as e:
+            messagebox.showerror("Błąd", f"Błąd wyświetlania historii: {e}")
     
     def update_account_info_display(self):
         """Update account and folder information display"""
