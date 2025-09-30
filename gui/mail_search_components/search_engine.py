@@ -954,8 +954,10 @@ class EmailSearchEngine:
                     try:
                         attachment_content = getattr(attachment, 'content', None)
                         if attachment_content:
+                            # Get sender email from message
+                            sender_email = getattr(message.sender, 'email_address', None) if hasattr(message, 'sender') else None
                             self.pdf_history_manager.mark_pdf_as_searched(
-                                attachment_name, attachment_content, search_text, result.get('matches', [])
+                                attachment_name, attachment_content, search_text, result.get('matches', []), sender_email
                             )
                     except Exception as e:
                         log(f"[PDF HISTORY] Błąd oznaczania PDF {attachment_name} jako przeszukany: {e}")
@@ -1013,8 +1015,10 @@ class EmailSearchEngine:
                     try:
                         attachment_content = getattr(attachment, 'content', None)
                         if attachment_content:
+                            # Get sender email from message
+                            sender_email = getattr(message.sender, 'email_address', None) if hasattr(message, 'sender') else None
                             self.pdf_history_manager.mark_pdf_as_searched(
-                                attachment_name, attachment_content, search_text, []
+                                attachment_name, attachment_content, search_text, [], sender_email
                             )
                     except Exception as e:
                         log(f"[PDF HISTORY] Błąd oznaczania PDF {attachment_name} jako przeszukany (bez wyników): {e}")
