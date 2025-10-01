@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from .datetime_utils import IMAPDateHandler
 from .pdf_processor import PDFProcessor
 from email.header import decode_header
+from email.utils import parseaddr
 
 def log(message):
     """Simple logging function"""
@@ -27,6 +28,11 @@ def decode_mime_header(header_value):
         else:
             result += fragment
     return result
+
+def extract_email_address(header_value):
+    # Zwraca tylko adres e-mail z nagłówka
+    name, email = parseaddr(header_value)
+    return email
 
 class EmailSearchEngine:
     """
@@ -244,14 +250,11 @@ class EmailSearchEngine:
         messages_list = []
         
         try:
-            # IMAP pagination fix
             folder_name = str(folder_name)
             connection.imap_connection.select_folder(folder_name, readonly=True)
             
-            # Build search criteria
             search_criteria = ['ALL']
             
-            # Date filter
             selected_period = criteria.get('selected_period', 'wszystkie')
             date_range = IMAPDateHandler.get_date_range(selected_period)
             if date_range:
@@ -261,26 +264,21 @@ class EmailSearchEngine:
                 if end_date:
                     search_criteria += ['BEFORE', end_date.date()]
             
-            # Subject filter
             subject_search = criteria.get('subject_search', '')
             if subject_search:
                 search_criteria.append(f'SUBJECT "{subject_search}"')
             
-            # Sender filter
             sender = criteria.get('sender', '')
             if sender:
                 search_criteria.append(f'FROM "{sender}"')
             
-            # Body filter
             body_search = criteria.get('body_search', '')
             if body_search:
                 search_criteria.append(f'BODY "{body_search}"')
             
-            # Unread only
             if criteria.get('unread_only', False):
                 search_criteria.append('UNSEEN')
             
-            # Search
             message_uids = connection.imap_connection.search(search_criteria)
             
             if message_uids:
@@ -294,10 +292,11 @@ class EmailSearchEngine:
                     flags = data.get(b'FLAGS', [])
                     
                     if envelope:
+                        sender_raw = str(envelope.from_[0]) if envelope.from_ else ''
                         msg = {
                             'uid': uid,
                             'subject': decode_mime_header(envelope.subject.decode() if envelope.subject else ''),
-                            'sender': decode_mime_header(str(envelope.from_[0]) if envelope.from_ else ''),
+                            'sender': extract_email_address(decode_mime_header(sender_raw)),
                             'datetime_received': envelope.date,
                             'is_read': b'\\Seen' in flags,
                             'has_attachments': False,  # Would need to fetch body structure
@@ -338,14 +337,13 @@ class EmailSearchEngine:
                 response, lines, octets = folder.retr(i)
                 msg_content = b'\n'.join(lines)
                 
-                # Parse message using email.parser
                 from email.parser import BytesParser
                 email_message = BytesParser().parsebytes(msg_content)
                 subject_raw = email_message.get('Subject', '')
                 sender_raw = email_message.get('From', '')
                 msg = {
                     'subject': decode_mime_header(subject_raw),
-                    'sender': decode_mime_header(sender_raw),
+                    'sender': extract_email_address(decode_mime_header(sender_raw)),
                     'datetime_received': datetime.now(),
                     'is_read': True,
                     'has_attachments': False,
@@ -378,7 +376,6 @@ class EmailSearchEngine:
             if self.cancel_flag:
                 break
                 
-            # Attachment name filter
             attachment_name = criteria.get('attachment_name', '')
             if attachment_name:
                 pass
@@ -409,10 +406,11 @@ class EmailSearchEngine:
         """
         try:
             if account_type == 'exchange':
+                sender_raw = str(msg.sender) if msg.sender else ''
                 result = {
                     'datetime_received': msg.datetime_received,
                     'folder_path': getattr(msg, 'folder', 'Skrzynka odbiorcza'),
-                    'sender': decode_mime_header(str(msg.sender) if msg.sender else ''),
+                    'sender': extract_email_address(decode_mime_header(sender_raw)),
                     'subject': decode_mime_header(msg.subject or ''),
                     'is_read': msg.is_read,
                     'has_attachments': msg.has_attachments,
@@ -425,7 +423,7 @@ class EmailSearchEngine:
                 result = {
                     'datetime_received': msg.get('datetime_received', datetime.now()),
                     'folder_path': msg.get('folder_path', 'INBOX'),
-                    'sender': decode_mime_header(msg.get('sender', '')),
+                    'sender': msg.get('sender', ''),
                     'subject': decode_mime_header(msg.get('subject', '')),
                     'is_read': msg.get('is_read', True),
                     'has_attachments': msg.get('has_attachments', False),
