@@ -159,7 +159,7 @@ class EmailSearchEngine:
         Get messages from Exchange folder
         
         Args:
-            folder: Exchange folder object
+            folder: Exchange folder object or list of folder objects
             criteria: Search criteria
             per_page: Results per page (used for per-folder limit)
             
@@ -205,9 +205,23 @@ class EmailSearchEngine:
             elif criteria.get('no_attachments_only', False):
                 query = query & Q(has_attachments=False)
                 
-            # Execute search with limit
-            messages = folder.filter(query).order_by('-datetime_received')[:per_page]
-            messages_list = list(messages)
+            # Check if folder is a list or a single folder object
+            if isinstance(folder, list):
+                # Handle list of folders - iterate and search each
+                for fld in folder:
+                    if self.cancel_flag:
+                        break
+                    try:
+                        messages = fld.filter(query).order_by('-datetime_received')[:per_page]
+                        messages_list.extend(list(messages))
+                    except Exception as e:
+                        log(f"Error searching folder {getattr(fld, 'name', 'unknown')}: {str(e)}")
+                        # Continue with other folders even if one fails
+                        continue
+            else:
+                # Handle single folder object
+                messages = folder.filter(query).order_by('-datetime_received')[:per_page]
+                messages_list = list(messages)
             
             self.progress_callback(f"Znaleziono {len(messages_list)} wiadomości w folderze Exchange")
             
