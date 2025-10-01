@@ -154,12 +154,12 @@ class EmailSearchEngine:
             traceback.print_exc()
             self.result_callback({'type': 'search_error', 'error': str(e)})
             
-    def _get_exchange_messages(self, folder, criteria, per_page):
+    def _get_exchange_messages(self, folders, criteria, per_page):
         """
-        Get messages from Exchange folder
+        Get messages from Exchange folder(s)
         
         Args:
-            folder: Exchange folder object
+            folders: Exchange folder object OR list of folder objects
             criteria: Search criteria
             per_page: Results per page (used for per-folder limit)
             
@@ -167,54 +167,51 @@ class EmailSearchEngine:
             List of message objects
         """
         messages_list = []
-        
+        from exchangelib import Q
         try:
             # Build filter based on criteria
-            from exchangelib import Q
             query = Q()
-            
             # Date filter
             selected_period = criteria.get('selected_period', 'wszystkie')
             date_range = IMAPDateHandler.get_date_range(selected_period)
             if date_range:
                 start_date, end_date = date_range
                 query = query & Q(datetime_received__range=(start_date, end_date))
-                
             # Subject filter
             subject_search = criteria.get('subject_search', '')
             if subject_search:
                 query = query & Q(subject__icontains=subject_search)
-                
             # Sender filter
             sender = criteria.get('sender', '')
             if sender:
                 query = query & Q(sender__icontains=sender)
-                
             # Body filter
             body_search = criteria.get('body_search', '')
             if body_search:
                 query = query & Q(body__icontains=body_search)
-                
             # Unread only
             if criteria.get('unread_only', False):
                 query = query & Q(is_read=False)
-                
             # Attachments filter
             if criteria.get('attachments_required', False):
                 query = query & Q(has_attachments=True)
             elif criteria.get('no_attachments_only', False):
                 query = query & Q(has_attachments=False)
-                
-            # Execute search with limit
-            messages = folder.filter(query).order_by('-datetime_received')[:per_page]
-            messages_list = list(messages)
-            
+            # Execute search
+            if isinstance(folders, list):
+                for folder in folders:
+                    try:
+                        messages = folder.filter(query).order_by('-datetime_received')[:per_page]
+                        messages_list.extend(list(messages))
+                    except Exception as e:
+                        log(f"Error searching Exchange folder {folder}: {str(e)}")
+            else:
+                messages = folders.filter(query).order_by('-datetime_received')[:per_page]
+                messages_list = list(messages)
             self.progress_callback(f"Znaleziono {len(messages_list)} wiadomości w folderze Exchange")
-            
         except Exception as e:
             log(f"Error searching Exchange: {str(e)}")
             raise
-            
         return messages_list
         
     def _get_imap_messages(self, connection, folder_name, criteria, per_page):
@@ -246,28 +243,31 @@ class EmailSearchEngine:
             date_range = IMAPDateHandler.get_date_range(selected_period)
             if date_range:
                 start_date, end_date = date_range
-                search_criteria.append(f'SINCE {start_date.strftime("%d-%b-%Y")}')
-                search_criteria.append(f'BEFORE {end_date.strftime("%d-%b-%Y")}')
-                
+                # POPRAWKA: daty przekazujemy jako obiekty datetime.date!
+                if start_date:
+                    search_criteria += ['SINCE', start_date.date()]
+                if end_date:
+                    search_criteria += ['BEFORE', end_date.date()]
+            
             # Subject filter
             subject_search = criteria.get('subject_search', '')
             if subject_search:
                 search_criteria.append(f'SUBJECT "{subject_search}"')
-                
+            
             # Sender filter
             sender = criteria.get('sender', '')
             if sender:
                 search_criteria.append(f'FROM "{sender}"')
-                
+            
             # Body filter
             body_search = criteria.get('body_search', '')
             if body_search:
                 search_criteria.append(f'BODY "{body_search}"')
-                
+            
             # Unread only
             if criteria.get('unread_only', False):
                 search_criteria.append('UNSEEN')
-                
+            
             # Search
             message_uids = connection.imap_connection.search(search_criteria)
             
