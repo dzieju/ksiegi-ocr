@@ -1,5 +1,4 @@
 def _get_imap_messages(...):
-    # IMAP pagination fix
-    # Removed per_page limitation
+    # IMAP pagination fix: Remove per_page limitation here
     ...
     return messages
