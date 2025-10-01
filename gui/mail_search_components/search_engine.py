@@ -7,12 +7,26 @@ import queue
 from datetime import datetime, timedelta
 from .datetime_utils import IMAPDateHandler
 from .pdf_processor import PDFProcessor
-
+from email.header import decode_header
 
 def log(message):
     """Simple logging function"""
     print(f"[SEARCH ENGINE] {message}")
 
+def decode_mime_header(header_value):
+    if not header_value:
+        return ""
+    decoded_fragments = decode_header(header_value)
+    result = ""
+    for fragment, charset in decoded_fragments:
+        if isinstance(fragment, bytes):
+            try:
+                result += fragment.decode(charset or "utf-8", errors="replace")
+            except Exception:
+                result += fragment.decode("utf-8", errors="replace")
+        else:
+            result += fragment
+    return result
 
 class EmailSearchEngine:
     """
@@ -231,7 +245,6 @@ class EmailSearchEngine:
         
         try:
             # IMAP pagination fix
-            # Select folder using connection.imap_connection and ensure folder_name is a string
             folder_name = str(folder_name)
             connection.imap_connection.select_folder(folder_name, readonly=True)
             
@@ -243,7 +256,6 @@ class EmailSearchEngine:
             date_range = IMAPDateHandler.get_date_range(selected_period)
             if date_range:
                 start_date, end_date = date_range
-                # POPRAWKA: daty przekazujemy jako obiekty datetime.date!
                 if start_date:
                     search_criteria += ['SINCE', start_date.date()]
                 if end_date:
@@ -271,12 +283,7 @@ class EmailSearchEngine:
             # Search
             message_uids = connection.imap_connection.search(search_criteria)
             
-            # IMAP pagination fix: Remove per_page limitation here
-            # Fetch all message UIDs found by the search instead of limiting
-            # Pagination will be handled at a higher level in _threaded_search
-            
             if message_uids:
-                # Fetch message data for all UIDs
                 fetch_data = connection.imap_connection.fetch(message_uids, ['ENVELOPE', 'FLAGS', 'RFC822.SIZE'])
                 
                 for uid, data in fetch_data.items():
@@ -287,11 +294,10 @@ class EmailSearchEngine:
                     flags = data.get(b'FLAGS', [])
                     
                     if envelope:
-                        # Create message object
                         msg = {
                             'uid': uid,
-                            'subject': envelope.subject.decode() if envelope.subject else '',
-                            'sender': str(envelope.from_[0]) if envelope.from_ else '',
+                            'subject': decode_mime_header(envelope.subject.decode() if envelope.subject else ''),
+                            'sender': decode_mime_header(str(envelope.from_[0]) if envelope.from_ else ''),
                             'datetime_received': envelope.date,
                             'is_read': b'\\Seen' in flags,
                             'has_attachments': False,  # Would need to fetch body structure
@@ -319,29 +325,27 @@ class EmailSearchEngine:
         Returns:
             List of message objects
         """
-        # POP3 doesn't support server-side search, would need to fetch all and filter client-side
         messages_list = []
         
         try:
-            # Get message count
             num_messages = len(folder.list()[1])
-            
-            # Fetch recent messages (up to per_page limit)
             limit = min(num_messages, per_page)
             
             for i in range(1, limit + 1):
                 if self.cancel_flag:
                     break
                     
-                # Fetch message
                 response, lines, octets = folder.retr(i)
                 msg_content = b'\n'.join(lines)
                 
-                # Parse message (would need email.parser)
-                # This is a simplified version
+                # Parse message using email.parser
+                from email.parser import BytesParser
+                email_message = BytesParser().parsebytes(msg_content)
+                subject_raw = email_message.get('Subject', '')
+                sender_raw = email_message.get('From', '')
                 msg = {
-                    'subject': '',
-                    'sender': '',
+                    'subject': decode_mime_header(subject_raw),
+                    'sender': decode_mime_header(sender_raw),
                     'datetime_received': datetime.now(),
                     'is_read': True,
                     'has_attachments': False,
@@ -377,19 +381,14 @@ class EmailSearchEngine:
             # Attachment name filter
             attachment_name = criteria.get('attachment_name', '')
             if attachment_name:
-                # Would need to check attachment names
                 pass
                 
-            # Attachment extension filter
             attachment_extension = criteria.get('attachment_extension', '')
             if attachment_extension:
-                # Would need to check attachment extensions
                 pass
                 
-            # PDF search filter
             pdf_search_text = criteria.get('pdf_search_text', '')
             if pdf_search_text:
-                # Would need to search in PDF attachments
                 pass
                 
             filtered.append(msg)
@@ -413,8 +412,8 @@ class EmailSearchEngine:
                 result = {
                     'datetime_received': msg.datetime_received,
                     'folder_path': getattr(msg, 'folder', 'Skrzynka odbiorcza'),
-                    'sender': str(msg.sender) if msg.sender else '',
-                    'subject': msg.subject or '',
+                    'sender': decode_mime_header(str(msg.sender) if msg.sender else ''),
+                    'subject': decode_mime_header(msg.subject or ''),
                     'is_read': msg.is_read,
                     'has_attachments': msg.has_attachments,
                     'attachment_count': len(list(msg.attachments)) if msg.has_attachments else 0,
@@ -423,12 +422,11 @@ class EmailSearchEngine:
                     'attachments': list(msg.attachments) if msg.has_attachments else []
                 }
             else:
-                # IMAP or POP3
                 result = {
                     'datetime_received': msg.get('datetime_received', datetime.now()),
                     'folder_path': msg.get('folder_path', 'INBOX'),
-                    'sender': msg.get('sender', ''),
-                    'subject': msg.get('subject', ''),
+                    'sender': decode_mime_header(msg.get('sender', '')),
+                    'subject': decode_mime_header(msg.get('subject', '')),
                     'is_read': msg.get('is_read', True),
                     'has_attachments': msg.get('has_attachments', False),
                     'attachment_count': msg.get('attachment_count', 0),
@@ -436,7 +434,6 @@ class EmailSearchEngine:
                     'message_id': msg.get('uid'),
                     'attachments': msg.get('attachments', [])
                 }
-                
             return result
             
         except Exception as e:
