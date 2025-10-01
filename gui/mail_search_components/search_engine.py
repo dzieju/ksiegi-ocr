@@ -99,7 +99,7 @@ class EmailSearchEngine:
             if account_type == 'exchange':
                 messages_list = self._get_exchange_messages(folder, criteria, per_page)
             elif account_type == 'imap_smtp':
-                messages_list = self._get_imap_messages(folder, criteria, per_page)
+                messages_list = self._get_imap_messages(connection, folder, criteria, per_page)
             elif account_type == 'pop3_smtp':
                 messages_list = self._get_pop3_messages(folder, criteria, per_page)
             else:
@@ -217,12 +217,13 @@ class EmailSearchEngine:
             
         return messages_list
         
-    def _get_imap_messages(self, folder, criteria, per_page):
+    def _get_imap_messages(self, connection, folder_name, criteria, per_page):
         """
         Get messages from IMAP folder
         
         Args:
-            folder: IMAP folder connection
+            connection: MailConnection object with imap_connection
+            folder_name: IMAP folder name (string)
             criteria: Search criteria
             per_page: Results per page (NOT used for limiting - pagination is at higher level)
             
@@ -232,8 +233,10 @@ class EmailSearchEngine:
         messages_list = []
         
         try:
-            # Select folder
-            folder.select_folder('INBOX', readonly=True)
+            # IMAP pagination fix
+            # Select folder using connection.imap_connection and ensure folder_name is a string
+            folder_name = str(folder_name)
+            connection.imap_connection.select_folder(folder_name, readonly=True)
             
             # Build search criteria
             search_criteria = ['ALL']
@@ -266,7 +269,7 @@ class EmailSearchEngine:
                 search_criteria.append('UNSEEN')
                 
             # Search
-            message_uids = folder.search(search_criteria)
+            message_uids = connection.imap_connection.search(search_criteria)
             
             # IMAP pagination fix: Remove per_page limitation here
             # Fetch all message UIDs found by the search instead of limiting
@@ -274,7 +277,7 @@ class EmailSearchEngine:
             
             if message_uids:
                 # Fetch message data for all UIDs
-                fetch_data = folder.fetch(message_uids, ['ENVELOPE', 'FLAGS', 'RFC822.SIZE'])
+                fetch_data = connection.imap_connection.fetch(message_uids, ['ENVELOPE', 'FLAGS', 'RFC822.SIZE'])
                 
                 for uid, data in fetch_data.items():
                     if self.cancel_flag:
@@ -292,7 +295,7 @@ class EmailSearchEngine:
                             'datetime_received': envelope.date,
                             'is_read': b'\\Seen' in flags,
                             'has_attachments': False,  # Would need to fetch body structure
-                            'folder_path': 'INBOX'
+                            'folder_path': folder_name
                         }
                         messages_list.append(msg)
                         
