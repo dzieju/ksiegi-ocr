@@ -171,6 +171,36 @@ class IMAPDateHandler:
             return None
     
     @staticmethod
+    def get_date_range(period_name):
+        """
+        Get date range (start_date, end_date) for a named period.
+        
+        Args:
+            period_name: Name of the period (e.g., "ostatni_tydzien", "wszystkie")
+            
+        Returns:
+            tuple: (start_date, end_date) datetime tuple, or None for "wszystkie"
+        """
+        try:
+            # "wszystkie" means no date filtering
+            if period_name == "wszystkie" or not period_name:
+                return None
+            
+            # Get start date for the period
+            start_date = IMAPDateHandler.get_period_start_date(period_name)
+            if start_date is None:
+                return None
+            
+            # End date is current date/time
+            end_date = datetime.now(timezone.utc)
+            
+            return (start_date, end_date)
+            
+        except Exception as e:
+            log(f"[DATETIME] Error calculating date range: {str(e)}")
+            return None
+    
+    @staticmethod
     def convert_to_timestamp(dt):
         """
         Convert datetime to timestamp using proper datetime methods.
