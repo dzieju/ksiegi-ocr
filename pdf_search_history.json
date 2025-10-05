@@ -3659,175 +3659,259 @@
           "match_count": 0
         }
       }
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-062-659_4746.pdf_e31c8bbb445fc55f": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-062-659_4746.pdf",
+      "first_searched": "2025-10-05T20:24:13.721742",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:24:13.721752",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-063-107_4435.pdf_0d98fcb1833157dd": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-063-107_4435.pdf",
+      "first_searched": "2025-10-05T20:24:24.630683",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:24:24.630693",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-061-792_4435.pdf_5499a226fae3dfc3": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-061-792_4435.pdf",
+      "first_searched": "2025-10-05T20:24:34.489300",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:24:34.489309",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_e2a34bd3e5b72d63": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-05T20:25:15.086546",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:25:15.086557",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "HESTIA HOME ASSISTANCE - Zlecenie naprawy AGD_RTV_protokol + czesci Ergo 7  _ Moja Firma_SP-560-819_3738.pdf_f412767e66b8fd98": {
+      "attachment_name": "HESTIA HOME ASSISTANCE - Zlecenie naprawy AGD_RTV_protokol + czesci Ergo 7  _ Moja Firma_SP-560-819_3738.pdf",
+      "first_searched": "2025-10-05T20:25:24.555974",
+      "sender_email": "s.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:25:24.555983",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-061-843_4746.pdf_9c35a9594b053b97": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-061-843_4746.pdf",
+      "first_searched": "2025-10-05T20:25:35.219511",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:25:35.219519",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_ protokol - kontakt z Klientem 12 h_SP-560-704_5297.pdf_15ccd9853d069efb": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_ protokol - kontakt z Klientem 12 h_SP-560-704_5297.pdf",
+      "first_searched": "2025-10-05T20:25:45.224098",
+      "sender_email": "s.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-05T20:25:45.224109",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
     }
   },
   "skipped_pdfs": {
     "Faktura nr F_M02_0001693_09_25.pdf_434f532d56211f7c": {
       "attachment_name": "Faktura nr F_M02_0001693_09_25.pdf",
       "first_skipped": "2025-09-30T02:40:47.168324",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:37.038573",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:02.806645",
       "last_search_text": "5732475751"
     },
     "F_10928_09_25_M1.pdf_8f87cd1e6531e0bb": {
       "attachment_name": "F_10928_09_25_M1.pdf",
       "first_skipped": "2025-09-30T02:41:08.524467",
-      "skip_count": 13,
-      "last_skipped": "2025-10-02T16:45:37.737837",
+      "skip_count": 15,
+      "last_skipped": "2025-10-05T20:26:03.525419",
       "last_search_text": "5732475751"
     },
     "Faktura nr 520_7_2025.pdf_3a84cefc479e2a1c": {
       "attachment_name": "Faktura nr 520_7_2025.pdf",
       "first_skipped": "2025-09-30T02:41:08.847004",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:38.086323",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:03.990719",
       "last_search_text": "5732475751"
     },
     "Faktura nr 234_7_2025.pdf_75252d29dcf3238e": {
       "attachment_name": "Faktura nr 234_7_2025.pdf",
       "first_skipped": "2025-09-30T02:41:09.173512",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:38.392585",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:04.411403",
       "last_search_text": "5732475751"
     },
     "Faktura nr 180_7_2025.pdf_540876c3d99a06f0": {
       "attachment_name": "Faktura nr 180_7_2025.pdf",
       "first_skipped": "2025-09-30T02:41:09.682604",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:38.833340",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:04.945189",
       "last_search_text": "5732475751"
     },
     "Faktura nr 55_7_2025.pdf_b455b3225f466b9e": {
       "attachment_name": "Faktura nr 55_7_2025.pdf",
       "first_skipped": "2025-09-30T02:41:09.806324",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:39.017678",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:05.120013",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-09-26_13.23.pdf_dd72088763feaaff": {
       "attachment_name": "dokumenty_2025-09-26_13.23.pdf",
       "first_skipped": "2025-09-30T02:41:57.536122",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:39.411678",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:05.465035",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_91951b548a541273": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-09-30T02:41:57.669839",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:39.583267",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:05.604286",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-09-26_12.16.pdf_3417a284724af6b2": {
       "attachment_name": "dokumenty_2025-09-26_12.16.pdf",
       "first_skipped": "2025-09-30T02:42:44.991730",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:39.966142",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:05.930514",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_bb589acf0bddcf47": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-09-30T02:42:45.120668",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:40.110266",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:06.071692",
       "last_search_text": "5732475751"
     },
     "F_10459_09_25_M1.pdf_5d9f7a122d21dc55": {
       "attachment_name": "F_10459_09_25_M1.pdf",
       "first_skipped": "2025-09-30T02:42:45.373979",
-      "skip_count": 13,
-      "last_skipped": "2025-10-02T16:45:40.335594",
+      "skip_count": 15,
+      "last_skipped": "2025-10-05T20:26:06.271678",
       "last_search_text": "5732475751"
     },
     "FS_70619_SML_2025.pdf_8f149022cafb7495": {
       "attachment_name": "FS_70619_SML_2025.pdf",
       "first_skipped": "2025-09-30T02:42:54.790422",
-      "skip_count": 12,
-      "last_skipped": "2025-10-02T16:45:40.680393",
+      "skip_count": 14,
+      "last_skipped": "2025-10-05T20:26:06.540687",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-09-25_11.34.pdf_f6cd9252c74a29c8": {
       "attachment_name": "dokumenty_2025-09-25_11.34.pdf",
       "first_skipped": "2025-09-30T02:43:42.092290",
-      "skip_count": 10,
-      "last_skipped": "2025-10-02T16:45:41.179532",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:06.627789",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_da9b9b3254e1a978": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-09-30T02:43:42.218126",
-      "skip_count": 10,
-      "last_skipped": "2025-10-02T16:45:41.379141",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:06.769768",
       "last_search_text": "5732475751"
     },
     "FS_70619_SML_2025.pdf_dde68c0582993393": {
       "attachment_name": "FS_70619_SML_2025.pdf",
       "first_skipped": "2025-09-30T02:44:23.754799",
-      "skip_count": 10,
-      "last_skipped": "2025-10-02T16:45:42.261192",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:07.119231",
       "last_search_text": "5732475751"
     },
     "faktura-183-24-09-2025.pdf_c904d9766c237239": {
       "attachment_name": "faktura-183-24-09-2025.pdf",
       "first_skipped": "2025-09-30T02:44:23.840857",
-      "skip_count": 10,
-      "last_skipped": "2025-10-02T16:45:42.366513",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:07.205461",
       "last_search_text": "5732475751"
     },
     "Faktura_322_09_2025.pdf_24c3285b18dc7cff": {
       "attachment_name": "Faktura_322_09_2025.pdf",
       "first_skipped": "2025-09-30T02:44:23.931128",
-      "skip_count": 10,
-      "last_skipped": "2025-10-02T16:45:42.476183",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:07.289533",
       "last_search_text": "5732475751"
     },
     "faktura_FS_47986-NM2-09-2025.pdf_aaa01eefdc85ee2b": {
       "attachment_name": "faktura_FS_47986-NM2-09-2025.pdf",
       "first_skipped": "2025-09-30T02:44:56.506517",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:43.089056",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:26:07.380992",
       "last_search_text": "5732475751"
     },
     "FS 47986_NM2_09_2025.pdf_aaa01eefdc85ee2b": {
       "attachment_name": "FS 47986_NM2_09_2025.pdf",
       "first_skipped": "2025-09-30T02:44:56.726863",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:43.214898",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:26:07.473193",
       "last_search_text": "5732475751"
     },
     "F_08751_09_25_M1.pdf_8ff2796b92327a0e": {
       "attachment_name": "F_08751_09_25_M1.pdf",
       "first_skipped": "2025-09-30T02:45:01.373562",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:43.443176",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:26:07.667001",
       "last_search_text": "5732475751"
     },
     "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf_0b4214ccfe831a09": {
       "attachment_name": "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf",
       "first_skipped": "2025-09-30T02:45:03.333443",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:43.716805",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:07.873174",
       "last_search_text": "5732475751"
     },
     "Faktura.pdf_46cec7b1683316db": {
       "attachment_name": "Faktura.pdf",
       "first_skipped": "2025-09-30T02:45:15.187481",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:43.869479",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:08.000592",
       "last_search_text": "5732475751"
     },
     "520939520925.pdf_b60499719a6e90b5": {
       "attachment_name": "520939520925.pdf",
       "first_skipped": "2025-09-30T02:45:23.939721",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:43.981229",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:08.085223",
       "last_search_text": "5732475751"
     },
     "Faktura nr F_M02_0001191_09_25.pdf_bcb56d5ffe7a3657": {
       "attachment_name": "Faktura nr F_M02_0001191_09_25.pdf",
       "first_skipped": "2025-09-30T02:45:40.320084",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:44.095132",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:08.166447",
       "last_search_text": "5732475751"
     },
     "F_07768_09_25_M1.pdf_99c91fe4d2de1dbd": {
@@ -4309,113 +4393,113 @@
     "Faktura nr 180_7_2025.pdf_809d661c4d5a41e8": {
       "attachment_name": "Faktura nr 180_7_2025.pdf",
       "first_skipped": "2025-09-30T02:49:52.150502",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:41.509556",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:06.895370",
       "last_search_text": "5732475751"
     },
     "Faktura nr 55_7_2025.pdf_649f3e7bd97d8fc0": {
       "attachment_name": "Faktura nr 55_7_2025.pdf",
       "first_skipped": "2025-09-30T02:50:03.857105",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:41.773485",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:07.033302",
       "last_search_text": "5732475751"
     },
     "F_11432_09_25_M1.pdf_e0a7c1eab682ffc7": {
       "attachment_name": "F_11432_09_25_M1.pdf",
       "first_skipped": "2025-09-30T21:47:21.777255",
-      "skip_count": 11,
-      "last_skipped": "2025-10-02T16:45:35.880502",
+      "skip_count": 13,
+      "last_skipped": "2025-10-05T20:26:01.862728",
       "last_search_text": "5732475751"
     },
     "41.pdf_08f6ef47ba23eb71": {
       "attachment_name": "41.pdf",
       "first_skipped": "2025-09-30T21:47:21.893331",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:35.993635",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:01.952027",
       "last_search_text": "5732475751"
     },
     "[TeleMiko]-Warunki reklamacji.pdf_c0dc082f7e07764f": {
       "attachment_name": "[TeleMiko]-Warunki reklamacji.pdf",
       "first_skipped": "2025-09-30T21:47:21.997975",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.122480",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.036925",
       "last_search_text": "5732475751"
     },
     "[TeleMiko]-Warunki zwrotów.pdf_7126f39d97d01b12": {
       "attachment_name": "[TeleMiko]-Warunki zwrotów.pdf",
       "first_skipped": "2025-09-30T21:47:22.102489",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.231834",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.119953",
       "last_search_text": "5732475751"
     },
     "[elektis_wroclaw]-Informacje o gwarancjach.pdf_e84f08cc0ccdfc62": {
       "attachment_name": "[elektis_wroclaw]-Informacje o gwarancjach.pdf",
       "first_skipped": "2025-09-30T21:47:22.222842",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.338493",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.204399",
       "last_search_text": "5732475751"
     },
     "[elektis_wroclaw]-Warunki reklamacji.pdf_af3c106b6b2322de": {
       "attachment_name": "[elektis_wroclaw]-Warunki reklamacji.pdf",
       "first_skipped": "2025-09-30T21:47:22.332978",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.475747",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.290232",
       "last_search_text": "5732475751"
     },
     "[elektis_wroclaw]-Warunki zwrotów.pdf_8b39888a22892869": {
       "attachment_name": "[elektis_wroclaw]-Warunki zwrotów.pdf",
       "first_skipped": "2025-09-30T21:47:22.435660",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.582575",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.376318",
       "last_search_text": "5732475751"
     },
     "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf_6d56cb1afccdc46f": {
       "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf",
       "first_skipped": "2025-09-30T21:47:22.555955",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:36.707493",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:26:02.543033",
       "last_search_text": "5732475751"
     },
     "UMOWA_FINAL_LL-i-324323-2025.pdf_037855ddade54a7f": {
       "attachment_name": "UMOWA_FINAL_LL-i-324323-2025.pdf",
       "first_skipped": "2025-09-30T21:47:22.664344",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:36.818694",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:02.626948",
       "last_search_text": "5732475751"
     },
     "Zasady-Dla-Klienta-Przepiecia-PZU.pdf_544de2a21f7e7576": {
       "attachment_name": "Zasady-Dla-Klienta-Przepiecia-PZU.pdf",
       "first_skipped": "2025-09-30T21:47:22.986162",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:37.166386",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:02.933765",
       "last_search_text": "5732475751"
     },
     "FV-28543-2025.pdf_2de9a06c07032c81": {
       "attachment_name": "FV-28543-2025.pdf",
       "first_skipped": "2025-09-30T21:47:23.090889",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:37.274944",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:03.035517",
       "last_search_text": "5732475751"
     },
     "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf_d07b45cff855732b": {
       "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf",
       "first_skipped": "2025-09-30T21:47:23.212408",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:37.395252",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:03.195950",
       "last_search_text": "5732475751"
     },
     "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf_57357cd3eeb753c7": {
       "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf",
       "first_skipped": "2025-09-30T21:47:23.331976",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:37.517855",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:03.356339",
       "last_search_text": "5732475751"
     },
     "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf_91e0a52fa0b06a81": {
       "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf",
       "first_skipped": "2025-09-30T21:47:26.212773",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:40.456713",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:06.367631",
       "last_search_text": "5732475751"
     },
     "LL-i-324323-2025-sig.pdf_90cc4f00700602f1": {
@@ -4498,8 +4582,8 @@
     "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf_587ed5b425289161": {
       "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf",
       "first_skipped": "2025-10-01T02:54:33.401167",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:35.770213",
+      "skip_count": 6,
+      "last_skipped": "2025-10-05T20:26:01.769370",
       "last_search_text": "5732475751"
     },
     "pdf_07f152f0da151a7de299993a77a3402f.pdf_150a21310f9a3d69": {
@@ -4575,92 +4659,92 @@
     "F_12019_09_25_M1.pdf_a8f0355cd526410d": {
       "attachment_name": "F_12019_09_25_M1.pdf",
       "first_skipped": "2025-10-01T11:03:36.373756",
-      "skip_count": 9,
-      "last_skipped": "2025-10-02T16:45:34.115611",
+      "skip_count": 12,
+      "last_skipped": "2025-10-05T20:26:00.003582",
       "last_search_text": "5732475751"
     },
     "Warunki reklamacji.pdf_44996fbbd9049f81": {
       "attachment_name": "Warunki reklamacji.pdf",
       "first_skipped": "2025-10-01T11:03:36.458330",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:34.223846",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:00.087966",
       "last_search_text": "5732475751"
     },
     "Warunki zwrotów.pdf_cd7ef0d19bdac7da": {
       "attachment_name": "Warunki zwrotów.pdf",
       "first_skipped": "2025-10-01T11:03:36.540779",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:34.341134",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:00.169497",
       "last_search_text": "5732475751"
     },
     "Informacje o gwarancjach.pdf_2f0f289b55f02899": {
       "attachment_name": "Informacje o gwarancjach.pdf",
       "first_skipped": "2025-10-01T11:03:36.627417",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:34.448105",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:00.252958",
       "last_search_text": "5732475751"
     },
     "Faktura nr F_M04_0001821_09_25.pdf_59fe81ca9fda2af9": {
       "attachment_name": "Faktura nr F_M04_0001821_09_25.pdf",
       "first_skipped": "2025-10-01T11:03:36.804438",
-      "skip_count": 8,
-      "last_skipped": "2025-10-02T16:45:34.661718",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:00.421253",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-09-30_13.44.pdf_ee2df72d0399a77a": {
       "attachment_name": "dokumenty_2025-09-30_13.44.pdf",
       "first_skipped": "2025-10-01T11:03:36.893497",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:34.778931",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:00.544652",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_e1a08e3010ed9da6": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-10-01T11:03:37.017237",
-      "skip_count": 6,
-      "last_skipped": "2025-10-02T16:45:34.917351",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:26:00.831697",
       "last_search_text": "5732475751"
     },
     "NO_01239_09_2025_WO.pdf_a6af4a33f79c9bce": {
       "attachment_name": "NO_01239_09_2025_WO.pdf",
       "first_skipped": "2025-10-01T11:03:37.103510",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:35.035126",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:00.924203",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_0723326debd0ed09": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-10-01T11:03:37.218240",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:35.198422",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:01.206510",
       "last_search_text": "5732475751"
     },
     "faktura_FS_13002-ZAK-2025.pdf_eb19e5dbebebb0c0": {
       "attachment_name": "faktura_FS_13002-ZAK-2025.pdf",
       "first_skipped": "2025-10-01T11:03:37.303773",
-      "skip_count": 8,
-      "last_skipped": "2025-10-02T16:45:35.308055",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:01.289236",
       "last_search_text": "5732475751"
     },
     "03703_09_2025_WOL.pdf_4daf08e12cd11421": {
       "attachment_name": "03703_09_2025_WOL.pdf",
       "first_skipped": "2025-10-01T11:03:37.390718",
-      "skip_count": 8,
-      "last_skipped": "2025-10-02T16:45:35.421330",
+      "skip_count": 11,
+      "last_skipped": "2025-10-05T20:26:01.375636",
       "last_search_text": "5732475751"
     },
     "Warunki reklamacji.pdf_04234056ea02472e": {
       "attachment_name": "Warunki reklamacji.pdf",
       "first_skipped": "2025-10-01T11:03:37.483779",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:35.526986",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:01.463259",
       "last_search_text": "5732475751"
     },
     "Warunki zwrotów.pdf_1b168c2790e11764": {
       "attachment_name": "Warunki zwrotów.pdf",
       "first_skipped": "2025-10-01T11:03:37.590733",
-      "skip_count": 4,
-      "last_skipped": "2025-10-02T16:45:35.635463",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:26:01.547528",
       "last_search_text": "5732475751"
     },
     "Warunki reklamacji.pdf_ebed8596ded59a19": {
@@ -4694,15 +4778,15 @@
     "9.pdf_f0bbbc627f2dd014": {
       "attachment_name": "9.pdf",
       "first_skipped": "2025-10-01T11:03:44.825690",
-      "skip_count": 3,
-      "last_skipped": "2025-10-02T16:45:43.335853",
+      "skip_count": 4,
+      "last_skipped": "2025-10-05T20:26:07.583834",
       "last_search_text": "5732475751"
     },
     "KSI%C4%84ZKA.pdf_ec1b8f1da0c424b1": {
       "attachment_name": "KSI%C4%84ZKA.pdf",
       "first_skipped": "2025-10-01T11:03:45.072773",
-      "skip_count": 3,
-      "last_skipped": "2025-10-02T16:45:43.568457",
+      "skip_count": 4,
+      "last_skipped": "2025-10-05T20:26:07.774804",
       "last_search_text": "5732475751"
     },
     "01.01.2025..pdf_4c13819444c8f24c": {
@@ -4799,113 +4883,113 @@
     "13749_10_2025_UL.pdf_842640cacdb039dd": {
       "attachment_name": "13749_10_2025_UL.pdf",
       "first_skipped": "2025-10-02T00:51:07.471900",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:31.965425",
+      "skip_count": 10,
+      "last_skipped": "2025-10-05T20:25:57.364578",
       "last_search_text": "5732475751"
     },
     "FS_9852_10_2025.pdf_a44eefadc4b09695": {
       "attachment_name": "FS_9852_10_2025.pdf",
       "first_skipped": "2025-10-02T00:51:07.724800",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:32.209221",
+      "skip_count": 10,
+      "last_skipped": "2025-10-05T20:25:57.606703",
       "last_search_text": "5732475751"
     },
     "2025_000984648.pdf_c3abff95d09b3221": {
       "attachment_name": "2025_000984648.pdf",
       "first_skipped": "2025-10-02T00:51:19.418183",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:32.469673",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:25:58.206369",
       "last_search_text": "5732475751"
     },
     "Faktura nr F_M09_0001943_09_25.pdf_e97404d4d4356ea0": {
       "attachment_name": "Faktura nr F_M09_0001943_09_25.pdf",
       "first_skipped": "2025-10-02T00:51:20.346120",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:32.712064",
+      "skip_count": 10,
+      "last_skipped": "2025-10-05T20:25:58.368696",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-10-01_15.13.pdf_e061c4ff4ab1d27b": {
       "attachment_name": "dokumenty_2025-10-01_15.13.pdf",
       "first_skipped": "2025-10-02T00:51:58.634308",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:33.131042",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:25:59.002308",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_d1cb23366d92a9cd": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-10-02T00:51:58.781763",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:33.268154",
+      "skip_count": 7,
+      "last_skipped": "2025-10-05T20:25:59.330240",
       "last_search_text": "5732475751"
     },
     "F_1053_09_2025.pdf_645067fd2ec730ba": {
       "attachment_name": "F_1053_09_2025.pdf",
       "first_skipped": "2025-10-02T00:52:03.057691",
-      "skip_count": 7,
-      "last_skipped": "2025-10-02T16:45:33.877501",
+      "skip_count": 10,
+      "last_skipped": "2025-10-05T20:25:59.827762",
       "last_search_text": "5732475751"
     },
     "dokumenty_2025-10-02_12.26.pdf_a88b2f5faeaf78a1": {
       "attachment_name": "dokumenty_2025-10-02_12.26.pdf",
       "first_skipped": "2025-10-02T16:23:02.294460",
-      "skip_count": 3,
-      "last_skipped": "2025-10-02T16:45:31.148839",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:25:56.235519",
       "last_search_text": "5732475751"
     },
     "Regulamin_Furgonetka.pl.pdf_002a749e2e26ed6e": {
       "attachment_name": "Regulamin_Furgonetka.pl.pdf",
       "first_skipped": "2025-10-02T16:23:02.425412",
-      "skip_count": 3,
-      "last_skipped": "2025-10-02T16:45:31.286014",
+      "skip_count": 5,
+      "last_skipped": "2025-10-05T20:25:56.755603",
       "last_search_text": "5732475751"
     },
     "20380_10_2025_UP.pdf_90ebcc481635d5d1": {
       "attachment_name": "20380_10_2025_UP.pdf",
       "first_skipped": "2025-10-02T16:23:02.588433",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:31.525927",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:25:56.963882",
       "last_search_text": "5732475751"
     },
     "F_00469_10_25_M1.pdf_a0740fb2af123927": {
       "attachment_name": "F_00469_10_25_M1.pdf",
       "first_skipped": "2025-10-02T16:23:02.813886",
-      "skip_count": 5,
-      "last_skipped": "2025-10-02T16:45:31.753005",
+      "skip_count": 8,
+      "last_skipped": "2025-10-05T20:25:57.203077",
       "last_search_text": "5732475751"
     },
     "25100114092652.pdf_b0a64ef760d8a190": {
       "attachment_name": "25100114092652.pdf",
       "first_skipped": "2025-10-02T16:23:04.411783",
-      "skip_count": 2,
-      "last_skipped": "2025-10-02T16:45:33.403698",
+      "skip_count": 3,
+      "last_skipped": "2025-10-05T20:25:59.450029",
       "last_search_text": "5732475751"
     },
     "72861855_13030 (1).pdf_2033cef1b7b4cfce": {
       "attachment_name": "72861855_13030 (1).pdf",
       "first_skipped": "2025-10-02T16:23:04.538769",
-      "skip_count": 2,
-      "last_skipped": "2025-10-02T16:45:33.517037",
+      "skip_count": 3,
+      "last_skipped": "2025-10-05T20:25:59.570637",
       "last_search_text": "5732475751"
     },
     "zasady_dla_klienta_link4.pdf_a473e9889c0b37ad": {
       "attachment_name": "zasady_dla_klienta_link4.pdf",
       "first_skipped": "2025-10-02T16:23:04.631866",
-      "skip_count": 2,
-      "last_skipped": "2025-10-02T16:45:33.628549",
+      "skip_count": 3,
+      "last_skipped": "2025-10-05T20:25:59.653259",
       "last_search_text": "5732475751"
     },
     "faktura_368_2025_02-10-2025.pdf_504966b20ab23b6a": {
       "attachment_name": "faktura_368_2025_02-10-2025.pdf",
       "first_skipped": "2025-10-02T16:45:29.603759",
-      "skip_count": 1,
-      "last_skipped": "2025-10-02T16:45:29.603765",
+      "skip_count": 2,
+      "last_skipped": "2025-10-05T20:25:46.938830",
       "last_search_text": "5732475751"
     },
     "zalacznik_do_faktury (2).pdf_09c6f3f622e07ccd": {
       "attachment_name": "zalacznik_do_faktury (2).pdf",
       "first_skipped": "2025-10-02T16:45:29.710506",
-      "skip_count": 1,
-      "last_skipped": "2025-10-02T16:45:29.710515",
+      "skip_count": 2,
+      "last_skipped": "2025-10-05T20:25:47.257695",
       "last_search_text": "5732475751"
     }
   }
