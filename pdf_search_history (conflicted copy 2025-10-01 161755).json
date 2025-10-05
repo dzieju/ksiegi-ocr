@@ -1,0 +1,4767 @@
+{
+  "searched_pdfs": {
+    "invoice_001.pdf_abc123": {
+      "attachment_name": "invoice_001.pdf",
+      "first_searched": "2024-01-15T10:30:00",
+      "sender_email": "kontrahent@example.com",
+      "searches": {
+        "numer faktury": {
+          "last_searched": "2024-01-15T10:30:00",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "oferta_123.pdf_def456": {
+      "attachment_name": "oferta_123.pdf",
+      "first_searched": "2024-01-20T14:15:00",
+      "sender_email": "sprzedawca@firma.pl",
+      "searches": {
+        "cena": {
+          "last_searched": "2024-01-20T14:15:00",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "umowa_xyz.pdf_ghi789": {
+      "attachment_name": "umowa_xyz.pdf",
+      "first_searched": "2024-02-05T09:45:00",
+      "sender_email": "prawnik@kancelaria.com",
+      "searches": {
+        "termin": {
+          "last_searched": "2024-02-05T09:45:00",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "41.pdf_08f6ef47ba23eb71": {
+      "attachment_name": "41.pdf",
+      "first_searched": "2025-09-30T02:40:29.867651",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:29.867659",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "[TeleMiko]-Warunki reklamacji.pdf_c0dc082f7e07764f": {
+      "attachment_name": "[TeleMiko]-Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:40:31.304907",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:31.304916",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[TeleMiko]-Warunki zwrotów.pdf_7126f39d97d01b12": {
+      "attachment_name": "[TeleMiko]-Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:40:32.197683",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:32.197692",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[elektis_wroclaw]-Informacje o gwarancjach.pdf_e84f08cc0ccdfc62": {
+      "attachment_name": "[elektis_wroclaw]-Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:40:33.301164",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:33.301172",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[elektis_wroclaw]-Warunki reklamacji.pdf_af3c106b6b2322de": {
+      "attachment_name": "[elektis_wroclaw]-Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:40:34.828264",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:34.828273",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[elektis_wroclaw]-Warunki zwrotów.pdf_8b39888a22892869": {
+      "attachment_name": "[elektis_wroclaw]-Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:40:36.050943",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:36.050951",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf_6d56cb1afccdc46f": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf",
+      "first_searched": "2025-09-30T02:40:46.795143",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:46.795152",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "UMOWA_FINAL_LL-i-324323-2025.pdf_037855ddade54a7f": {
+      "attachment_name": "UMOWA_FINAL_LL-i-324323-2025.pdf",
+      "first_searched": "2025-09-30T02:40:46.936535",
+      "sender_email": "kontakt@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:46.936542",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr F_M02_0001693_09_25.pdf_434f532d56211f7c": {
+      "attachment_name": "Faktura nr F_M02_0001693_09_25.pdf",
+      "first_searched": "2025-09-30T02:40:47.083112",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:47.083117",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Zasady-Dla-Klienta-Przepiecia-PZU.pdf_544de2a21f7e7576": {
+      "attachment_name": "Zasady-Dla-Klienta-Przepiecia-PZU.pdf",
+      "first_searched": "2025-09-30T02:40:49.280022",
+      "sender_email": "elektronika@mentax.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:49.280030",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "FV-28543-2025.pdf_2de9a06c07032c81": {
+      "attachment_name": "FV-28543-2025.pdf",
+      "first_searched": "2025-09-30T02:40:49.568708",
+      "sender_email": "6uev0u0yor@allegromail.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:49.568715",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf_d07b45cff855732b": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf",
+      "first_searched": "2025-09-30T02:40:58.723445",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:40:58.723453",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf_57357cd3eeb753c7": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf",
+      "first_searched": "2025-09-30T02:41:08.292050",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:08.292060",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_10928_09_25_M1.pdf_8f87cd1e6531e0bb": {
+      "attachment_name": "F_10928_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:41:08.426752",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:08.426758",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 520_7_2025.pdf_3a84cefc479e2a1c": {
+      "attachment_name": "Faktura nr 520_7_2025.pdf",
+      "first_searched": "2025-09-30T02:41:08.709045",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:08.709051",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 234_7_2025.pdf_75252d29dcf3238e": {
+      "attachment_name": "Faktura nr 234_7_2025.pdf",
+      "first_searched": "2025-09-30T02:41:09.026735",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:09.026746",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 180_7_2025.pdf_540876c3d99a06f0": {
+      "attachment_name": "Faktura nr 180_7_2025.pdf",
+      "first_searched": "2025-09-30T02:41:09.362026",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:09.362033",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 55_7_2025.pdf_b455b3225f466b9e": {
+      "attachment_name": "Faktura nr 55_7_2025.pdf",
+      "first_searched": "2025-09-30T02:41:09.562243",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:09.562251",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "dokumenty_2025-09-26_13.23.pdf_dd72088763feaaff": {
+      "attachment_name": "dokumenty_2025-09-26_13.23.pdf",
+      "first_searched": "2025-09-30T02:41:18.378185",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:18.378195",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_91951b548a541273": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T02:41:57.438182",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:41:57.438194",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-26_12.16.pdf_3417a284724af6b2": {
+      "attachment_name": "dokumenty_2025-09-26_12.16.pdf",
+      "first_searched": "2025-09-30T02:42:06.105777",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:06.105786",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_bb589acf0bddcf47": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T02:42:44.893026",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:44.893036",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_10459_09_25_M1.pdf_5d9f7a122d21dc55": {
+      "attachment_name": "F_10459_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:42:45.270830",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:45.270836",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf_91e0a52fa0b06a81": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf",
+      "first_searched": "2025-09-30T02:42:54.575282",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:54.575290",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "FS_70619_SML_2025.pdf_8f149022cafb7495": {
+      "attachment_name": "FS_70619_SML_2025.pdf",
+      "first_searched": "2025-09-30T02:42:54.693456",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:54.693462",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "LL-i-324323-2025-sig.pdf_90cc4f00700602f1": {
+      "attachment_name": "LL-i-324323-2025-sig.pdf",
+      "first_searched": "2025-09-30T02:42:54.933431",
+      "sender_email": "kontakt@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:42:54.933436",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-25_11.34.pdf_f6cd9252c74a29c8": {
+      "attachment_name": "dokumenty_2025-09-25_11.34.pdf",
+      "first_searched": "2025-09-30T02:43:03.141109",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:43:03.141120",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_da9b9b3254e1a978": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T02:43:41.980242",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:43:41.980254",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr 180_7_2025.pdf_809d661c4d5a41e8": {
+      "attachment_name": "Faktura nr 180_7_2025.pdf",
+      "first_searched": "2025-09-30T02:43:42.381459",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:43:42.381466",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_c5fb732049354383": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T02:44:23.027158",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:23.027168",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr 55_7_2025.pdf_649f3e7bd97d8fc0": {
+      "attachment_name": "Faktura nr 55_7_2025.pdf",
+      "first_searched": "2025-09-30T02:44:23.194086",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:23.194093",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FS_70619_SML_2025.pdf_dde68c0582993393": {
+      "attachment_name": "FS_70619_SML_2025.pdf",
+      "first_searched": "2025-09-30T02:44:23.321162",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:23.321172",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-183-24-09-2025.pdf_c904d9766c237239": {
+      "attachment_name": "faktura-183-24-09-2025.pdf",
+      "first_searched": "2025-09-30T02:44:23.470134",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:23.470141",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_322_09_2025.pdf_24c3285b18dc7cff": {
+      "attachment_name": "Faktura_322_09_2025.pdf",
+      "first_searched": "2025-09-30T02:44:23.661138",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:23.661144",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_322_09_2025.pdf_0eea88fba1c855ab": {
+      "attachment_name": "Faktura_322_09_2025.pdf",
+      "first_searched": "2025-09-30T02:44:24.128069",
+      "sender_email": "noreply@baselinker-mail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:24.128075",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_8bd13e99186a34aa": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:44:25.705455",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:25.705462",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_0cb5dd337b4cf20b": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:44:26.803271",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:26.803282",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_cba7984fb2c68917": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:44:27.578851",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:27.578858",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-053-255_5697.pdf_8a990409107ae881": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-053-255_5697.pdf",
+      "first_searched": "2025-09-30T02:44:37.636098",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:37.636107",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Hity tygodnia Hurton - super cena 23.09.2025-28.09.2025 poprawka.pdf_14576b800016a761": {
+      "attachment_name": "Hity tygodnia Hurton - super cena 23.09.2025-28.09.2025 poprawka.pdf",
+      "first_searched": "2025-09-30T02:44:40.249482",
+      "sender_email": "k.misiewicz@eltrox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:40.249492",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "KFS 2100_2025.pdf_362ab21271296432": {
+      "attachment_name": "KFS 2100_2025.pdf",
+      "first_searched": "2025-09-30T02:44:40.386304",
+      "sender_email": "mz0dtq85h8@allegromail.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:40.386310",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "1--UNIQA - zlecenie naprawy AGD i RTV_UK-051-921_4746.pdf_d4e5ebdb29d51014": {
+      "attachment_name": "1--UNIQA - zlecenie naprawy AGD i RTV_UK-051-921_4746.pdf",
+      "first_searched": "2025-09-30T02:44:50.965249",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:50.965258",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_09348_09_25_M1.pdf_3ab9b2bb1d3c577f": {
+      "attachment_name": "F_09348_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:44:51.091148",
+      "sender_email": "e-faktury@aswo.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:51.091155",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_ebed8596ded59a19": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:44:52.722628",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:52.722634",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_dbbe0e60997cdd1a": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:44:53.953453",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:53.953460",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_3b13116d9278152b": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:44:55.013524",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:55.013533",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr F_M09_0001321_09_25.pdf_08493a8d18a59461": {
+      "attachment_name": "Faktura nr F_M09_0001321_09_25.pdf",
+      "first_searched": "2025-09-30T02:44:56.263661",
+      "sender_email": "michal.jedwabny@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:56.263668",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS_47986-NM2-09-2025.pdf_aaa01eefdc85ee2b": {
+      "attachment_name": "faktura_FS_47986-NM2-09-2025.pdf",
+      "first_searched": "2025-09-30T02:44:56.405756",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:56.405811",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FS 47986_NM2_09_2025.pdf_aaa01eefdc85ee2b": {
+      "attachment_name": "FS 47986_NM2_09_2025.pdf",
+      "first_searched": "2025-09-30T02:44:56.630691",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:56.630698",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "9.pdf_f0bbbc627f2dd014": {
+      "attachment_name": "9.pdf",
+      "first_searched": "2025-09-30T02:44:57.790954",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:57.790960",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_002317860763c151": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:44:59.352403",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:44:59.352411",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_134a0ddf1f6ce178": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:45:00.360886",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:00.360893",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_0ed7cd857f0be2b0": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:45:01.142976",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:01.142982",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_08751_09_25_M1.pdf_8ff2796b92327a0e": {
+      "attachment_name": "F_08751_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:45:01.276430",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:01.276437",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "KSI%C4%84ZKA.pdf_ec1b8f1da0c424b1": {
+      "attachment_name": "KSI%C4%84ZKA.pdf",
+      "first_searched": "2025-09-30T02:45:03.109396",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:03.109403",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf_0b4214ccfe831a09": {
+      "attachment_name": "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf",
+      "first_searched": "2025-09-30T02:45:03.235703",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:03.235708",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-051-315_4746.pdf_8d8db1f94e2a555b": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-051-315_4746.pdf",
+      "first_searched": "2025-09-30T02:45:13.731236",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:13.731244",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura.pdf_46cec7b1683316db": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:45:15.060087",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:15.060095",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "520939520925.pdf_b60499719a6e90b5": {
+      "attachment_name": "520939520925.pdf",
+      "first_searched": "2025-09-30T02:45:23.846852",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:23.846861",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_c68214b2bf55146d": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:45:25.581111",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:25.581119",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_dac5c92a0472d2da": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:45:26.597930",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:26.597942",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_aa7f3f1857fb1bef": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:45:27.547300",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:27.547308",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_8b54f0d662db7e69": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:45:29.109704",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:29.109711",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_08b79c7d014db7d1": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:45:30.156130",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:30.156138",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_6f4ef2c30ed799cf": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:45:30.966952",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:30.966959",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Ogólne warunki umowy.pdf_334a36cab8fc3867": {
+      "attachment_name": "Ogólne warunki umowy.pdf",
+      "first_searched": "2025-09-30T02:45:40.082306",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:40.082316",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr F_M02_0001191_09_25.pdf_bcb56d5ffe7a3657": {
+      "attachment_name": "Faktura nr F_M02_0001191_09_25.pdf",
+      "first_searched": "2025-09-30T02:45:40.225087",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:40.225095",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-050-600_5697.pdf_be3abf51b4ef1bfe": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-050-600_5697.pdf",
+      "first_searched": "2025-09-30T02:45:52.147352",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:52.147364",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_08233_09_25_M1.pdf_cb011f67acb7edd5": {
+      "attachment_name": "F_08233_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:45:52.303724",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:52.303731",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_07768_09_25_M1.pdf_99c91fe4d2de1dbd": {
+      "attachment_name": "F_07768_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:45:52.459489",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:52.459499",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "01.01.2025..pdf_4c13819444c8f24c": {
+      "attachment_name": "01.01.2025..pdf",
+      "first_searched": "2025-09-30T02:45:52.972189",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:52.972196",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.02.2025..pdf_65a4c2734d9de6bb": {
+      "attachment_name": "01.02.2025..pdf",
+      "first_searched": "2025-09-30T02:45:53.696770",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:53.696780",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.03.2025..pdf_b55b9e174b68b4e7": {
+      "attachment_name": "01.03.2025..pdf",
+      "first_searched": "2025-09-30T02:45:54.116922",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:54.116928",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.04.2025..pdf_f8d19dab9e62eff7": {
+      "attachment_name": "01.04.2025..pdf",
+      "first_searched": "2025-09-30T02:45:54.869376",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:54.869384",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.05.2025..pdf_7247392ceee12885": {
+      "attachment_name": "01.05.2025..pdf",
+      "first_searched": "2025-09-30T02:45:55.315267",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:55.315274",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.06.2025..pdf_d383d61558bd102c": {
+      "attachment_name": "01.06.2025..pdf",
+      "first_searched": "2025-09-30T02:45:56.087825",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:56.087832",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "01.07.2025..pdf_487b22436dafd395": {
+      "attachment_name": "01.07.2025..pdf",
+      "first_searched": "2025-09-30T02:45:56.468700",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:45:56.468706",
+          "found_matches": true,
+          "match_count": 3
+        }
+      }
+    },
+    "zakup8.pdf_d120d4c5b11b2581": {
+      "attachment_name": "zakup8.pdf",
+      "first_searched": "2025-09-30T02:46:17.075105",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:17.075115",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "zakupy7.pdf_9004c35ed4d2c499": {
+      "attachment_name": "zakupy7.pdf",
+      "first_searched": "2025-09-30T02:46:37.902554",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:37.902563",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "FS-10216_25_ALL.pdf_dc8559a087e490c1": {
+      "attachment_name": "FS-10216_25_ALL.pdf",
+      "first_searched": "2025-09-30T02:46:38.284247",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:38.284253",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_07129_09_25_M1.pdf_ace3e759d2835cc3": {
+      "attachment_name": "F_07129_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:46:38.709749",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:38.709756",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-167-09-2025.pdf_8b3fa60848c0ab0b": {
+      "attachment_name": "faktura-167-09-2025.pdf",
+      "first_searched": "2025-09-30T02:46:38.951435",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:38.951443",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 307_9_2025.pdf_c937dd33994c1c04": {
+      "attachment_name": "Faktura nr 307_9_2025.pdf",
+      "first_searched": "2025-09-30T02:46:39.230004",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:46:39.230013",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "UMOWA SERWISOWA_USLUGI_KLIENT_INDYWIDUALNY_22082025.pdf_eff280776e905ea6": {
+      "attachment_name": "UMOWA SERWISOWA_USLUGI_KLIENT_INDYWIDUALNY_22082025.pdf",
+      "first_searched": "2025-09-30T02:47:04.566832",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:04.566861",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "faktura_459-9-2025.pdf_a82b66a06558116a": {
+      "attachment_name": "faktura_459-9-2025.pdf",
+      "first_searched": "2025-09-30T02:47:04.785661",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:04.785668",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001000_09_25.pdf_96997205f7ea2435": {
+      "attachment_name": "Faktura nr F_M09_0001000_09_25.pdf",
+      "first_searched": "2025-09-30T02:47:05.409117",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:05.409124",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura.pdf_f311ffcfdff06294": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:47:05.799908",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:05.799915",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "[techrebal]-Informacje o gwarancjach.pdf_835081198f351e6d": {
+      "attachment_name": "[techrebal]-Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T02:47:07.135064",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:07.135072",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[techrebal]-Warunki reklamacji.pdf_112d6833696ed030": {
+      "attachment_name": "[techrebal]-Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:47:08.894860",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:08.894868",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[techrebal]-Warunki zwrotów.pdf_f773cbd3550f24d9": {
+      "attachment_name": "[techrebal]-Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:47:09.999200",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:09.999208",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[BROS-producent]-Warunki reklamacji.pdf_3073d27599008e8e": {
+      "attachment_name": "[BROS-producent]-Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T02:47:12.130811",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:12.130819",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "[BROS-producent]-Warunki zwrotów.pdf_fb1058f290036fcf": {
+      "attachment_name": "[BROS-producent]-Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T02:47:13.296618",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:13.296690",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_06643_09_25_M1.pdf_86c69c0761c7d279": {
+      "attachment_name": "F_06643_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:13.442127",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:13.442134",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "KSIEGA 8.pdf_7321a855fa1a9ac6": {
+      "attachment_name": "KSIEGA 8.pdf",
+      "first_searched": "2025-09-30T02:47:14.940327",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:14.940334",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-256-16-09-2025.pdf_6155c0ec73711089": {
+      "attachment_name": "faktura-256-16-09-2025.pdf",
+      "first_searched": "2025-09-30T02:47:15.293180",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:15.293186",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "SIERPIEŃ- NIEDOKOŃCZONY.pdf_5f91628a39982fba": {
+      "attachment_name": "SIERPIEŃ- NIEDOKOŃCZONY.pdf",
+      "first_searched": "2025-09-30T02:47:16.870461",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:16.870468",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "LIPIEC.pdf_71b3ae0f1922ff29": {
+      "attachment_name": "LIPIEC.pdf",
+      "first_searched": "2025-09-30T02:47:19.220911",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:19.220918",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_05511_09_25_M1.pdf_7f90998f29850db0": {
+      "attachment_name": "F_05511_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:19.367742",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:19.367748",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "M2509_Faktura_indywidualna_000-041-6647-7377_25_09_F009_U2509111233245963833.pdf_adf48eaaf91b5bb4": {
+      "attachment_name": "M2509_Faktura_indywidualna_000-041-6647-7377_25_09_F009_U2509111233245963833.pdf",
+      "first_searched": "2025-09-30T02:47:28.450799",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:28.450808",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "faktura_INT-2025-445.pdf_de071e6e7e8c4cdd": {
+      "attachment_name": "faktura_INT-2025-445.pdf",
+      "first_searched": "2025-09-30T02:47:28.656241",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:28.656251",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-vat-Gusto-INT_2025_445.pdf_79ceacc18354a5ee": {
+      "attachment_name": "faktura-vat-Gusto-INT_2025_445.pdf",
+      "first_searched": "2025-09-30T02:47:28.873508",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:28.873515",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_04956_09_25_M1.pdf_f54f148dbb0a44f3": {
+      "attachment_name": "F_04956_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:29.018123",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:29.018131",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0000624_09_25.pdf_4c8c35e146a39c1d": {
+      "attachment_name": "Faktura nr F_M09_0000624_09_25.pdf",
+      "first_searched": "2025-09-30T02:47:29.639689",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:29.639696",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_04458_09_25_M1.pdf_ab12264486f1be63": {
+      "attachment_name": "F_04458_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:30.268603",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:30.268610",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "de14e9efbceb304fe6d1edda19826616.pdf_94a29d7034ca04fc": {
+      "attachment_name": "de14e9efbceb304fe6d1edda19826616.pdf",
+      "first_searched": "2025-09-30T02:47:30.396984",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:30.396991",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_3e9494d0-8e2e-11f0-851b-d74ab869f4ab_20250910154620.pdf_56956e168c3f5349": {
+      "attachment_name": "faktura_3e9494d0-8e2e-11f0-851b-d74ab869f4ab_20250910154620.pdf",
+      "first_searched": "2025-09-30T02:47:30.518302",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:30.518308",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "668_09_2025.pdf_785062f11061b62a": {
+      "attachment_name": "668_09_2025.pdf",
+      "first_searched": "2025-09-30T02:47:30.667505",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:30.667512",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_003039.pdf_dc043002e08c6484": {
+      "attachment_name": "CCF_003039.pdf",
+      "first_searched": "2025-09-30T02:47:40.806518",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:40.806527",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "F_03953_09_25_M1.pdf_5663a7c71b88e7a5": {
+      "attachment_name": "F_03953_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:40.950706",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:40.950712",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "lista_operacji_250801_250831_202509161302102179.pdf_f6f28da40549b5fa": {
+      "attachment_name": "lista_operacji_250801_250831_202509161302102179.pdf",
+      "first_searched": "2025-09-30T02:47:43.120962",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.120971",
+          "found_matches": true,
+          "match_count": 5
+        }
+      }
+    },
+    "Faktura korygująca nr FK_M02_0000059_09_25.pdf_5884efce5d68d74d": {
+      "attachment_name": "Faktura korygująca nr FK_M02_0000059_09_25.pdf",
+      "first_searched": "2025-09-30T02:47:43.316467",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.316474",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_06042_09_25_M1.pdf_9cbabcb41f539b64": {
+      "attachment_name": "F_06042_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:43.477116",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.477123",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-136-09-2025.pdf_3be492a9fe3bc432": {
+      "attachment_name": "faktura-136-09-2025.pdf",
+      "first_searched": "2025-09-30T02:47:43.634609",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.634617",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M02_0000861_09_25.pdf_e32babb95b61bc79": {
+      "attachment_name": "Faktura nr F_M02_0000861_09_25.pdf",
+      "first_searched": "2025-09-30T02:47:43.802601",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.802612",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_191_09_2025.pdf_c317da8b7fd07fc4": {
+      "attachment_name": "Faktura_191_09_2025.pdf",
+      "first_searched": "2025-09-30T02:47:43.998434",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:43.998441",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "5c28df3f32edf3f2b522156061f85505.pdf_e97cffa8adbd12d8": {
+      "attachment_name": "5c28df3f32edf3f2b522156061f85505.pdf",
+      "first_searched": "2025-09-30T02:47:44.123518",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:44.123528",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "FS 268_S1_09_2025.pdf_a369ce23f210412a": {
+      "attachment_name": "FS 268_S1_09_2025.pdf",
+      "first_searched": "2025-09-30T02:47:45.479049",
+      "sender_email": "istj7mcf4d@allegromail.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:45.479056",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 209_9_2025.pdf_a54ebe5182daf50c": {
+      "attachment_name": "Faktura nr 209_9_2025.pdf",
+      "first_searched": "2025-09-30T02:47:45.730818",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:45.730825",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "173.pdf_eca16f9eab566da1": {
+      "attachment_name": "173.pdf",
+      "first_searched": "2025-09-30T02:47:46.177645",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:46.177651",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M02_0000387_09_25.pdf_ab7a40cb4580625a": {
+      "attachment_name": "Faktura nr F_M02_0000387_09_25.pdf",
+      "first_searched": "2025-09-30T02:47:46.326563",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:46.326571",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_03393_09_25_M1.pdf_02eb511cc8a354e4": {
+      "attachment_name": "F_03393_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:46.486904",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:46.486912",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_03246_09_25_M1.pdf_9e52d2cea0675342": {
+      "attachment_name": "F_03246_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:47:46.639633",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:46.639640",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "invoice.pdf_eb5dabefa6c5aa0f": {
+      "attachment_name": "invoice.pdf",
+      "first_searched": "2025-09-30T02:47:46.755920",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:46.755927",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "ZAM_Dziennik_3032_09_2025.pdf_0ce52100cb02d682": {
+      "attachment_name": "ZAM_Dziennik_3032_09_2025.pdf",
+      "first_searched": "2025-09-30T02:47:47.199781",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:47.199791",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FV_2025_9_3_M.pdf_caa693a47d981cbd": {
+      "attachment_name": "FV_2025_9_3_M.pdf",
+      "first_searched": "2025-09-30T02:47:47.336525",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:47.336532",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Kompensata K_001421_25.pdf_460220a791cf5f97": {
+      "attachment_name": "Kompensata K_001421_25.pdf",
+      "first_searched": "2025-09-30T02:47:47.501338",
+      "sender_email": "monika.szymaniak@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:47.501344",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "załącznik_1.pdf_6cafd429b2842a3e": {
+      "attachment_name": "załącznik_1.pdf",
+      "first_searched": "2025-09-30T02:47:47.775766",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:47.775777",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FS 31402_MAG_09_2025.pdf_eb5dabefa6c5aa0f": {
+      "attachment_name": "FS 31402_MAG_09_2025.pdf",
+      "first_searched": "2025-09-30T02:47:48.378698",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:48.378705",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "72861855_13325.pdf_ef80091857330e82": {
+      "attachment_name": "72861855_13325.pdf",
+      "first_searched": "2025-09-30T02:47:49.795371",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:47:49.795379",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "LP 8 PŁATNE 9.pdf_c1538a3792c79863": {
+      "attachment_name": "LP 8 PŁATNE 9.pdf",
+      "first_searched": "2025-09-30T02:48:10.410852",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:10.410861",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr 125_9_2025.pdf_a558216b780884aa": {
+      "attachment_name": "Faktura nr 125_9_2025.pdf",
+      "first_searched": "2025-09-30T02:48:11.013261",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.013270",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_48-9-2025-BL.pdf_c111ef23b8480503": {
+      "attachment_name": "faktura_48-9-2025-BL.pdf",
+      "first_searched": "2025-09-30T02:48:11.214607",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.214617",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura.pdf_27ba35bc7691480d": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:48:11.404257",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.404263",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_279_2025_22-07-2025.pdf_0f78aef17a9c3ad7": {
+      "attachment_name": "faktura_279_2025_22-07-2025.pdf",
+      "first_searched": "2025-09-30T02:48:11.542397",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.542408",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_210_2025_27-05-2025.pdf_0578e316062f7e3d": {
+      "attachment_name": "faktura_210_2025_27-05-2025.pdf",
+      "first_searched": "2025-09-30T02:48:11.667512",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.667518",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_02192_09_25_M1.pdf_5be28085c292568a": {
+      "attachment_name": "F_02192_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:11.810331",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.810337",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_01614_09_25_M1.pdf_b954b4c6452f3d9c": {
+      "attachment_name": "F_01614_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:11.950223",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:11.950234",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS_4543-NM2-09-2025.pdf_44b13fd9f501725d": {
+      "attachment_name": "faktura_FS_4543-NM2-09-2025.pdf",
+      "first_searched": "2025-09-30T02:48:12.085497",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:12.085504",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0000166_09_25.pdf_b6af589bf9c4e9b6": {
+      "attachment_name": "Faktura nr F_M09_0000166_09_25.pdf",
+      "first_searched": "2025-09-30T02:48:12.471975",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:12.471984",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_6c18caa0-88a9-11f0-8cf9-9f837c9d2c0f.pdf_4e317cdd59a125ff": {
+      "attachment_name": "faktura_6c18caa0-88a9-11f0-8cf9-9f837c9d2c0f.pdf",
+      "first_searched": "2025-09-30T02:48:12.807451",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:12.807461",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "F_01067_09_25_M1.pdf_a05c4c6663e2ccbd": {
+      "attachment_name": "F_01067_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:12.962055",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:12.962061",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr 41_9_2025.pdf_9ff4c0a023112291": {
+      "attachment_name": "Faktura nr 41_9_2025.pdf",
+      "first_searched": "2025-09-30T02:48:13.131665",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:13.131673",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "72861855_13269.pdf_189d3ab8ad876e97": {
+      "attachment_name": "72861855_13269.pdf",
+      "first_searched": "2025-09-30T02:48:14.459564",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:14.459571",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "72861855_13265.pdf_da1a886e1ba8ec3b": {
+      "attachment_name": "72861855_13265.pdf",
+      "first_searched": "2025-09-30T02:48:15.752967",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:15.752975",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "CCF_003009.pdf_e16c2f2e843aa335": {
+      "attachment_name": "CCF_003009.pdf",
+      "first_searched": "2025-09-30T02:48:17.151436",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:17.151444",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "19945_09_2025_UP.pdf_49eb8488c51f8e45": {
+      "attachment_name": "19945_09_2025_UP.pdf",
+      "first_searched": "2025-09-30T02:48:17.457998",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:17.458004",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "F_00577_09_25_M1.pdf_3fd831dd79e6b9bc": {
+      "attachment_name": "F_00577_09_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:17.697648",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:17.697654",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "13540_09_2025_UL.pdf_ac22596e26bd43cd": {
+      "attachment_name": "13540_09_2025_UL.pdf",
+      "first_searched": "2025-09-30T02:48:17.820582",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:17.820588",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "faktura-6-08-2025.pdf_c8f9c2aa7c5d5c16": {
+      "attachment_name": "faktura-6-08-2025.pdf",
+      "first_searched": "2025-09-30T02:48:18.054666",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:18.054677",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_1828_08_2025.pdf_301238996967c201": {
+      "attachment_name": "F_1828_08_2025.pdf",
+      "first_searched": "2025-09-30T02:48:19.352813",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:19.352822",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_10451_08_25_M1.pdf_3f3ee7ca84f6ed52": {
+      "attachment_name": "F_10451_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:19.487321",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:19.487329",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001544_08_25.pdf_e4f11a61c468a00d": {
+      "attachment_name": "Faktura nr F_M09_0001544_08_25.pdf",
+      "first_searched": "2025-09-30T02:48:19.845279",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:19.845285",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M04_0001488_08_25.pdf_35452028ba5a8a78": {
+      "attachment_name": "Faktura nr F_M04_0001488_08_25.pdf",
+      "first_searched": "2025-09-30T02:48:19.977589",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:19.977596",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_10140_08_25_M1.pdf_1c5493576af59b76": {
+      "attachment_name": "F_10140_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:20.121133",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:20.121148",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001419_08_25.pdf_1e25ee49764bcdc8": {
+      "attachment_name": "Faktura nr F_M09_0001419_08_25.pdf",
+      "first_searched": "2025-09-30T02:48:20.588800",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:20.588808",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FAKTURA WOOX.pdf_5861ddc170a4d60d": {
+      "attachment_name": "FAKTURA WOOX.pdf",
+      "first_searched": "2025-09-30T02:48:21.041909",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:21.041915",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_09494_08_25_M1.pdf_d9741d406fce8b45": {
+      "attachment_name": "F_09494_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:21.188591",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:21.188600",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_08929_08_25_M1.pdf_e8215b1204d8059e": {
+      "attachment_name": "F_08929_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:21.327940",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:21.327947",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "umowa woox serwis.pdf_5cbd01803cf64a86": {
+      "attachment_name": "umowa woox serwis.pdf",
+      "first_searched": "2025-09-30T02:48:30.637320",
+      "sender_email": "basia_szer@poczta.onet.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:30.637330",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr F_M09_0001192_08_25.pdf_e24333c14cc1d970": {
+      "attachment_name": "Faktura nr F_M09_0001192_08_25.pdf",
+      "first_searched": "2025-09-30T02:48:30.995072",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:30.995078",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS_27792-MAG-2025.pdf_cd224eee04ccc6db": {
+      "attachment_name": "faktura_FS_27792-MAG-2025.pdf",
+      "first_searched": "2025-09-30T02:48:31.118632",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.118644",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FV_2025_8_14_M.pdf_b738b51f87a84cb2": {
+      "attachment_name": "FV_2025_8_14_M.pdf",
+      "first_searched": "2025-09-30T02:48:31.339265",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.339271",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_08392_08_25_M1.pdf_6993d4b5b555a7c1": {
+      "attachment_name": "F_08392_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:31.487007",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.487012",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FS 27792_MAG_2025.pdf_cd224eee04ccc6db": {
+      "attachment_name": "FS 27792_MAG_2025.pdf",
+      "first_searched": "2025-09-30T02:48:31.606790",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.606796",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M02_0001071_08_25.pdf_84c64256f91a03c7": {
+      "attachment_name": "Faktura nr F_M02_0001071_08_25.pdf",
+      "first_searched": "2025-09-30T02:48:31.749980",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.749991",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0000789_06_25.pdf_a2289857d2afc40f": {
+      "attachment_name": "Faktura nr F_M05_0000789_06_25.pdf",
+      "first_searched": "2025-09-30T02:48:31.884845",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:31.884852",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0000183_06_25.pdf_703c079887a7249f": {
+      "attachment_name": "Faktura nr F_M05_0000183_06_25.pdf",
+      "first_searched": "2025-09-30T02:48:32.024128",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:32.024134",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0001298_05_25.pdf_f6a48d081d56c9ad": {
+      "attachment_name": "Faktura nr F_M05_0001298_05_25.pdf",
+      "first_searched": "2025-09-30T02:48:32.157446",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:32.157462",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS_7325-08-2025.pdf_32b21b342028faab": {
+      "attachment_name": "faktura_FS_7325-08-2025.pdf",
+      "first_searched": "2025-09-30T02:48:32.278810",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:32.278816",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura VAT.pdf_4b6a6419c77eb619": {
+      "attachment_name": "Faktura VAT.pdf",
+      "first_searched": "2025-09-30T02:48:32.636380",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:32.636390",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_309_2025_20-08-2025.pdf_2ba8917459942972": {
+      "attachment_name": "faktura_309_2025_20-08-2025.pdf",
+      "first_searched": "2025-09-30T02:48:32.775938",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:32.775944",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "umowa_fotowoltaika_20082025.pdf_669a1806c11efb50": {
+      "attachment_name": "umowa_fotowoltaika_20082025.pdf",
+      "first_searched": "2025-09-30T02:48:53.621184",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:53.621194",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "transfer_20250820.pdf_ffc6ce670e88f74e": {
+      "attachment_name": "transfer_20250820.pdf",
+      "first_searched": "2025-09-30T02:48:54.837315",
+      "sender_email": "bartosz.kleszcz@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:54.837327",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_06255_08_25_M1.pdf_48d4e5262a0bc7bb": {
+      "attachment_name": "F_06255_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:54.979277",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:54.979285",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_05633_08_25_M1.pdf_5fe1ba39cfb20c6d": {
+      "attachment_name": "F_05633_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:55.128028",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:55.128036",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "c2bb38cd92644f15989a50792f8e9ee8b601ef109a8c4c19996af800ea9613ea.pdf_8576413a44b053d8": {
+      "attachment_name": "c2bb38cd92644f15989a50792f8e9ee8b601ef109a8c4c19996af800ea9613ea.pdf",
+      "first_searched": "2025-09-30T02:48:55.290615",
+      "sender_email": "partner@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:55.290626",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_04674_08_25_M1.pdf_f7e6974d20a55c56": {
+      "attachment_name": "F_04674_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:55.434508",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:55.434514",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-vat-Gusto-INT_2025_403.pdf_94b2d2b43b544ccd": {
+      "attachment_name": "faktura-vat-Gusto-INT_2025_403.pdf",
+      "first_searched": "2025-09-30T02:48:55.651114",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:55.651121",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_INT-2025-403.pdf_3596f6acef320b1b": {
+      "attachment_name": "faktura_INT-2025-403.pdf",
+      "first_searched": "2025-09-30T02:48:55.848851",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:55.848860",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_201_08_2025.pdf_8f75644641eb8b8c": {
+      "attachment_name": "Faktura_201_08_2025.pdf",
+      "first_searched": "2025-09-30T02:48:56.027456",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:56.027463",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "0096705889.pdf_007c797b4a900969": {
+      "attachment_name": "0096705889.pdf",
+      "first_searched": "2025-09-30T02:48:56.533202",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:56.533209",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_4016-ALL-2025.pdf_805afc1acde9b2a5": {
+      "attachment_name": "faktura_4016-ALL-2025.pdf",
+      "first_searched": "2025-09-30T02:48:56.728395",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:56.728406",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura.pdf_2a628c7c6f5d8c5b": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:48:56.935002",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:56.935009",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_041652_25.pdf_9527b6b23d856752": {
+      "attachment_name": "Faktura nr F_041652_25.pdf",
+      "first_searched": "2025-09-30T02:48:57.087311",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:57.087318",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_04139_08_25_M1.pdf_6520cd7982701f59": {
+      "attachment_name": "F_04139_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:48:57.218069",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:48:57.218076",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "M2508_Faktura_indywidualna_000-041-6647-7377_25_08_F008_U2508111232354979618.pdf_d8ac22cc67f9161f": {
+      "attachment_name": "M2508_Faktura_indywidualna_000-041-6647-7377_25_08_F008_U2508111232354979618.pdf",
+      "first_searched": "2025-09-30T02:49:06.164032",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:06.164041",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Kompensata K_001272_25.pdf_b26056f6ea419b7a": {
+      "attachment_name": "Kompensata K_001272_25.pdf",
+      "first_searched": "2025-09-30T02:49:06.291326",
+      "sender_email": "monika.szymaniak@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:06.291333",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Kompensata K_001273_25.pdf_d857e1644dd05509": {
+      "attachment_name": "Kompensata K_001273_25.pdf",
+      "first_searched": "2025-09-30T02:49:06.453940",
+      "sender_email": "monika.szymaniak@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:06.453947",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M04_0000352_08_25.pdf_87dc84723b652715": {
+      "attachment_name": "Faktura nr F_M04_0000352_08_25.pdf",
+      "first_searched": "2025-09-30T02:49:06.583589",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:06.583595",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_03557_08_25_M1.pdf_fb0c842b68f82daf": {
+      "attachment_name": "F_03557_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:06.725735",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:06.725744",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_002970.pdf_6f42bf1fea6ed9ab": {
+      "attachment_name": "CCF_002970.pdf",
+      "first_searched": "2025-09-30T02:49:08.206332",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:08.206341",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr F_M04_0000080_08_25.pdf_d335e3b46353c50e": {
+      "attachment_name": "Faktura nr F_M04_0000080_08_25.pdf",
+      "first_searched": "2025-09-30T02:49:08.342887",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:08.342898",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_00295_08_25_M1.pdf_ba5e212e9095fad4": {
+      "attachment_name": "F_00295_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:08.485896",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:08.485907",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_980_07_2025.pdf_6328eaf191641531": {
+      "attachment_name": "F_980_07_2025.pdf",
+      "first_searched": "2025-09-30T02:49:09.788335",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:09.788342",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_12108_07_25_M1.pdf_9232f97ed417393b": {
+      "attachment_name": "F_12108_07_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:09.937561",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:09.937567",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS-34930-SPPL-07-2025.pdf_c1862228183aa357": {
+      "attachment_name": "faktura_FS-34930-SPPL-07-2025.pdf",
+      "first_searched": "2025-09-30T02:49:10.076761",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:10.076768",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura korygująca nr FK_M02_0000079_07_25.pdf_22a09f834e7b99b6": {
+      "attachment_name": "Faktura korygująca nr FK_M02_0000079_07_25.pdf",
+      "first_searched": "2025-09-30T02:49:10.245932",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:10.245937",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001776_07_25.pdf_a00baebd70a58c31": {
+      "attachment_name": "Faktura nr F_M09_0001776_07_25.pdf",
+      "first_searched": "2025-09-30T02:49:10.788164",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:10.788171",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FS_8134_08_2025.pdf_abe9356a927eddde": {
+      "attachment_name": "FS_8134_08_2025.pdf",
+      "first_searched": "2025-09-30T02:49:10.928603",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:10.928609",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0000291_08_25.pdf_4d8285ea6a6cbed2": {
+      "attachment_name": "Faktura nr F_M05_0000291_08_25.pdf",
+      "first_searched": "2025-09-30T02:49:11.066553",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:11.066558",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura.pdf_9aae30132b31d158": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:49:11.258360",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:11.258371",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_01545_08_25_M1.pdf_e6297bcd6843dd7b": {
+      "attachment_name": "F_01545_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:11.409983",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:11.409991",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura.pdf_5b5af23555d02d55": {
+      "attachment_name": "Faktura.pdf",
+      "first_searched": "2025-09-30T02:49:11.627144",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:11.627151",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001952_07_25.pdf_1c7f11b86f226a7b": {
+      "attachment_name": "Faktura nr F_M09_0001952_07_25.pdf",
+      "first_searched": "2025-09-30T02:49:12.371002",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:12.371009",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_225_2025_05-06-2025.pdf_d671ea046757b029": {
+      "attachment_name": "faktura_225_2025_05-06-2025.pdf",
+      "first_searched": "2025-09-30T02:49:12.491407",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:12.491414",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_32_08_2025.pdf_443cd442eb400033": {
+      "attachment_name": "Faktura_32_08_2025.pdf",
+      "first_searched": "2025-09-30T02:49:12.705391",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:12.705402",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "FVS_776_2025_GRZEGORZ_CIEKOT.pdf_5f06f7e144bad70f": {
+      "attachment_name": "FVS_776_2025_GRZEGORZ_CIEKOT.pdf",
+      "first_searched": "2025-09-30T02:49:13.566719",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:13.566725",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_02647_08_25_M1.pdf_43d1fa2b0cbe06bd": {
+      "attachment_name": "F_02647_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:21.512955",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:21.512961",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0000209_08_25.pdf_6a9a5fb508f4c29e": {
+      "attachment_name": "Faktura nr F_M09_0000209_08_25.pdf",
+      "first_searched": "2025-09-30T02:49:21.721264",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:21.721272",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M04_0000180_08_25.pdf_79f65035758e2345": {
+      "attachment_name": "Faktura nr F_M04_0000180_08_25.pdf",
+      "first_searched": "2025-09-30T02:49:21.857676",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:21.857682",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_02034_08_25_M1.pdf_add89a8d7e4b4d6b": {
+      "attachment_name": "F_02034_08_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:22.014422",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:22.014430",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura-188-08-2025.pdf_8f80ccc356ca512b": {
+      "attachment_name": "faktura-188-08-2025.pdf",
+      "first_searched": "2025-09-30T02:49:22.177172",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:22.177179",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_002956.pdf_6decba52e089b876": {
+      "attachment_name": "CCF_002956.pdf",
+      "first_searched": "2025-09-30T02:49:23.541053",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:23.541061",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_001079.pdf_554b98c29082da32": {
+      "attachment_name": "CCF_001079.pdf",
+      "first_searched": "2025-09-30T02:49:33.584671",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:33.584681",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "faktura_292_2025_27-07-2025.pdf_dbaed4341286620a": {
+      "attachment_name": "faktura_292_2025_27-07-2025.pdf",
+      "first_searched": "2025-09-30T02:49:34.960301",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:34.960308",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "korekta_faktury_10_2025_04-08-2025.pdf_1581a8d5317707a9": {
+      "attachment_name": "korekta_faktury_10_2025_04-08-2025.pdf",
+      "first_searched": "2025-09-30T02:49:35.182991",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:35.182996",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_210_2025_27-05-2025.pdf_25bab8731aa91239": {
+      "attachment_name": "faktura_210_2025_27-05-2025.pdf",
+      "first_searched": "2025-09-30T02:49:35.410760",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:35.410767",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "19578_08_2025_UP.pdf_02d026088bc061f5": {
+      "attachment_name": "19578_08_2025_UP.pdf",
+      "first_searched": "2025-09-30T02:49:35.680637",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:35.680645",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "13453_08_2025_UL.pdf_86bf9e390e572756": {
+      "attachment_name": "13453_08_2025_UL.pdf",
+      "first_searched": "2025-09-30T02:49:36.001313",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:36.001319",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "03584_07_2025_WOL.pdf_38313553fe615767": {
+      "attachment_name": "03584_07_2025_WOL.pdf",
+      "first_searched": "2025-09-30T02:49:36.145777",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:36.145783",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "Faktura nr 520_7_2025.pdf_1b515c30df93fd2c": {
+      "attachment_name": "Faktura nr 520_7_2025.pdf",
+      "first_searched": "2025-09-30T02:49:37.088420",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.088427",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "UMOWA_FINAL_PO-i-314997-2025.pdf_757369ddd166ed3f": {
+      "attachment_name": "UMOWA_FINAL_PO-i-314997-2025.pdf",
+      "first_searched": "2025-09-30T02:49:37.230754",
+      "sender_email": "kontakt@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.230761",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_10503_07_25_M1.pdf_27d1e38edc600150": {
+      "attachment_name": "F_10503_07_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:37.374385",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.374393",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M02_0001494_07_25.pdf_c80356fb3f8db8c3": {
+      "attachment_name": "Faktura nr F_M02_0001494_07_25.pdf",
+      "first_searched": "2025-09-30T02:49:37.549250",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.549257",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0000789_06_25.pdf_f5fc80d7bc42102e": {
+      "attachment_name": "Faktura nr F_M05_0000789_06_25.pdf",
+      "first_searched": "2025-09-30T02:49:37.688109",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.688116",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0001298_05_25.pdf_16ca2802295397e7": {
+      "attachment_name": "Faktura nr F_M05_0001298_05_25.pdf",
+      "first_searched": "2025-09-30T02:49:37.827401",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.827411",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M05_0000183_06_25.pdf_2713028b4d765b6f": {
+      "attachment_name": "Faktura nr F_M05_0000183_06_25.pdf",
+      "first_searched": "2025-09-30T02:49:37.975653",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:37.975659",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M09_0001401_07_25.pdf_81999a89275c8138": {
+      "attachment_name": "Faktura nr F_M09_0001401_07_25.pdf",
+      "first_searched": "2025-09-30T02:49:38.451647",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:38.451656",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "F_11003_07_25_M1.pdf_43af5241c150e58a": {
+      "attachment_name": "F_11003_07_25_M1.pdf",
+      "first_searched": "2025-09-30T02:49:38.612717",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:38.612723",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "faktura_FS_42472-NM2-07-2025.pdf_1fae190c9e5df108": {
+      "attachment_name": "faktura_FS_42472-NM2-07-2025.pdf",
+      "first_searched": "2025-09-30T02:49:39.139610",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:39.139619",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura_FV 272_2025.pdf_33a5cdabc9718fa0": {
+      "attachment_name": "Faktura_FV 272_2025.pdf",
+      "first_searched": "2025-09-30T02:49:39.744366",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:39.744373",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_002920.pdf_7a69ca020a61cea7": {
+      "attachment_name": "CCF_002920.pdf",
+      "first_searched": "2025-09-30T02:49:49.778529",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:49.778538",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "CCF_002911.pdf_62cc9dad152a37be": {
+      "attachment_name": "CCF_002911.pdf",
+      "first_searched": "2025-09-30T02:49:51.697465",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:51.697472",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Faktura nr 234_7_2025.pdf_bd696b78810068a4": {
+      "attachment_name": "Faktura nr 234_7_2025.pdf",
+      "first_searched": "2025-09-30T02:49:51.873829",
+      "sender_email": "biuro@magbob.com.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:51.873839",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Kompensata K_001135_25.pdf_8e60414c8258f18f": {
+      "attachment_name": "Kompensata K_001135_25.pdf",
+      "first_searched": "2025-09-30T02:49:52.036693",
+      "sender_email": "monika.szymaniak@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:52.036700",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_002858.pdf_b4a02619fd5cf5d1": {
+      "attachment_name": "CCF_002858.pdf",
+      "first_searched": "2025-09-30T02:49:53.659035",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:49:53.659042",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "CCF_001054.pdf_9902109b8be0602e": {
+      "attachment_name": "CCF_001054.pdf",
+      "first_searched": "2025-09-30T02:50:03.731185",
+      "sender_email": "finansservis@wp.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:50:03.731193",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "19194_07_2025_UP.pdf_038e50d6d61da790": {
+      "attachment_name": "19194_07_2025_UP.pdf",
+      "first_searched": "2025-09-30T02:50:04.058949",
+      "sender_email": "faktura@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T02:50:04.058956",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_44996fbbd9049f81": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T21:45:55.874854",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:45:55.874862",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_cd7ef0d19bdac7da": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T21:45:56.777869",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:45:56.777877",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Informacje o gwarancjach.pdf_2f0f289b55f02899": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_searched": "2025-09-30T21:45:57.481991",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:45:57.482002",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "F_11432_09_25_M1.pdf_e0a7c1eab682ffc7": {
+      "attachment_name": "F_11432_09_25_M1.pdf",
+      "first_searched": "2025-09-30T21:45:57.641112",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:45:57.641120",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Faktura nr F_M04_0001821_09_25.pdf_59fe81ca9fda2af9": {
+      "attachment_name": "Faktura nr F_M04_0001821_09_25.pdf",
+      "first_searched": "2025-09-30T21:45:57.789983",
+      "sender_email": "agata.borzymowska@quadra-net.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:45:57.789994",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "dokumenty_2025-09-30_13.44.pdf_ee2df72d0399a77a": {
+      "attachment_name": "dokumenty_2025-09-30_13.44.pdf",
+      "first_searched": "2025-09-30T21:46:05.135029",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:46:05.135037",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_e1a08e3010ed9da6": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T21:46:38.096145",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:46:38.096155",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "NO_01239_09_2025_WO.pdf_a6af4a33f79c9bce": {
+      "attachment_name": "NO_01239_09_2025_WO.pdf",
+      "first_searched": "2025-09-30T21:46:38.242372",
+      "sender_email": "faktura@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:46:38.242378",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_0723326debd0ed09": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-09-30T21:47:10.532679",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:10.532689",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "faktura_FS_13002-ZAK-2025.pdf_eb19e5dbebebb0c0": {
+      "attachment_name": "faktura_FS_13002-ZAK-2025.pdf",
+      "first_searched": "2025-09-30T21:47:10.656607",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:10.656612",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "03703_09_2025_WOL.pdf_4daf08e12cd11421": {
+      "attachment_name": "03703_09_2025_WOL.pdf",
+      "first_searched": "2025-09-30T21:47:10.803180",
+      "sender_email": "faktura@leaselink.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:10.803188",
+          "found_matches": true,
+          "match_count": 2
+        }
+      }
+    },
+    "Warunki reklamacji.pdf_04234056ea02472e": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_searched": "2025-09-30T21:47:12.148900",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:12.148907",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Warunki zwrotów.pdf_1b168c2790e11764": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_searched": "2025-09-30T21:47:13.189065",
+      "sender_email": "powiadomienia@allegro.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:13.189072",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf_587ed5b425289161": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf",
+      "first_searched": "2025-09-30T21:47:21.663973",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-09-30T21:47:21.663981",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_cc7a078bddd397c45364c2835f60c86f.pdf_59ccb59927466456": {
+      "attachment_name": "pdf_cc7a078bddd397c45364c2835f60c86f.pdf",
+      "first_searched": "2025-10-01T02:53:13.842781",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:53:13.842789",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Koszty jednostkowe.pdf_bbba6006d4076e12": {
+      "attachment_name": "Koszty jednostkowe.pdf",
+      "first_searched": "2025-10-01T02:53:14.678641",
+      "sender_email": "krzysztof.gambus@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:53:14.678649",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-30_13.44.pdf_cb4a5728224c8f29": {
+      "attachment_name": "dokumenty_2025-09-30_13.44.pdf",
+      "first_searched": "2025-10-01T02:53:23.155394",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:53:23.155403",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_c6c3fe7e8cbfce7b": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-01T02:53:58.288488",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:53:58.288499",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_f058891f19d3d216": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-01T02:54:32.639412",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:32.639423",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-058-599_5697.pdf_587ed5b425289161": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-058-599_5697.pdf",
+      "first_searched": "2025-10-01T02:54:42.015355",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:42.015369",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_2f53e9d26b5f049dbdafabf2282286ec.pdf_e1d4d9fc714a6d58": {
+      "attachment_name": "pdf_2f53e9d26b5f049dbdafabf2282286ec.pdf",
+      "first_searched": "2025-10-01T02:54:42.891802",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:42.891808",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_07f152f0da151a7de299993a77a3402f.pdf_150a21310f9a3d69": {
+      "attachment_name": "pdf_07f152f0da151a7de299993a77a3402f.pdf",
+      "first_searched": "2025-10-01T02:54:43.694971",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:43.694979",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-057-781_5697.pdf_6d56cb1afccdc46f": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-057-781_5697.pdf",
+      "first_searched": "2025-10-01T02:54:52.535040",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:52.535049",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Ekspertyza rozszerzona o koszty\r\n naprawy.pdf_62fd8d49bc8dce12": {
+      "attachment_name": "Ekspertyza rozszerzona o koszty\r\n naprawy.pdf",
+      "first_searched": "2025-10-01T02:54:54.120652",
+      "sender_email": "krzysztof.gambus@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:54.120661",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_2c341582311043006fb190f73204a339.pdf_21fc56b4973ef47d": {
+      "attachment_name": "pdf_2c341582311043006fb190f73204a339.pdf",
+      "first_searched": "2025-10-01T02:54:55.330310",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:55.330317",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_6e2a396397d0e9585992fe193eed75d8.pdf_0c505ad3a36c6185": {
+      "attachment_name": "pdf_6e2a396397d0e9585992fe193eed75d8.pdf",
+      "first_searched": "2025-10-01T02:54:56.361055",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:56.361061",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_a5c76653740f390adf70eb899cfbd956.pdf_e210e3e7fa86f4a1": {
+      "attachment_name": "pdf_a5c76653740f390adf70eb899cfbd956.pdf",
+      "first_searched": "2025-10-01T02:54:57.273011",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:54:57.273018",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-26_13.23.pdf_8b914f1e6c627d46": {
+      "attachment_name": "dokumenty_2025-09-26_13.23.pdf",
+      "first_searched": "2025-10-01T02:55:06.031536",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:55:06.031548",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_dcec93dd0c09fcd5": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-01T02:55:39.115712",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:55:39.115721",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-26_12.15.pdf_2920a6d399320c88": {
+      "attachment_name": "dokumenty_2025-09-26_12.15.pdf",
+      "first_searched": "2025-10-01T02:55:46.672266",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:55:46.672275",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_c90d4766748d06a4": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-01T02:56:19.464868",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:56:19.464879",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_f5d53dc365e5160dcd73818f714401dc.pdf_0fa367017f3b2cb4": {
+      "attachment_name": "pdf_f5d53dc365e5160dcd73818f714401dc.pdf",
+      "first_searched": "2025-10-01T02:56:21.084715",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:56:21.084722",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "FS_3091_EPS_2024.pdf_aaf81a4bf8f9a04c": {
+      "attachment_name": "FS_3091_EPS_2024.pdf",
+      "first_searched": "2025-10-01T02:56:22.661435",
+      "sender_email": "yanoflashover@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:56:22.661446",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "dokumenty_2025-09-25_11.34.pdf_cd88f115bf869b86": {
+      "attachment_name": "dokumenty_2025-09-25_11.34.pdf",
+      "first_searched": "2025-10-01T02:56:30.218529",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:56:30.218536",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Regulamin_Furgonetka.pl.pdf_737911aaf3ce97bc": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_searched": "2025-10-01T02:57:03.898690",
+      "sender_email": "furgonetka@furgonetka.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:03.898700",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_30f1267bafde8c852dff111e1f9b958a.pdf_ba355a8b691493d4": {
+      "attachment_name": "pdf_30f1267bafde8c852dff111e1f9b958a.pdf",
+      "first_searched": "2025-10-01T02:57:05.581968",
+      "sender_email": "no-reply@zir-online.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:05.581990",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-053-255_5697.pdf_8a990409107ae881": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-053-255_5697.pdf",
+      "first_searched": "2025-10-01T02:57:14.313978",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:14.313986",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "1758709650_faktura_357_2025_24-09-2025.pdf_27b799b170c489af": {
+      "attachment_name": "1758709650_faktura_357_2025_24-09-2025.pdf",
+      "first_searched": "2025-10-01T02:57:14.411885",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:14.411892",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "1758708304_faktura_356_2025_24-09-2025.pdf_8ff1173f83a81ed8": {
+      "attachment_name": "1758708304_faktura_356_2025_24-09-2025.pdf",
+      "first_searched": "2025-10-01T02:57:14.602025",
+      "sender_email": "grzegorz.ciekot@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:14.602034",
+          "found_matches": true,
+          "match_count": 1
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-050-600_5697.pdf_be3abf51b4ef1bfe": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-050-600_5697.pdf",
+      "first_searched": "2025-10-01T02:57:26.294128",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:26.294137",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-049-713_4746.pdf_c2d11071945cbc25": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-049-713_4746.pdf",
+      "first_searched": "2025-10-01T02:57:35.097623",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:35.097633",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-049-014_4435.pdf_ca57eddfd2aaa75a": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-049-014_4435.pdf",
+      "first_searched": "2025-10-01T02:57:43.297128",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:43.297136",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "label.pdf_e172504cac8c12f2": {
+      "attachment_name": "label.pdf",
+      "first_searched": "2025-10-01T02:57:44.846058",
+      "sender_email": "malgorzata.janik@uniquepeople.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:44.846065",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zlecenie naprawy AGD_RTV_protokol_UK-048-373_304.pdf_91992ffcd5fc24fc": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol_UK-048-373_304.pdf",
+      "first_searched": "2025-10-01T02:57:53.375214",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:57:53.375223",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-168_4435.pdf_5c9923a737cecd0f": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-168_4435.pdf",
+      "first_searched": "2025-10-01T02:58:02.924617",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:58:02.924626",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-695_4435.pdf_dbf6e1a6dbd0c517": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-695_4435.pdf",
+      "first_searched": "2025-10-01T02:58:11.807393",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:58:11.807402",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-046-262_4435.pdf_d74915e7c420e349": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-046-262_4435.pdf",
+      "first_searched": "2025-10-01T02:58:20.474541",
+      "sender_email": "u.home@mondial-assistance.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T02:58:20.474549",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Scan.pdf_9e6e7bca565f580e": {
+      "attachment_name": "Scan.pdf",
+      "first_searched": "2025-10-01T03:15:56.342425",
+      "sender_email": "patri@op.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:56.342431",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "etykieta_29601704453.pdf_40f05f09e5b7d0b4": {
+      "attachment_name": "etykieta_29601704453.pdf",
+      "first_searched": "2025-10-01T03:15:56.721556",
+      "sender_email": "service.pl@sharpconsumer.eu",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:56.721562",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "skanowanie.pdf_2844cabf17dce793": {
+      "attachment_name": "skanowanie.pdf",
+      "first_searched": "2025-10-01T03:15:58.064561",
+      "sender_email": "mm.czestochowa.pok@mediamarkt.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:58.064565",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "etykieta_29589585023.pdf_aa020bc4411b8cde": {
+      "attachment_name": "etykieta_29589585023.pdf",
+      "first_searched": "2025-10-01T03:15:58.552232",
+      "sender_email": "terg.reklamacje@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:58.552237",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Bilety_PAKIET LIGA KONFERENCJI\r\n jakub.pdf_17e14a877f2c8167": {
+      "attachment_name": "Bilety_PAKIET LIGA KONFERENCJI\r\n jakub.pdf",
+      "first_searched": "2025-10-01T03:15:59.680016",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:59.680022",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Bilety_PAKIET LIGA KONFERENCJI\r\n konrad.pdf_227394a6a9b7d200": {
+      "attachment_name": "Bilety_PAKIET LIGA KONFERENCJI\r\n konrad.pdf",
+      "first_searched": "2025-10-01T03:15:59.684278",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:59.684285",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Bilety_PAKIET LIGA KONFERENCJI\r\n marcin.pdf_aa5b190f6b3006e5": {
+      "attachment_name": "Bilety_PAKIET LIGA KONFERENCJI\r\n marcin.pdf",
+      "first_searched": "2025-10-01T03:15:59.688209",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:59.688214",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Bilety_PAKIET LIGA KONFERENCJI\r\n tomasz.pdf_6fedab149f381283": {
+      "attachment_name": "Bilety_PAKIET LIGA KONFERENCJI\r\n tomasz.pdf",
+      "first_searched": "2025-10-01T03:15:59.691811",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:15:59.691814",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "PSG9000 series_UM_EEU_[16445]_NCN\r\n change_user manual.pdf_d9a76fe60b9f25e5": {
+      "attachment_name": "PSG9000 series_UM_EEU_[16445]_NCN\r\n change_user manual.pdf",
+      "first_searched": "2025-10-01T03:16:02.210377",
+      "sender_email": "terg.reklamacje@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:02.210386",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "druk-przelewu-wplaty.pdf_5dd0b1b9566524e1": {
+      "attachment_name": "druk-przelewu-wplaty.pdf",
+      "first_searched": "2025-10-01T03:16:02.760268",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:02.760274",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Bilety_PAKIET LIGA KONFERENCJI.pdf_681d3009ded1772f": {
+      "attachment_name": "Bilety_PAKIET LIGA KONFERENCJI.pdf",
+      "first_searched": "2025-10-01T03:16:03.081381",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:03.081385",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "29581176515.pdf_ffa09ee76c761e1d": {
+      "attachment_name": "29581176515.pdf",
+      "first_searched": "2025-10-01T03:16:03.140904",
+      "sender_email": "pl.no.reply@dhl.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:03.140912",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "29578787979.pdf_57673e4a5dee4490": {
+      "attachment_name": "29578787979.pdf",
+      "first_searched": "2025-10-01T03:16:03.468142",
+      "sender_email": "pl.no.reply@dhl.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:03.468147",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Zwroty.pdf_fe4f319f1b734464": {
+      "attachment_name": "Zwroty.pdf",
+      "first_searched": "2025-10-01T03:16:03.563189",
+      "sender_email": "anna.szczupak@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:03.563194",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "29578596949.pdf_38d3a62dd9f0f47d": {
+      "attachment_name": "29578596949.pdf",
+      "first_searched": "2025-10-01T03:16:03.617483",
+      "sender_email": "pl.no.reply@dhl.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:03.617491",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "FV-FVS_451931_25.pdf_207a9a6dd081a8ca": {
+      "attachment_name": "FV-FVS_451931_25.pdf",
+      "first_searched": "2025-10-01T03:16:04.738429",
+      "sender_email": "powiadomienia@klinikaagd.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:04.738437",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "1. PILA_UKOSOWA.pdf_e5fcbd04ed9262ec": {
+      "attachment_name": "1. PILA_UKOSOWA.pdf",
+      "first_searched": "2025-10-01T03:16:08.219659",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.219664",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "3. TRAKTOREK.pdf_0ff0e4711dda07df": {
+      "attachment_name": "3. TRAKTOREK.pdf",
+      "first_searched": "2025-10-01T03:16:08.223650",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.223655",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "4. SZLIFIERKA.pdf_71766296b68bdf96": {
+      "attachment_name": "4. SZLIFIERKA.pdf",
+      "first_searched": "2025-10-01T03:16:08.228021",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.228025",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "2. PILARKA.pdf_4ca807246f7df67f": {
+      "attachment_name": "2. PILARKA.pdf",
+      "first_searched": "2025-10-01T03:16:08.231801",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.231805",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "7. SILNIKI.pdf_a3f6a93b7fa5ab41": {
+      "attachment_name": "7. SILNIKI.pdf",
+      "first_searched": "2025-10-01T03:16:08.235659",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.235663",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "13A. MODULY.pdf_6c231b084a1aeb5b": {
+      "attachment_name": "13A. MODULY.pdf",
+      "first_searched": "2025-10-01T03:16:08.239619",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.239623",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "13. STEROWNIK.pdf_67cf4acd62e8ab0e": {
+      "attachment_name": "13. STEROWNIK.pdf",
+      "first_searched": "2025-10-01T03:16:08.243121",
+      "sender_email": "jakubkoza94@gmail.com",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:08.243125",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "druk-przelewu-wplaty (2).pdf_6e821ead4ef148d7": {
+      "attachment_name": "druk-przelewu-wplaty (2).pdf",
+      "first_searched": "2025-10-01T03:16:09.070891",
+      "sender_email": "robert.powazka@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:09.070897",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Opencell po wymianie v3.pdf_96f96ef983d1c27b": {
+      "attachment_name": "Opencell po wymianie v3.pdf",
+      "first_searched": "2025-10-01T03:16:10.439733",
+      "sender_email": "terg.reklamacje@woox.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:10.439738",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "tmp_wkhtmlto_pdf_QLyL4G.pdf_766ceeca73d25e2d": {
+      "attachment_name": "tmp_wkhtmlto_pdf_QLyL4G.pdf",
+      "first_searched": "2025-10-01T03:16:13.078718",
+      "sender_email": "mm.czestochowa.pok@mediamarkt.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:13.078722",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_b91d840ec6c9ad2e87661ab2f364d45c.pdf_269e2e93aa3e468d": {
+      "attachment_name": "pdf_b91d840ec6c9ad2e87661ab2f364d45c.pdf",
+      "first_searched": "2025-10-01T03:16:13.082078",
+      "sender_email": "mm.czestochowa.pok@mediamarkt.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:13.082081",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "pdf_d07eb7d2f711604a7251d87ebc70caf1.pdf_3e02c665736a4f13": {
+      "attachment_name": "pdf_d07eb7d2f711604a7251d87ebc70caf1.pdf",
+      "first_searched": "2025-10-01T03:16:13.085625",
+      "sender_email": "mm.czestochowa.pok@mediamarkt.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:13.085628",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "tmp_wkhtmlto_pdf_lbVzZi.pdf_7de91ca60dec65ae": {
+      "attachment_name": "tmp_wkhtmlto_pdf_lbVzZi.pdf",
+      "first_searched": "2025-10-01T03:16:13.089155",
+      "sender_email": "mm.czestochowa.pok@mediamarkt.pl",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:13.089160",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    },
+    "Joanna%20Pompa%20zlecenie%20kuchenka.pdf_3fce5051a7bd49f9": {
+      "attachment_name": "Joanna%20Pompa%20zlecenie%20kuchenka.pdf",
+      "first_searched": "2025-10-01T03:16:13.273918",
+      "sender_email": "joannapompa@onet.eu",
+      "searches": {
+        "5732475751": {
+          "last_searched": "2025-10-01T03:16:13.273923",
+          "found_matches": false,
+          "match_count": 0
+        }
+      }
+    }
+  },
+  "skipped_pdfs": {
+    "Faktura nr F_M02_0001693_09_25.pdf_434f532d56211f7c": {
+      "attachment_name": "Faktura nr F_M02_0001693_09_25.pdf",
+      "first_skipped": "2025-09-30T02:40:47.168324",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:52.611916",
+      "last_search_text": "5732475751"
+    },
+    "F_10928_09_25_M1.pdf_8f87cd1e6531e0bb": {
+      "attachment_name": "F_10928_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:41:08.524467",
+      "skip_count": 6,
+      "last_skipped": "2025-10-01T03:15:58.001802",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 520_7_2025.pdf_3a84cefc479e2a1c": {
+      "attachment_name": "Faktura nr 520_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:41:08.847004",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:57.418004",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 234_7_2025.pdf_75252d29dcf3238e": {
+      "attachment_name": "Faktura nr 234_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:41:09.173512",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:57.534036",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 180_7_2025.pdf_540876c3d99a06f0": {
+      "attachment_name": "Faktura nr 180_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:41:09.682604",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:57.793628",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 55_7_2025.pdf_b455b3225f466b9e": {
+      "attachment_name": "Faktura nr 55_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:41:09.806324",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:57.679962",
+      "last_search_text": "5732475751"
+    },
+    "dokumenty_2025-09-26_13.23.pdf_dd72088763feaaff": {
+      "attachment_name": "dokumenty_2025-09-26_13.23.pdf",
+      "first_skipped": "2025-09-30T02:41:57.536122",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:58.258179",
+      "last_search_text": "5732475751"
+    },
+    "Regulamin_Furgonetka.pl.pdf_91951b548a541273": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_skipped": "2025-09-30T02:41:57.669839",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:54:58.262637",
+      "last_search_text": "5732475751"
+    },
+    "dokumenty_2025-09-26_12.16.pdf_3417a284724af6b2": {
+      "attachment_name": "dokumenty_2025-09-26_12.16.pdf",
+      "first_skipped": "2025-09-30T02:42:44.991730",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:55:39.341684",
+      "last_search_text": "5732475751"
+    },
+    "Regulamin_Furgonetka.pl.pdf_bb589acf0bddcf47": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_skipped": "2025-09-30T02:42:45.120668",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:55:39.346407",
+      "last_search_text": "5732475751"
+    },
+    "F_10459_09_25_M1.pdf_5d9f7a122d21dc55": {
+      "attachment_name": "F_10459_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:42:45.373979",
+      "skip_count": 6,
+      "last_skipped": "2025-10-01T03:15:59.744617",
+      "last_search_text": "5732475751"
+    },
+    "FS_70619_SML_2025.pdf_8f149022cafb7495": {
+      "attachment_name": "FS_70619_SML_2025.pdf",
+      "first_skipped": "2025-09-30T02:42:54.790422",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:56:21.318323",
+      "last_search_text": "5732475751"
+    },
+    "dokumenty_2025-09-25_11.34.pdf_f6cd9252c74a29c8": {
+      "attachment_name": "dokumenty_2025-09-25_11.34.pdf",
+      "first_skipped": "2025-09-30T02:43:42.092290",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:56:22.793748",
+      "last_search_text": "5732475751"
+    },
+    "Regulamin_Furgonetka.pl.pdf_da9b9b3254e1a978": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_skipped": "2025-09-30T02:43:42.218126",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:56:22.798404",
+      "last_search_text": "5732475751"
+    },
+    "FS_70619_SML_2025.pdf_dde68c0582993393": {
+      "attachment_name": "FS_70619_SML_2025.pdf",
+      "first_skipped": "2025-09-30T02:44:23.754799",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:57:04.552605",
+      "last_search_text": "5732475751"
+    },
+    "faktura-183-24-09-2025.pdf_c904d9766c237239": {
+      "attachment_name": "faktura-183-24-09-2025.pdf",
+      "first_skipped": "2025-09-30T02:44:23.840857",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:57:04.602692",
+      "last_search_text": "5732475751"
+    },
+    "Faktura_322_09_2025.pdf_24c3285b18dc7cff": {
+      "attachment_name": "Faktura_322_09_2025.pdf",
+      "first_skipped": "2025-09-30T02:44:23.931128",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T02:57:04.656058",
+      "last_search_text": "5732475751"
+    },
+    "faktura_FS_47986-NM2-09-2025.pdf_aaa01eefdc85ee2b": {
+      "attachment_name": "faktura_FS_47986-NM2-09-2025.pdf",
+      "first_skipped": "2025-09-30T02:44:56.506517",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:16.286140",
+      "last_search_text": "5732475751"
+    },
+    "FS 47986_NM2_09_2025.pdf_aaa01eefdc85ee2b": {
+      "attachment_name": "FS 47986_NM2_09_2025.pdf",
+      "first_skipped": "2025-09-30T02:44:56.726863",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:16.345054",
+      "last_search_text": "5732475751"
+    },
+    "F_08751_09_25_M1.pdf_8ff2796b92327a0e": {
+      "attachment_name": "F_08751_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:45:01.373562",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:16:04.680859",
+      "last_search_text": "5732475751"
+    },
+    "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf_0b4214ccfe831a09": {
+      "attachment_name": "b4a499b6-3e8c-5897-981d-2f91a952d7c7.pdf",
+      "first_skipped": "2025-09-30T02:45:03.333443",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:16.815525",
+      "last_search_text": "5732475751"
+    },
+    "Faktura.pdf_46cec7b1683316db": {
+      "attachment_name": "Faktura.pdf",
+      "first_skipped": "2025-09-30T02:45:15.187481",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:17.152870",
+      "last_search_text": "5732475751"
+    },
+    "520939520925.pdf_b60499719a6e90b5": {
+      "attachment_name": "520939520925.pdf",
+      "first_skipped": "2025-09-30T02:45:23.939721",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:17.205105",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M02_0001191_09_25.pdf_bcb56d5ffe7a3657": {
+      "attachment_name": "Faktura nr F_M02_0001191_09_25.pdf",
+      "first_skipped": "2025-09-30T02:45:40.320084",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:17.575165",
+      "last_search_text": "5732475751"
+    },
+    "F_07768_09_25_M1.pdf_99c91fe4d2de1dbd": {
+      "attachment_name": "F_07768_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:45:56.558261",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:16:10.251328",
+      "last_search_text": "5732475751"
+    },
+    "zakup8.pdf_d120d4c5b11b2581": {
+      "attachment_name": "zakup8.pdf",
+      "first_skipped": "2025-09-30T02:46:38.028790",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:46:38.028797",
+      "last_search_text": "5732475751"
+    },
+    "zakupy7.pdf_9004c35ed4d2c499": {
+      "attachment_name": "zakupy7.pdf",
+      "first_skipped": "2025-09-30T02:46:38.156859",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:46:38.156870",
+      "last_search_text": "5732475751"
+    },
+    "FS-10216_25_ALL.pdf_dc8559a087e490c1": {
+      "attachment_name": "FS-10216_25_ALL.pdf",
+      "first_skipped": "2025-09-30T02:46:38.405607",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T02:58:12.138220",
+      "last_search_text": "5732475751"
+    },
+    "F_07129_09_25_M1.pdf_ace3e759d2835cc3": {
+      "attachment_name": "F_07129_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:46:38.809221",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:16:12.829830",
+      "last_search_text": "5732475751"
+    },
+    "faktura-167-09-2025.pdf_8b3fa60848c0ab0b": {
+      "attachment_name": "faktura-167-09-2025.pdf",
+      "first_skipped": "2025-09-30T02:46:39.050093",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:58:20.620359",
+      "last_search_text": "5732475751"
+    },
+    "faktura_459-9-2025.pdf_a82b66a06558116a": {
+      "attachment_name": "faktura_459-9-2025.pdf",
+      "first_skipped": "2025-09-30T02:47:04.883275",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T02:58:20.890278",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M09_0001000_09_25.pdf_96997205f7ea2435": {
+      "attachment_name": "Faktura nr F_M09_0001000_09_25.pdf",
+      "first_skipped": "2025-09-30T02:47:05.502894",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T02:58:20.939917",
+      "last_search_text": "5732475751"
+    },
+    "Faktura.pdf_f311ffcfdff06294": {
+      "attachment_name": "Faktura.pdf",
+      "first_skipped": "2025-09-30T02:47:05.892248",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:58:20.999767",
+      "last_search_text": "5732475751"
+    },
+    "KSIEGA 8.pdf_7321a855fa1a9ac6": {
+      "attachment_name": "KSIEGA 8.pdf",
+      "first_skipped": "2025-09-30T02:47:15.047373",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:15.047381",
+      "last_search_text": "5732475751"
+    },
+    "F_06643_09_25_M1.pdf_86c69c0761c7d279": {
+      "attachment_name": "F_06643_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:15.156779",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:16:13.435382",
+      "last_search_text": "5732475751"
+    },
+    "faktura-256-16-09-2025.pdf_6155c0ec73711089": {
+      "attachment_name": "faktura-256-16-09-2025.pdf",
+      "first_skipped": "2025-09-30T02:47:15.389905",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:15.389911",
+      "last_search_text": "5732475751"
+    },
+    "Faktura korygująca nr FK_M02_0000059_09_25.pdf_5884efce5d68d74d": {
+      "attachment_name": "Faktura korygująca nr FK_M02_0000059_09_25.pdf",
+      "first_skipped": "2025-09-30T02:47:44.213564",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:44.213571",
+      "last_search_text": "5732475751"
+    },
+    "F_06042_09_25_M1.pdf_9cbabcb41f539b64": {
+      "attachment_name": "F_06042_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:44.298153",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:44.298163",
+      "last_search_text": "5732475751"
+    },
+    "faktura-136-09-2025.pdf_3be492a9fe3bc432": {
+      "attachment_name": "faktura-136-09-2025.pdf",
+      "first_skipped": "2025-09-30T02:47:44.399601",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:44.399608",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M02_0000861_09_25.pdf_e32babb95b61bc79": {
+      "attachment_name": "Faktura nr F_M02_0000861_09_25.pdf",
+      "first_skipped": "2025-09-30T02:47:44.676342",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:47:44.764696",
+      "last_search_text": "5732475751"
+    },
+    "Faktura_191_09_2025.pdf_c317da8b7fd07fc4": {
+      "attachment_name": "Faktura_191_09_2025.pdf",
+      "first_skipped": "2025-09-30T02:47:44.855072",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:44.855079",
+      "last_search_text": "5732475751"
+    },
+    "5c28df3f32edf3f2b522156061f85505.pdf_e97cffa8adbd12d8": {
+      "attachment_name": "5c28df3f32edf3f2b522156061f85505.pdf",
+      "first_skipped": "2025-09-30T02:47:44.949933",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:47:45.042860",
+      "last_search_text": "5732475751"
+    },
+    "F_05511_09_25_M1.pdf_7f90998f29850db0": {
+      "attachment_name": "F_05511_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:45.133275",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.133285",
+      "last_search_text": "5732475751"
+    },
+    "faktura_INT-2025-445.pdf_de071e6e7e8c4cdd": {
+      "attachment_name": "faktura_INT-2025-445.pdf",
+      "first_skipped": "2025-09-30T02:47:45.231964",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.231971",
+      "last_search_text": "5732475751"
+    },
+    "faktura-vat-Gusto-INT_2025_445.pdf_79ceacc18354a5ee": {
+      "attachment_name": "faktura-vat-Gusto-INT_2025_445.pdf",
+      "first_skipped": "2025-09-30T02:47:45.327544",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.327554",
+      "last_search_text": "5732475751"
+    },
+    "F_04956_09_25_M1.pdf_f54f148dbb0a44f3": {
+      "attachment_name": "F_04956_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:45.571716",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.571723",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M09_0000624_09_25.pdf_4c8c35e146a39c1d": {
+      "attachment_name": "Faktura nr F_M09_0000624_09_25.pdf",
+      "first_skipped": "2025-09-30T02:47:45.821469",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.821480",
+      "last_search_text": "5732475751"
+    },
+    "F_04458_09_25_M1.pdf_ab12264486f1be63": {
+      "attachment_name": "F_04458_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:45.911485",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:45.911492",
+      "last_search_text": "5732475751"
+    },
+    "CCF_003039.pdf_dc043002e08c6484": {
+      "attachment_name": "CCF_003039.pdf",
+      "first_skipped": "2025-09-30T02:47:46.031733",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:47:46.031740",
+      "last_search_text": "5732475751"
+    },
+    "F_03393_09_25_M1.pdf_02eb511cc8a354e4": {
+      "attachment_name": "F_03393_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:46.847648",
+      "skip_count": 13,
+      "last_skipped": "2025-09-30T02:47:58.528699",
+      "last_search_text": "5732475751"
+    },
+    "F_03246_09_25_M1.pdf_9e52d2cea0675342": {
+      "attachment_name": "F_03246_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:47:46.939723",
+      "skip_count": 13,
+      "last_skipped": "2025-09-30T02:47:58.621581",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M02_0000387_09_25.pdf_ab7a40cb4580625a": {
+      "attachment_name": "Faktura nr F_M02_0000387_09_25.pdf",
+      "first_skipped": "2025-09-30T02:47:47.873222",
+      "skip_count": 15,
+      "last_skipped": "2025-09-30T02:47:58.982957",
+      "last_search_text": "5732475751"
+    },
+    "173.pdf_eca16f9eab566da1": {
+      "attachment_name": "173.pdf",
+      "first_skipped": "2025-09-30T02:47:47.973164",
+      "skip_count": 14,
+      "last_skipped": "2025-09-30T02:47:57.891337",
+      "last_search_text": "5732475751"
+    },
+    "invoice.pdf_eb5dabefa6c5aa0f": {
+      "attachment_name": "invoice.pdf",
+      "first_skipped": "2025-09-30T02:47:48.065686",
+      "skip_count": 12,
+      "last_skipped": "2025-09-30T02:47:58.345626",
+      "last_search_text": "5732475751"
+    },
+    "ZAM_Dziennik_3032_09_2025.pdf_0ce52100cb02d682": {
+      "attachment_name": "ZAM_Dziennik_3032_09_2025.pdf",
+      "first_skipped": "2025-09-30T02:47:48.468015",
+      "skip_count": 13,
+      "last_skipped": "2025-09-30T02:47:58.800665",
+      "last_search_text": "5732475751"
+    },
+    "załącznik_1.pdf_6cafd429b2842a3e": {
+      "attachment_name": "załącznik_1.pdf",
+      "first_skipped": "2025-09-30T02:47:49.889379",
+      "skip_count": 14,
+      "last_skipped": "2025-09-30T02:47:58.889997",
+      "last_search_text": "5732475751"
+    },
+    "FS 31402_MAG_09_2025.pdf_eb5dabefa6c5aa0f": {
+      "attachment_name": "FS 31402_MAG_09_2025.pdf",
+      "first_skipped": "2025-09-30T02:47:50.180948",
+      "skip_count": 13,
+      "last_skipped": "2025-09-30T02:47:58.709580",
+      "last_search_text": "5732475751"
+    },
+    "CCF_003009.pdf_e16c2f2e843aa335": {
+      "attachment_name": "CCF_003009.pdf",
+      "first_skipped": "2025-09-30T02:48:17.266644",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:48:17.266651",
+      "last_search_text": "5732475751"
+    },
+    "19945_09_2025_UP.pdf_49eb8488c51f8e45": {
+      "attachment_name": "19945_09_2025_UP.pdf",
+      "first_skipped": "2025-09-30T02:48:17.546529",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:48:17.546537",
+      "last_search_text": "5732475751"
+    },
+    "13540_09_2025_UL.pdf_ac22596e26bd43cd": {
+      "attachment_name": "13540_09_2025_UL.pdf",
+      "first_skipped": "2025-09-30T02:48:17.913803",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:48:17.913809",
+      "last_search_text": "5732475751"
+    },
+    "faktura_FS_27792-MAG-2025.pdf_cd224eee04ccc6db": {
+      "attachment_name": "faktura_FS_27792-MAG-2025.pdf",
+      "first_skipped": "2025-09-30T02:48:31.213759",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:48:31.213766",
+      "last_search_text": "5732475751"
+    },
+    "UMOWA SERWISOWA_USLUGI_KLIENT_INDYWIDUALNY_22082025.pdf_eff280776e905ea6": {
+      "attachment_name": "UMOWA SERWISOWA_USLUGI_KLIENT_INDYWIDUALNY_22082025.pdf",
+      "first_skipped": "2025-09-30T02:48:32.424846",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T03:16:12.999743",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M02_0001071_08_25.pdf_84c64256f91a03c7": {
+      "attachment_name": "Faktura nr F_M02_0001071_08_25.pdf",
+      "first_skipped": "2025-09-30T02:48:32.512667",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:48:32.512672",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M04_0000080_08_25.pdf_d335e3b46353c50e": {
+      "attachment_name": "Faktura nr F_M04_0000080_08_25.pdf",
+      "first_skipped": "2025-09-30T02:49:12.793620",
+      "skip_count": 9,
+      "last_skipped": "2025-09-30T02:49:35.499333",
+      "last_search_text": "5732475751"
+    },
+    "F_00295_08_25_M1.pdf_ba5e212e9095fad4": {
+      "attachment_name": "F_00295_08_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:12.884146",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:35.874637",
+      "last_search_text": "5732475751"
+    },
+    "F_980_07_2025.pdf_6328eaf191641531": {
+      "attachment_name": "F_980_07_2025.pdf",
+      "first_skipped": "2025-09-30T02:49:12.975507",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.262747",
+      "last_search_text": "5732475751"
+    },
+    "F_12108_07_25_M1.pdf_9232f97ed417393b": {
+      "attachment_name": "F_12108_07_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:13.673432",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.470755",
+      "last_search_text": "5732475751"
+    },
+    "faktura_FS-34930-SPPL-07-2025.pdf_c1862228183aa357": {
+      "attachment_name": "faktura_FS-34930-SPPL-07-2025.pdf",
+      "first_skipped": "2025-09-30T02:49:13.785153",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.567392",
+      "last_search_text": "5732475751"
+    },
+    "Faktura korygująca nr FK_M02_0000079_07_25.pdf_22a09f834e7b99b6": {
+      "attachment_name": "Faktura korygująca nr FK_M02_0000079_07_25.pdf",
+      "first_skipped": "2025-09-30T02:49:13.875151",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.657389",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M09_0001776_07_25.pdf_a00baebd70a58c31": {
+      "attachment_name": "Faktura nr F_M09_0001776_07_25.pdf",
+      "first_skipped": "2025-09-30T02:49:13.966296",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.743772",
+      "last_search_text": "5732475751"
+    },
+    "FS_8134_08_2025.pdf_abe9356a927eddde": {
+      "attachment_name": "FS_8134_08_2025.pdf",
+      "first_skipped": "2025-09-30T02:49:14.068393",
+      "skip_count": 6,
+      "last_skipped": "2025-09-30T02:49:23.931002",
+      "last_search_text": "5732475751"
+    },
+    "Faktura.pdf_9aae30132b31d158": {
+      "attachment_name": "Faktura.pdf",
+      "first_skipped": "2025-09-30T02:49:14.161258",
+      "skip_count": 7,
+      "last_skipped": "2025-09-30T02:49:24.021291",
+      "last_search_text": "5732475751"
+    },
+    "F_01545_08_25_M1.pdf_e6297bcd6843dd7b": {
+      "attachment_name": "F_01545_08_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:14.353933",
+      "skip_count": 6,
+      "last_skipped": "2025-09-30T02:49:33.680172",
+      "last_search_text": "5732475751"
+    },
+    "Faktura.pdf_5b5af23555d02d55": {
+      "attachment_name": "Faktura.pdf",
+      "first_skipped": "2025-09-30T02:49:14.446700",
+      "skip_count": 6,
+      "last_skipped": "2025-09-30T02:49:33.779987",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M09_0001952_07_25.pdf_1c7f11b86f226a7b": {
+      "attachment_name": "Faktura nr F_M09_0001952_07_25.pdf",
+      "first_skipped": "2025-09-30T02:49:14.539189",
+      "skip_count": 6,
+      "last_skipped": "2025-09-30T02:49:34.373248",
+      "last_search_text": "5732475751"
+    },
+    "Faktura_32_08_2025.pdf_443cd442eb400033": {
+      "attachment_name": "Faktura_32_08_2025.pdf",
+      "first_skipped": "2025-09-30T02:49:14.632822",
+      "skip_count": 7,
+      "last_skipped": "2025-09-30T02:49:35.279090",
+      "last_search_text": "5732475751"
+    },
+    "FVS_776_2025_GRZEGORZ_CIEKOT.pdf_5f06f7e144bad70f": {
+      "attachment_name": "FVS_776_2025_GRZEGORZ_CIEKOT.pdf",
+      "first_skipped": "2025-09-30T02:49:14.921086",
+      "skip_count": 8,
+      "last_skipped": "2025-09-30T02:49:36.379729",
+      "last_search_text": "5732475751"
+    },
+    "faktura_225_2025_05-06-2025.pdf_d671ea046757b029": {
+      "attachment_name": "faktura_225_2025_05-06-2025.pdf",
+      "first_skipped": "2025-09-30T02:49:16.080738",
+      "skip_count": 7,
+      "last_skipped": "2025-09-30T02:49:35.057001",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M04_0000180_08_25.pdf_79f65035758e2345": {
+      "attachment_name": "Faktura nr F_M04_0000180_08_25.pdf",
+      "first_skipped": "2025-09-30T02:49:23.645234",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:23.645243",
+      "last_search_text": "5732475751"
+    },
+    "F_02034_08_25_M1.pdf_add89a8d7e4b4d6b": {
+      "attachment_name": "F_02034_08_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:23.750433",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:23.750440",
+      "last_search_text": "5732475751"
+    },
+    "faktura-188-08-2025.pdf_8f80ccc356ca512b": {
+      "attachment_name": "faktura-188-08-2025.pdf",
+      "first_skipped": "2025-09-30T02:49:23.839256",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:23.839263",
+      "last_search_text": "5732475751"
+    },
+    "19578_08_2025_UP.pdf_02d026088bc061f5": {
+      "attachment_name": "19578_08_2025_UP.pdf",
+      "first_skipped": "2025-09-30T02:49:35.781859",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:35.781866",
+      "last_search_text": "5732475751"
+    },
+    "13453_08_2025_UL.pdf_86bf9e390e572756": {
+      "attachment_name": "13453_08_2025_UL.pdf",
+      "first_skipped": "2025-09-30T02:49:36.832226",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:36.832234",
+      "last_search_text": "5732475751"
+    },
+    "03584_07_2025_WOL.pdf_38313553fe615767": {
+      "attachment_name": "03584_07_2025_WOL.pdf",
+      "first_skipped": "2025-09-30T02:49:36.921879",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:36.921889",
+      "last_search_text": "5732475751"
+    },
+    "F_10503_07_25_M1.pdf_27d1e38edc600150": {
+      "attachment_name": "F_10503_07_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:39.229909",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:49:40.107753",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M02_0001494_07_25.pdf_c80356fb3f8db8c3": {
+      "attachment_name": "Faktura nr F_M02_0001494_07_25.pdf",
+      "first_skipped": "2025-09-30T02:49:39.326742",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:39.326758",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M05_0000789_06_25.pdf_f5fc80d7bc42102e": {
+      "attachment_name": "Faktura nr F_M05_0000789_06_25.pdf",
+      "first_skipped": "2025-09-30T02:49:39.414978",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:49:40.203403",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M05_0001298_05_25.pdf_16ca2802295397e7": {
+      "attachment_name": "Faktura nr F_M05_0001298_05_25.pdf",
+      "first_skipped": "2025-09-30T02:49:39.503534",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:49:40.300354",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M05_0000183_06_25.pdf_2713028b4d765b6f": {
+      "attachment_name": "Faktura nr F_M05_0000183_06_25.pdf",
+      "first_skipped": "2025-09-30T02:49:39.595885",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:49:40.413022",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M09_0001401_07_25.pdf_81999a89275c8138": {
+      "attachment_name": "Faktura nr F_M09_0001401_07_25.pdf",
+      "first_skipped": "2025-09-30T02:49:39.835903",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T02:49:40.508717",
+      "last_search_text": "5732475751"
+    },
+    "F_11003_07_25_M1.pdf_43af5241c150e58a": {
+      "attachment_name": "F_11003_07_25_M1.pdf",
+      "first_skipped": "2025-09-30T02:49:39.923413",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:39.923419",
+      "last_search_text": "5732475751"
+    },
+    "faktura_FS_42472-NM2-07-2025.pdf_1fae190c9e5df108": {
+      "attachment_name": "faktura_FS_42472-NM2-07-2025.pdf",
+      "first_skipped": "2025-09-30T02:49:40.012412",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T02:49:40.012419",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 180_7_2025.pdf_809d661c4d5a41e8": {
+      "attachment_name": "Faktura nr 180_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:49:52.150502",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T21:47:27.197690",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr 55_7_2025.pdf_649f3e7bd97d8fc0": {
+      "attachment_name": "Faktura nr 55_7_2025.pdf",
+      "first_skipped": "2025-09-30T02:50:03.857105",
+      "skip_count": 2,
+      "last_skipped": "2025-09-30T21:47:27.461681",
+      "last_search_text": "5732475751"
+    },
+    "F_11432_09_25_M1.pdf_e0a7c1eab682ffc7": {
+      "attachment_name": "F_11432_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T21:47:21.777255",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:15:57.431471",
+      "last_search_text": "5732475751"
+    },
+    "41.pdf_08f6ef47ba23eb71": {
+      "attachment_name": "41.pdf",
+      "first_skipped": "2025-09-30T21:47:21.893331",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:21.893344",
+      "last_search_text": "5732475751"
+    },
+    "[TeleMiko]-Warunki reklamacji.pdf_c0dc082f7e07764f": {
+      "attachment_name": "[TeleMiko]-Warunki reklamacji.pdf",
+      "first_skipped": "2025-09-30T21:47:21.997975",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:21.997981",
+      "last_search_text": "5732475751"
+    },
+    "[TeleMiko]-Warunki zwrotów.pdf_7126f39d97d01b12": {
+      "attachment_name": "[TeleMiko]-Warunki zwrotów.pdf",
+      "first_skipped": "2025-09-30T21:47:22.102489",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:22.102499",
+      "last_search_text": "5732475751"
+    },
+    "[elektis_wroclaw]-Informacje o gwarancjach.pdf_e84f08cc0ccdfc62": {
+      "attachment_name": "[elektis_wroclaw]-Informacje o gwarancjach.pdf",
+      "first_skipped": "2025-09-30T21:47:22.222842",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:22.222854",
+      "last_search_text": "5732475751"
+    },
+    "[elektis_wroclaw]-Warunki reklamacji.pdf_af3c106b6b2322de": {
+      "attachment_name": "[elektis_wroclaw]-Warunki reklamacji.pdf",
+      "first_skipped": "2025-09-30T21:47:22.332978",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:22.332986",
+      "last_search_text": "5732475751"
+    },
+    "[elektis_wroclaw]-Warunki zwrotów.pdf_8b39888a22892869": {
+      "attachment_name": "[elektis_wroclaw]-Warunki zwrotów.pdf",
+      "first_skipped": "2025-09-30T21:47:22.435660",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:22.435669",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf_6d56cb1afccdc46f": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-057-781_5697.pdf",
+      "first_skipped": "2025-09-30T21:47:22.555955",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:54:43.849691",
+      "last_search_text": "5732475751"
+    },
+    "UMOWA_FINAL_LL-i-324323-2025.pdf_037855ddade54a7f": {
+      "attachment_name": "UMOWA_FINAL_LL-i-324323-2025.pdf",
+      "first_skipped": "2025-09-30T21:47:22.664344",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:22.664348",
+      "last_search_text": "5732475751"
+    },
+    "Zasady-Dla-Klienta-Przepiecia-PZU.pdf_544de2a21f7e7576": {
+      "attachment_name": "Zasady-Dla-Klienta-Przepiecia-PZU.pdf",
+      "first_skipped": "2025-09-30T21:47:22.986162",
+      "skip_count": 5,
+      "last_skipped": "2025-10-01T03:16:08.721195",
+      "last_search_text": "5732475751"
+    },
+    "FV-28543-2025.pdf_2de9a06c07032c81": {
+      "attachment_name": "FV-28543-2025.pdf",
+      "first_skipped": "2025-09-30T21:47:23.090889",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:23.090897",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf_d07b45cff855732b": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-057-286_4435.pdf",
+      "first_skipped": "2025-09-30T21:47:23.212408",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:15:57.788764",
+      "last_search_text": "5732475751"
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf_57357cd3eeb753c7": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-056-664_4746.pdf",
+      "first_skipped": "2025-09-30T21:47:23.331976",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:15:57.940815",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf_91e0a52fa0b06a81": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-054-782_4435.pdf",
+      "first_skipped": "2025-09-30T21:47:26.212773",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:15:59.808697",
+      "last_search_text": "5732475751"
+    },
+    "LL-i-324323-2025-sig.pdf_90cc4f00700602f1": {
+      "attachment_name": "LL-i-324323-2025-sig.pdf",
+      "first_skipped": "2025-09-30T21:47:26.549244",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:26.549253",
+      "last_search_text": "5732475751"
+    },
+    "Regulamin_Furgonetka.pl.pdf_c5fb732049354383": {
+      "attachment_name": "Regulamin_Furgonetka.pl.pdf",
+      "first_skipped": "2025-09-30T21:47:27.334041",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:27.334046",
+      "last_search_text": "5732475751"
+    },
+    "Faktura_322_09_2025.pdf_0eea88fba1c855ab": {
+      "attachment_name": "Faktura_322_09_2025.pdf",
+      "first_skipped": "2025-09-30T21:47:28.238208",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:28.238217",
+      "last_search_text": "5732475751"
+    },
+    "Warunki reklamacji.pdf_8bd13e99186a34aa": {
+      "attachment_name": "Warunki reklamacji.pdf",
+      "first_skipped": "2025-09-30T21:47:28.344197",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:28.344200",
+      "last_search_text": "5732475751"
+    },
+    "Warunki zwrotów.pdf_0cb5dd337b4cf20b": {
+      "attachment_name": "Warunki zwrotów.pdf",
+      "first_skipped": "2025-09-30T21:47:28.446621",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:28.446625",
+      "last_search_text": "5732475751"
+    },
+    "Informacje o gwarancjach.pdf_cba7984fb2c68917": {
+      "attachment_name": "Informacje o gwarancjach.pdf",
+      "first_skipped": "2025-09-30T21:47:28.801072",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:28.801082",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-053-255_5697.pdf_8a990409107ae881": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-053-255_5697.pdf",
+      "first_skipped": "2025-09-30T21:47:28.927021",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T02:57:05.875690",
+      "last_search_text": "5732475751"
+    },
+    "Hity tygodnia Hurton - super cena 23.09.2025-28.09.2025 poprawka.pdf_14576b800016a761": {
+      "attachment_name": "Hity tygodnia Hurton - super cena 23.09.2025-28.09.2025 poprawka.pdf",
+      "first_skipped": "2025-09-30T21:47:29.035523",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:29.035533",
+      "last_search_text": "5732475751"
+    },
+    "KFS 2100_2025.pdf_362ab21271296432": {
+      "attachment_name": "KFS 2100_2025.pdf",
+      "first_skipped": "2025-09-30T21:47:29.186009",
+      "skip_count": 1,
+      "last_skipped": "2025-09-30T21:47:29.186018",
+      "last_search_text": "5732475751"
+    },
+    "1--UNIQA - zlecenie naprawy AGD i RTV_UK-051-921_4746.pdf_d4e5ebdb29d51014": {
+      "attachment_name": "1--UNIQA - zlecenie naprawy AGD i RTV_UK-051-921_4746.pdf",
+      "first_skipped": "2025-09-30T21:47:29.307123",
+      "skip_count": 4,
+      "last_skipped": "2025-10-01T03:16:03.266110",
+      "last_search_text": "5732475751"
+    },
+    "F_09348_09_25_M1.pdf_3ab9b2bb1d3c577f": {
+      "attachment_name": "F_09348_09_25_M1.pdf",
+      "first_skipped": "2025-09-30T21:47:29.412752",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T03:16:03.365608",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf_587ed5b425289161": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-058-599_5697.pdf",
+      "first_skipped": "2025-10-01T02:54:33.401167",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T02:54:33.401174",
+      "last_search_text": "5732475751"
+    },
+    "pdf_07f152f0da151a7de299993a77a3402f.pdf_150a21310f9a3d69": {
+      "attachment_name": "pdf_07f152f0da151a7de299993a77a3402f.pdf",
+      "first_skipped": "2025-10-01T02:54:43.760434",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T02:54:43.760440",
+      "last_search_text": "5732475751"
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-051-315_4746.pdf_8d8db1f94e2a555b": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-051-315_4746.pdf",
+      "first_skipped": "2025-10-01T02:57:16.937370",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T03:16:04.815548",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-050-600_5697.pdf_be3abf51b4ef1bfe": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz 22.06_UK-050-600_5697.pdf",
+      "first_skipped": "2025-10-01T02:57:17.918960",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T02:57:17.918970",
+      "last_search_text": "5732475751"
+    },
+    "UNIQA - zlecenie naprawy AGD i RTV_UK-049-713_4746.pdf_c2d11071945cbc25": {
+      "attachment_name": "UNIQA - zlecenie naprawy AGD i RTV_UK-049-713_4746.pdf",
+      "first_skipped": "2025-10-01T02:57:35.198698",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:08.411855",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-049-014_4435.pdf_ca57eddfd2aaa75a": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-049-014_4435.pdf",
+      "first_skipped": "2025-10-01T02:57:43.402042",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:08.500670",
+      "last_search_text": "5732475751"
+    },
+    "F_08233_09_25_M1.pdf_cb011f67acb7edd5": {
+      "attachment_name": "F_08233_09_25_M1.pdf",
+      "first_skipped": "2025-10-01T02:57:43.459822",
+      "skip_count": 3,
+      "last_skipped": "2025-10-01T03:16:08.557233",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol_UK-048-373_304.pdf_91992ffcd5fc24fc": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol_UK-048-373_304.pdf",
+      "first_skipped": "2025-10-01T02:57:53.475879",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:09.151518",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-168_4435.pdf_5c9923a737cecd0f": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-168_4435.pdf",
+      "first_skipped": "2025-10-01T02:58:03.024571",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:10.325124",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-695_4435.pdf_dbf6e1a6dbd0c517": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-047-695_4435.pdf",
+      "first_skipped": "2025-10-01T02:58:11.911409",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:12.628507",
+      "last_search_text": "5732475751"
+    },
+    "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-046-262_4435.pdf_d74915e7c420e349": {
+      "attachment_name": "PKO DOM - Zlecenie naprawy AGD_RTV_protokol__UK-046-262_4435.pdf",
+      "first_skipped": "2025-10-01T02:58:20.566850",
+      "skip_count": 2,
+      "last_skipped": "2025-10-01T03:16:12.896944",
+      "last_search_text": "5732475751"
+    },
+    "Faktura nr F_M04_0001821_09_25.pdf_59fe81ca9fda2af9": {
+      "attachment_name": "Faktura nr F_M04_0001821_09_25.pdf",
+      "first_skipped": "2025-10-01T03:15:56.776034",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T03:15:56.776041",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-058-599_5697.pdf_587ed5b425289161": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-058-599_5697.pdf",
+      "first_skipped": "2025-10-01T03:15:57.370744",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T03:15:57.370750",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-057-781_5697.pdf_6d56cb1afccdc46f": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-057-781_5697.pdf",
+      "first_skipped": "2025-10-01T03:15:57.516837",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T03:15:57.516842",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-053-255_5697.pdf_8a990409107ae881": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-053-255_5697.pdf",
+      "first_skipped": "2025-10-01T03:16:02.837403",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T03:16:02.837408",
+      "last_search_text": "5732475751"
+    },
+    "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-050-600_5697.pdf_be3abf51b4ef1bfe": {
+      "attachment_name": "Zlecenie naprawy AGD_RTV_protokol - Allianz\r\n 22.06_UK-050-600_5697.pdf",
+      "first_skipped": "2025-10-01T03:16:06.314201",
+      "skip_count": 1,
+      "last_skipped": "2025-10-01T03:16:06.314206",
+      "last_search_text": "5732475751"
+    }
+  }
+}
