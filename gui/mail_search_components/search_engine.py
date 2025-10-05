@@ -1088,14 +1088,14 @@ class EmailSearchEngine:
                 log("[IMAP] No messages found")
                 return []
             
-            # IMAP pagination fix: Remove per_page limitation here
-            # Pagination is handled at the higher level in _threaded_search
-            # This allows proper pagination beyond the first page
-            log(f"[IMAP] Found {len(message_uids)} message UIDs, fetching all for pagination")
+            # Limit the number of messages for performance
+            limited_uids = message_uids[-per_page:]  # Get most recent messages up to per_page limit
+            if len(limited_uids) < len(message_uids):
+                log(f"[IMAP] Limited to {len(limited_uids)} most recent messages (from {len(message_uids)} total)")
             
             # Fetch message data
-            log(f"[IMAP] Fetching message data for {len(message_uids)} messages...")
-            messages_list = self._fetch_imap_messages(imap, message_uids, criteria)
+            log(f"[IMAP] Fetching message data for {len(limited_uids)} messages...")
+            messages_list = self._fetch_imap_messages(imap, limited_uids, criteria)
             
             log(f"[IMAP] Successfully retrieved {len(messages_list)} message objects")
             return messages_list
